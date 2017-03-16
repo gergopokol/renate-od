@@ -18,6 +18,14 @@ class ode_solver:
         solution=odeint(set_up_equation,initial_condition,t=steps,args=(coefficient_matrix,))
         return solution
 
+    def analytical_solution(initial_condition,steps,coefficient_matrix,):
+        w, v = numpy.linalg.eig(coefficient_matrix)
+        eigenvectors = v
+        eigenvalues = w
+        analytical_solution = numpy.linalg.inv(eigenvectors) * initial_condition * eigenvectors * numpy.exp(
+            eigenvalues * steps[0])
+        return analytical_solution
+
 
 
 
