@@ -22,8 +22,17 @@ class ode_solver:
         w, v = numpy.linalg.eig(coefficient_matrix)
         eigenvectors = v
         eigenvalues = w
-        analytical_solution = numpy.linalg.inv(eigenvectors) * initial_condition * eigenvectors * numpy.exp(
-            eigenvalues * steps[0])
+        if initial_condition.size == 1:
+            print('1D')
+            analytical_solution=numpy.zeros(steps.size)
+            for i in range(steps.size):
+              analytical_solution[i] = 1/eigenvectors*initial_condition*eigenvectors * numpy.exp(eigenvalues * steps[i])
+        else:
+            print('wrong')
+            analytical_solution=numpy.zeros((steps.size,initial_condition.size))
+            for i in range(steps.size):
+                analytical_solution[i,:] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),initial_condition),eigenvectors)*numpy.exp(
+            eigenvalues*steps[i])
         return analytical_solution
 
 
