@@ -12,7 +12,7 @@ class TestOde_solver(TestCase):
     c[0, 0] = 1
     initial_condition = numpy.zeros(2)
     initial_condition[0] = 1
-    initial_condition[1] = 0
+    initial_condition[1] = 2
     interval = 0.1
     number_of_steps = 100
     steps = numpy.linspace(0, interval, number_of_steps)
