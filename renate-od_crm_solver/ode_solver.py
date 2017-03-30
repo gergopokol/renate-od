@@ -23,16 +23,15 @@ class ode_solver:
         eigenvectors = v
         eigenvalues = w
         if initial_condition.size == 1:
-            print('1D')
             analytical_solution=numpy.zeros(steps.size)
             for i in range(steps.size):
               analytical_solution[i] = 1/eigenvectors*initial_condition*eigenvectors * numpy.exp(eigenvalues * steps[i])
         else:
-            print('wrong')
             analytical_solution=numpy.zeros((steps.size,initial_condition.size))
             for i in range(steps.size):
                 analytical_solution[i,:] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),initial_condition),eigenvectors)*numpy.exp(
             eigenvalues*steps[i])
+ #                analytical_solution[i, :] = numpy.dot(numpy.linalg.inv(eigenvectors),initial_condition,eigenvectors)#*numpy.exp(eigenvalues * steps[i])
         return analytical_solution
 
 
