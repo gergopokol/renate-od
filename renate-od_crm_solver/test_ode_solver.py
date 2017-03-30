@@ -13,14 +13,14 @@ class TestOde_solver(TestCase):
     initial_condition = numpy.zeros(2)
     initial_condition[0] = 1
     initial_condition[1] = 0
-    interval = 100
-    number_of_steps = 5
+    interval = 0.1
+    number_of_steps = 100
     steps = numpy.linspace(0, interval, number_of_steps)
     coefficient_matrix = numpy.zeros((2, 2))
-    coefficient_matrix[0, 0] = -2
+    coefficient_matrix[0, 0] = -0.2
     coefficient_matrix[0, 1] = 0
     coefficient_matrix[1, 0] = 0
-    coefficient_matrix[1, 1] = 5
+    coefficient_matrix[1, 1] = -1.0
     onedim_matrix=numpy.zeros((1,1))
     onedim_matrix[0,0]=2
     onedim_init=numpy.zeros(1)
@@ -44,7 +44,7 @@ class TestOde_solver(TestCase):
         solution = ode_solver.calculate_solution(ode_solver.set_up_equation,self.initial_condition, self.steps, self.coefficient_matrix)
         for i in range(self.steps.size):
             for j in range(self.initial_condition.size):
-                self.assertAlmostEqual(solution[i, j], (self.initial_condition[j] * numpy.exp(self.coefficient_matrix[j, j] * self.steps[i])), 6)
+                self.assertAlmostEqual(solution[i, j], (self.initial_condition[j] * numpy.exp(self.coefficient_matrix[j, j] * self.steps[i])), 2)
 
     def test_diagonal_analytical(self):
         solution=ode_solver.analytical_solution(self.initial_condition,self.steps,self.coefficient_matrix)
@@ -57,7 +57,7 @@ class TestOde_solver(TestCase):
         analytical=ode_solver.analytical_solution(self.initial_condition,self.steps,self.coefficient_matrix)
         for i in range(len(self.steps)):
             for j in range(self.initial_condition.size):
-                self.assertAlmostEqual(numerical[i,j],analytical[i,j],6)
+                self.assertAlmostEqual(numerical[i,j],analytical[i,j],3)
 
     def test_almostequal(self):
         self.assertAlmostEqual(1,1.004,2)

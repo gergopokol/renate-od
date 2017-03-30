@@ -40,5 +40,3 @@ class ode_solver:
 
 
 
-
-
