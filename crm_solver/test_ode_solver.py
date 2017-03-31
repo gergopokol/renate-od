@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ode_solver import ode_solver
+from crm_solver.ode_solver import ode_solver
 import numpy
 import math
 

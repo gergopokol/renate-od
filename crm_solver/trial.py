@@ -1,5 +1,5 @@
 import numpy
-from ode_solver import ode_solver
+from crm_solver.ode_solver import ode_solver
 import math
 
 class trial:
