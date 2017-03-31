@@ -1,8 +1,8 @@
 import numpy
-from ode_solver import ode_solver
+from crm_solver.odesolver import OdeSolver
 import math
 
-class trial:
+class Trial:
     initial_condition = numpy.transpose(numpy.zeros(2))
     initial_condition[0] = 1
     initial_condition[1] = 6
@@ -28,15 +28,15 @@ class trial:
         coefficient_matrix[0, 1] * coefficient_matrix[1, 0])) / 2
     print(coefficient_matrix)
 
-    analytical=ode_solver.analytical_solution(initial_condition,steps,coefficient_matrix)
+    analytical=OdeSolver.analytical_solution(initial_condition, steps, coefficient_matrix)
 
-    analytical_solution_1d=ode_solver.analytical_solution(onedim_init,steps,onedim_matrix)
+    analytical_solution_1d=OdeSolver.analytical_solution(onedim_init, steps, onedim_matrix)
     print(analytical_solution_1d-onedim_init*numpy.exp(onedim_matrix*steps[4]))
 
-    print(ode_solver.calculate_solution(ode_solver.set_up_equation,initial_condition,steps,coefficient_matrix))
+    print(OdeSolver.calculate_solution(OdeSolver.set_up_equation, initial_condition, steps, coefficient_matrix))
 
 
-    numerical=ode_solver.calculate_solution(ode_solver.set_up_equation,initial_condition,steps,coefficient_matrix)
+    numerical=OdeSolver.calculate_solution(OdeSolver.set_up_equation, initial_condition, steps, coefficient_matrix)
 
     for i in range(steps.size):
         for j in range(initial_condition.size):

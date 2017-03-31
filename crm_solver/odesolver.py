@@ -3,9 +3,9 @@ from scipy.integrate import odeint
 #from set_up_coefficient_matrix import set_up_coefficient_matrix
 
 
+class OdeSolver:
 
-class ode_solver:
-    def set_up_equation(variable_vector, calculation_point, coefficient_matrix):
+    def set_up_equation(self, variable_vector, calculation_point, coefficient_matrix):
         if coefficient_matrix.ndim==3:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix[:, :, calculation_point])
         elif coefficient_matrix.ndim==2:
@@ -13,12 +13,12 @@ class ode_solver:
         return derivative_vector
 
 
-    def calculate_solution(set_up_equation,initial_condition,steps,\
+    def calculate_solution(self, equation, initial_condition, steps,\
                            coefficient_matrix):
-        solution=odeint(set_up_equation,initial_condition,t=steps,args=(coefficient_matrix,))
+        solution=odeint(equation,initial_condition,t=steps,args=(coefficient_matrix,))
         return solution
 
-    def analytical_solution(initial_condition,steps,coefficient_matrix,):
+    def analytical_solution(self, initial_condition, steps, coefficient_matrix,):
         w, v = numpy.linalg.eig(coefficient_matrix)
         eigenvectors = v
         eigenvalues = w
