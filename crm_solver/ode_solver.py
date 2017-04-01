@@ -19,9 +19,7 @@ class ode_solver:
         return solution
 
     def analytical_solution(initial_condition,steps,coefficient_matrix,):
-        w, v = numpy.linalg.eig(coefficient_matrix)
-        eigenvectors = v
-        eigenvalues = w
+        eigenvalues, eigenvectors = numpy.linalg.eig(coefficient_matrix)
         if initial_condition.size == 1:
             analytical_solution=numpy.zeros(steps.size)
             for i in range(steps.size):
