@@ -4,26 +4,17 @@ import numpy
 
 
 class TestOdeSolver(TestCase):
-    pop = numpy.zeros(2)
-    pop[0] = 1
-    c = numpy.zeros((2, 2))
-    c[0, 1] = 2
-    c[0, 0] = 1
-    initial_condition = numpy.zeros(2)
-    initial_condition[0] = 1
-    initial_condition[1] = 2
+    pop = numpy.array([ 1.,  0.])
+    c = numpy.array([[ 1.,  2.],
+                     [ 0.,  0.]])
+    initial_condition = numpy.array([ 1.,  2.])
     interval = 0.1
     number_of_steps = 100
     steps = numpy.linspace(0, interval, number_of_steps)
-    coefficient_matrix = numpy.zeros((2, 2))
-    coefficient_matrix[0, 0] = -0.2
-    coefficient_matrix[0, 1] = 0
-    coefficient_matrix[1, 0] = 0
-    coefficient_matrix[1, 1] = -1.0
-    onedim_matrix=numpy.zeros((1,1))
-    onedim_matrix[0,0]=2
-    onedim_init=numpy.zeros(1)
-    onedim_init[0]=1
+    coefficient_matrix = numpy.array([[-0.2,  0. ],
+                                      [ 0. , -1. ]])
+    onedim_matrix=numpy.array([[ 2.]])
+    onedim_init=numpy.array([ 1.])
 
     def test_set_up_equation(self):
         OS = OdeSolver()
