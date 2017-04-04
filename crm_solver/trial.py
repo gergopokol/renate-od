@@ -33,10 +33,10 @@ class Trial:
     analytical_solution_1d=Ode.analytical_solution(onedim_init, steps, onedim_matrix)
     print(analytical_solution_1d-onedim_init*numpy.exp(onedim_matrix*steps[4]))
 
-    print(Ode.calculate_solution(Ode.set_up_equation, initial_condition, steps, coefficient_matrix))
+    print(Ode.calculate_solution(initial_condition, steps, coefficient_matrix))
 
 
-    numerical=Ode.calculate_solution(Ode.set_up_equation, initial_condition, steps, coefficient_matrix)
+    numerical=Ode.calculate_solution(initial_condition, steps, coefficient_matrix)
 
     for i in range(steps.size):
         for j in range(initial_condition.size):
