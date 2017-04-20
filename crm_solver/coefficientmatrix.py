@@ -1,6 +1,7 @@
 import numpy
 
-class coefficient_matrix:
+class CoefficientMatrix:
+    @staticmethod
     def compile(initial_condition, steps, density, rate_coefficients, velocity):
         number_of_levels=len(initial_condition)
         coefficient_matrix = numpy.zeros((number_of_levels, number_of_levels, len(steps)))
