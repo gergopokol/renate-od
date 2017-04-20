@@ -188,3 +188,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# RENATE OD specific
+data/
