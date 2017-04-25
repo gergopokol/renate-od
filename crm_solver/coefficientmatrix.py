@@ -4,6 +4,16 @@ from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
+    def __init__(self):
+        self.inputs = Inputs()
+        self.rates = Rates(self.inputs)
+        self.matrix = self.compile()
+
+    def compile(self):
+        coefficient_matrix = numpy.zeros((self.inputs.number_of_levels, self.inputs.number_of_levels, len(self.inputs.steps)))
+        for i in range(self.inputs.number_of_levels):
+            for j in range(self.inputs.number_of_levels):
+                for k in range(len(self.inputs.steps)):
     def __init__(self, inputs=Inputs()):
         self.inputs = inputs
         self.rates = Rates(self.inputs)
