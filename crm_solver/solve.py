@@ -1,4 +1,4 @@
-from crm_solver.inputs import Inputs, Inputs2
+from crm_solver.inputs import Inputs1, Inputs2
 from crm_solver.rates import Rates
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
@@ -9,13 +9,13 @@ class Solve:
     def solve_numerically(inputs):
         inp = inputs
         r = Rates()
-        coeffmatrix = CoefficientMatrix(inputs=inp)
+        coeffmatrix = CoefficientMatrix(inp)
         ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)
         numerical = ode_init.calculate_solution()
         return numerical
 
     def plot_populations(self):
-        inp = Inputs()
+        inp = Inputs1()
         coeffmatrix = CoefficientMatrix()
         ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)
         solutions=self.solve_numerically()
@@ -29,7 +29,7 @@ class Solve:
         matplotlib.pyplot.show()
 
     def compare(self):
-        inp = Inputs()
+        inp = Inputs1()
         inp2 = Inputs2()
         coeffmatrix = CoefficientMatrix(inp)
         ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)

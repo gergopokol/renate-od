@@ -100,12 +100,12 @@ import os
 import numpy
 import math
 from scipy.interpolate import interp1d
-from crm_solver.inputs import Inputs
+from crm_solver.inputs import Inputs1
 
 
 class Rates:
     # Get rate coefficients from hdf5 files:
-    def __init__(self, inputs=Inputs()):
+    def __init__(self, inputs=Inputs1()):
         self.inputs=inputs
         rate_coefficients=self.setup_rate_coeff_arrays()
         temperature_array=rate_coefficients[0]
@@ -141,7 +141,8 @@ class Rates:
         self.proton_neutral_collisions=proton_neutral_collisions_array_new
         self.electron_loss_collisions=electron_loss_collisions_array_new
         self.einstein_coeffs=einstein_coeffs_array
-        self.velocity=math.sqrt(2 * inputs.beam_energy * 1.602176487e-16 / self.get_mass())
+        self.mass = self.get_mass(beam_species = inputs.beam_species)
+        self.velocity=math.sqrt(2 * inputs.beam_energy * 1.602176487e-16 / self.mass)
 
 
     def setup_rate_coeff_arrays(self):
