@@ -23,26 +23,30 @@ class Rates:
         proton_neutral_collisions_array_new = numpy.zeros((inputs.number_of_levels, inputs.number_of_levels,
                                                            len(inputs.steps)))
         electron_loss_collisions_array_new = numpy.zeros((2, inputs.number_of_levels, len(inputs.steps)))
-        for i in range(inputs.number_of_levels):
-            for j in range(inputs.number_of_levels):
-                for k in range(len(inputs.steps)):
-                    if j != i:
+        for from_level in range(inputs.number_of_levels):
+            for to_level in range(inputs.number_of_levels):
+                for step in range(len(inputs.steps)):
+                    if to_level != from_level:
                         x = temperature_array
-                        y = electron_neutral_collisions_array[i, j, :], proton_neutral_collisions_array[i, j, :]
+                        y = electron_neutral_collisions_array[from_level, to_level, :], \
+                            proton_neutral_collisions_array[from_level, to_level, :]
                         f = interp1d(x, y)
-                        electron_neutral_collisions_array_new[i, j, k] = f(inputs.electron_temperature[k])[0]
-                        proton_neutral_collisions_array_new[i, j, k] = f(inputs.proton_temperature[k])[1]
+                        electron_neutral_collisions_array_new[from_level, to_level, step] =\
+                            f(inputs.electron_temperature[step])[0]
+                        proton_neutral_collisions_array_new[from_level, to_level, step]\
+                            = f(inputs.proton_temperature[step])[1]
                     else:
                         continue
-        for i in range(inputs.number_of_levels):
-            for k in range(len(inputs.steps)):
+        for from_level in range(inputs.number_of_levels):
+            for step in range(len(inputs.steps)):
                 x = temperature_array
-                y = electron_loss_collisions_array[0, i, :], electron_loss_collisions_array[1, i, :]
+                y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
-                electron_loss_collisions_array_new[0, i, k] = f(inputs.electron_temperature[k])[0]
-                electron_loss_collisions_array_new[1, i, k] = f(inputs.proton_temperature[k])[1]
+                electron_loss_collisions_array_new[0, from_level, step] = f(inputs.electron_temperature[step])[0]
+                electron_loss_collisions_array_new[1, from_level, step] = f(inputs.proton_temperature[step])[1]
 
         self.electron_neutral_collisions = electron_neutral_collisions_array_new
+
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
@@ -89,7 +93,7 @@ class Rates:
         else:
             return atom
 
-   @staticmethod
+    @staticmethod
     def get_data_from_hdf5(name, source):
         try:
             hdf5_id = h5py.File(name, 'r')

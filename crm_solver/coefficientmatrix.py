@@ -4,7 +4,7 @@ from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
-    def __init__(self,inputs=Inputs()):
+    def __init__(self, inputs=Inputs()):
         self.inputs = inputs
         self.rates = Rates(self.inputs)
         self.matrix = self.assemble()
@@ -12,24 +12,24 @@ class CoefficientMatrix:
     def assemble(self):
         coefficient_matrix = numpy.zeros(
             (self.inputs.number_of_levels, self.inputs.number_of_levels, len(self.inputs.steps)))
-        for i in range(self.inputs.number_of_levels):
-            for j in range(self.inputs.number_of_levels):
-                for k in range(len(self.inputs.steps)):
-                    if j == i:
-                        electron_terms = sum(self.rates.electron_neutral_collisions[i, :i, k]) + sum(
-                            self.rates.electron_neutral_collisions[i, i + 1:self.inputs.number_of_levels, k]) + \
-                            self.rates.electron_loss_collisions[0, i, k]
-                        ion_terms = sum(self.rates.proton_neutral_collisions[i, :i, k]) + sum(
-                            self.rates.proton_neutral_collisions[i, i + 1:self.inputs.number_of_levels, k]) + \
-                            self.rates.electron_loss_collisions[1, i, k]
-                        photon_terms = sum(self.rates.einstein_coeffs[:, i]) / self.rates.velocity
-                        coefficient_matrix[i, i, k] = -self.inputs.density[k] * electron_terms \
-                                                      - self.inputs.density[k] * ion_terms \
+        for from_level in range(self.inputs.number_of_levels):
+            for to_level in range(self.inputs.number_of_levels):
+                for step in range(len(self.inputs.steps)):
+                    if to_level == from_level:
+                        electron_terms = sum(self.rates.electron_neutral_collisions[from_level, :from_level, step]) + sum(
+                            self.rates.electron_neutral_collisions[from_level, from_level + 1:self.inputs.number_of_levels, step]) + \
+                            self.rates.electron_loss_collisions[0, from_level, step]
+                        ion_terms = sum(self.rates.proton_neutral_collisions[from_level, :from_level, step]) + sum(
+                            self.rates.proton_neutral_collisions[from_level, from_level + 1:self.inputs.number_of_levels, step]) + \
+                            self.rates.electron_loss_collisions[1, from_level, step]
+                        photon_terms = sum(self.rates.einstein_coeffs[:, from_level]) / self.rates.velocity
+                        coefficient_matrix[from_level, from_level, step] = -self.inputs.density[step] * electron_terms \
+                                                      - self.inputs.density[step] * ion_terms \
                                                       - photon_terms
                     else:
-                        coefficient_matrix[i, j, k] = self.inputs.density[k] \
-                                                      * self.rates.electron_neutral_collisions[j, i, k] \
-                                                      + self.inputs.density[k] \
-                                                      * self.rates.proton_neutral_collisions[j, i, k] \
-                                                      + self.rates.einstein_coeffs[i, j] / self.rates.velocity
+                        coefficient_matrix[from_level, to_level, step] = self.inputs.density[step] \
+                                                      * self.rates.electron_neutral_collisions[to_level, from_level, step] \
+                                                      + self.inputs.density[step] \
+                                                      * self.rates.proton_neutral_collisions[to_level, from_level, step] \
+                                                      + self.rates.einstein_coeffs[from_level, to_level] / self.rates.velocity
         return coefficient_matrix
