@@ -1,10 +1,10 @@
 import numpy
-from crm_solver.inputs import Inputs1
+from crm_solver.inputs import Inputs
 from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
-    def __init__(self,inputs=Inputs1()):
+    def __init__(self,inputs=Inputs()):
         self.inputs = inputs
         self.rates = Rates(self.inputs)
         self.matrix = self.assemble()
@@ -23,13 +23,13 @@ class CoefficientMatrix:
                             self.rates.proton_neutral_collisions[i, i + 1:self.inputs.number_of_levels, k]) + \
                             self.rates.electron_loss_collisions[1, i, k]
                         photon_terms = sum(self.rates.einstein_coeffs[:, i]) / self.rates.velocity
-                        coefficient_matrix[i, i, k] = -self.inputs.density * electron_terms \
-                                                      - self.inputs.density * ion_terms \
+                        coefficient_matrix[i, i, k] = -self.inputs.density[k] * electron_terms \
+                                                      - self.inputs.density[k] * ion_terms \
                                                       - photon_terms
                     else:
-                        coefficient_matrix[i, j, k] = self.inputs.density \
+                        coefficient_matrix[i, j, k] = self.inputs.density[k] \
                                                       * self.rates.electron_neutral_collisions[j, i, k] \
-                                                      + self.inputs.density \
+                                                      + self.inputs.density[k] \
                                                       * self.rates.proton_neutral_collisions[j, i, k] \
                                                       + self.rates.einstein_coeffs[i, j] / self.rates.velocity
         return coefficient_matrix

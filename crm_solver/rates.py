@@ -3,12 +3,12 @@ import os
 import numpy
 import math
 from scipy.interpolate import interp1d
-from crm_solver.inputs import Inputs1
+from crm_solver.inputs import Inputs
 
 
 class Rates:
     # Get rate coefficients from hdf5 files:
-    def __init__(self, inputs=Inputs1()):
+    def __init__(self, inputs=Inputs()):
         self.inputs=inputs
         rate_coefficients=self.setup_rate_coeff_arrays()
         temperature_array=rate_coefficients[0]
@@ -28,8 +28,8 @@ class Rates:
                         x = temperature_array
                         y = electron_neutral_collisions_array[i, j, :], proton_neutral_collisions_array[i, j, :]
                         f = interp1d(x, y)
-                        electron_neutral_collisions_array_new[i, j, k] = f(inputs.electron_temperature)[0]
-                        proton_neutral_collisions_array_new[i, j, k] = f(inputs.proton_temperature)[1]
+                        electron_neutral_collisions_array_new[i, j, k] = f(inputs.electron_temperature[k])[0]
+                        proton_neutral_collisions_array_new[i, j, k] = f(inputs.proton_temperature[k])[1]
                     else:
                         continue
         for i in range(inputs.number_of_levels):
@@ -37,8 +37,8 @@ class Rates:
                 x = temperature_array
                 y = electron_loss_collisions_array[0, i, :], electron_loss_collisions_array[1, i, :]
                 f = interp1d(x, y)
-                electron_loss_collisions_array_new[0, i, k] = f(inputs.electron_temperature)[0]
-                electron_loss_collisions_array_new[1, i, k] = f(inputs.proton_temperature)[1]
+                electron_loss_collisions_array_new[0, i, k] = f(inputs.electron_temperature[k])[0]
+                electron_loss_collisions_array_new[1, i, k] = f(inputs.proton_temperature[k])[1]
 
         self.electron_neutral_collisions=electron_neutral_collisions_array_new
         self.proton_neutral_collisions=proton_neutral_collisions_array_new
