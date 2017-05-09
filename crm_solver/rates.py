@@ -65,7 +65,7 @@ class Rates:
             self.get_data_from_hdf5(filename, 'Collisional Coeffs/Electron Loss Collisions') / 1e4
         einstein_coeffs_array = self.get_data_from_hdf5(filename, 'Einstein Coeffs')
         impurity_collisions_array = self.get_data_from_hdf5(filename,
-                                                            'Impurity Collisions') / 1e4
+                                                           'Impurity Collisions') / 1e4
         rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
                              impurity_neutral_collisions_array, electron_loss_collisions_array,
                              einstein_coeffs_array, impurity_collisions_array]
@@ -89,7 +89,7 @@ class Rates:
         else:
             return atom
 
-    @staticmethod
+   @staticmethod
     def get_data_from_hdf5(name, source):
         try:
             hdf5_id = h5py.File(name, 'r')
@@ -100,3 +100,4 @@ class Rates:
             data = hdf5_id[source].value
             hdf5_id.close()
             return data
+   
