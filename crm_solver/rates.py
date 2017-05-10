@@ -4,6 +4,7 @@ import numpy
 import math
 from scipy.interpolate import interp1d
 from crm_solver.inputs import Inputs
+from utility import get_data_from_hdf5
 
 
 class Rates:
@@ -57,18 +58,18 @@ class Rates:
         local_dir = os.getcwd()
         file_name = 'rate_coeffs_' + str(self.inputs.beam_energy) + '_' + self.inputs.beam_species + '.h5'
         filename = self.locate_h5_dir(local_dir, self.inputs.beam_species) + '\\' + file_name
-        temperature_array = self.get_data_from_hdf5(filename, 'Temperature axis')
+        temperature_array = get_data_from_hdf5.get_data_from_hdf5(filename, 'Temperature axis')
         # \1e4 - changing of units
         electron_neutral_collisions_array =\
-            self.get_data_from_hdf5(filename, 'Collisional Coeffs/Electron Neutral Collisions') / 1e4
+            get_data_from_hdf5.get_data_from_hdf5(filename, 'Collisional Coeffs/Electron Neutral Collisions') / 1e4
         proton_neutral_collisions_array\
-            = self.get_data_from_hdf5(filename, 'Collisional Coeffs/Proton Neutral Collisions') / 1e4
+            = get_data_from_hdf5.get_data_from_hdf5(filename, 'Collisional Coeffs/Proton Neutral Collisions') / 1e4
         impurity_neutral_collisions_array =\
-            self.get_data_from_hdf5(filename, 'Collisional Coeffs/Impurity Neutral Collisions') / 1e4
+            get_data_from_hdf5.get_data_from_hdf5(filename, 'Collisional Coeffs/Impurity Neutral Collisions') / 1e4
         electron_loss_collisions_array =\
-            self.get_data_from_hdf5(filename, 'Collisional Coeffs/Electron Loss Collisions') / 1e4
-        einstein_coeffs_array = self.get_data_from_hdf5(filename, 'Einstein Coeffs')
-        impurity_collisions_array = self.get_data_from_hdf5(filename,
+            get_data_from_hdf5.get_data_from_hdf5(filename, 'Collisional Coeffs/Electron Loss Collisions') / 1e4
+        einstein_coeffs_array = get_data_from_hdf5.get_data_from_hdf5(filename, 'Einstein Coeffs')
+        impurity_collisions_array = get_data_from_hdf5.get_data_from_hdf5(filename,
                                                            'Impurity Collisions') / 1e4
         rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
                              impurity_neutral_collisions_array, electron_loss_collisions_array,
@@ -92,16 +93,3 @@ class Rates:
             return 'D bundled-n'
         else:
             return atom
-
-    @staticmethod
-    def get_data_from_hdf5(name, source):
-        try:
-            hdf5_id = h5py.File(name, 'r')
-        except IOError:
-            print("File not found!", name)
-            quit()
-        else:
-            data = hdf5_id[source].value
-            hdf5_id.close()
-            return data
-   
