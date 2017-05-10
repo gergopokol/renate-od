@@ -30,8 +30,8 @@ class Inputs:
 
 class Profiles:
     def __init__(self, filename, time_index):
-        self.time_index=time_index
-        self.filename=filename
+        self.time_index = time_index
+        self.filename = filename
         self.get_grid()
         self.get_density_2d()
         self.get_electron_temperature_2d()
@@ -57,15 +57,4 @@ class Profiles:
         r = self.r_axis
         self.r_axis = abs(r - max(r))
 
-    @staticmethod
-    def get_data_from_hdf5(name, source):
-        try:
-            hdf5_id = h5py.File(name, 'r')
-        except IOError:
-            print("File not found!", name)
-            quit()
-        else:
-            data = hdf5_id[source].value
-            hdf5_id.close()
-            return data
 
