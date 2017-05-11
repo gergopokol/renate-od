@@ -35,7 +35,7 @@ class Rates:
                         electron_neutral_collisions_array_new[from_level, to_level, step] =\
                             f(inputs.electron_temperature[step])[0]
                         proton_neutral_collisions_array_new[from_level, to_level, step]\
-                            = f(inputs.proton_temperature[step])[1]
+                            = f(inputs.ion_temperature[step])[1]
                     else:
                         continue
         for from_level in range(inputs.number_of_levels):
@@ -44,7 +44,7 @@ class Rates:
                 y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
                 electron_loss_collisions_array_new[0, from_level, step] = f(inputs.electron_temperature[step])[0]
-                electron_loss_collisions_array_new[1, from_level, step] = f(inputs.proton_temperature[step])[1]
+                electron_loss_collisions_array_new[1, from_level, step] = f(inputs.ion_temperature[step])[1]
 
         self.electron_neutral_collisions = electron_neutral_collisions_array_new
 
@@ -57,7 +57,7 @@ class Rates:
     def setup_rate_coeff_arrays(self):
         local_dir = os.getcwd()
         file_name = 'rate_coeffs_' + str(self.inputs.beam_energy) + '_' + self.inputs.beam_species + '.h5'
-        filename = self.locate_h5_dir(local_dir, self.inputs.beam_species) + '\\' + file_name
+        filename = self.locate_h5_dir(local_dir, self.inputs.beam_species) + '/' + file_name
         temperature_array = get_data_from_hdf5.get_data_from_hdf5(filename, 'Temperature axis')
         # \1e4 - changing of units
         electron_neutral_collisions_array =\
@@ -77,13 +77,13 @@ class Rates:
         return rate_coeff_arrays
 
     def get_mass(self, local_dir=os.getcwd(), beam_species='D'):
-        mass_kg = numpy.loadtxt(self.locate_h5_dir(local_dir, beam_species) + '\\Mass\\' + beam_species + '_m.txt')
+        mass_kg = numpy.loadtxt(self.locate_h5_dir(local_dir, beam_species) + '/Mass/' + beam_species + '_m.txt')
         return mass_kg
 
     def locate_h5_dir(self, cwd, atom):
-        rod_loc = (str.find(cwd, 'renate-od'))
+        rod_loc = (str.find(cwd, 'renate-od.git'))
         atom_folder = self.choose_atom_folder(atom)
-        return cwd[0:rod_loc] + 'renate-od\\data\\' + atom_folder
+        return cwd[0:rod_loc] + 'renate-od.git/trunk/data/' + atom_folder
 
     @staticmethod
     def choose_atom_folder(atom):

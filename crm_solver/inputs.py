@@ -4,7 +4,7 @@ from scipy.interpolate import interpn
 
 
 class Inputs:
-    def __init__(self, filename='C:\\RENATE-OD\\renate-od-svn\\trunk\\data\\Profiles\\SOL profiles\\EAST_#412.h5', time_index=50):
+    def __init__(self, filename='/marconi_work/eufus_gw/work/g2bszond/renate-od.git/trunk/data/Profiles/SOL_profiles/EAST_412.h5', time_index=50):
         self.filename = filename
         self.time_index = time_index
         self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -19,7 +19,7 @@ class Inputs:
         self.vertical = numpy.zeros(self.step_number)
         self.steps = numpy.linspace(0, self.step_interval, self.step_number)
         self.electron_temperature = self.interpolate_profile(self.profiles.electron_temperature_2d)
-        self.proton_temperature = self.interpolate_profile(self.profiles.ion_temperature_2d)
+        self.ion_temperature = self.interpolate_profile(self.profiles.ion_temperature_2d)
         self.density = self.interpolate_profile(self.profiles.density_2d)
 
     def interpolate_profile(self, profile):
