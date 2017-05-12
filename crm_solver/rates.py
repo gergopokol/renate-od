@@ -9,8 +9,8 @@ from utility import get_data_from_hdf5
 
 class Rates:
     # Get rate coefficients from hdf5 files:
-    def __init__(self, time_index):
-        self.inputs = inputs.Inputs(time_index=time_index)
+    def __init__(self):
+        self.inputs = inputs.Inputs()
         rate_coefficients = self.setup_rate_coeff_arrays()
         temperature_array = rate_coefficients[0]
         electron_neutral_collisions_array = rate_coefficients[1]
@@ -56,8 +56,8 @@ class Rates:
 
     def setup_rate_coeff_arrays(self):
         local_dir = os.getcwd()
-        file_name = 'rate_coeffs_' + str(self.self.inputs.beam_energy) + '_' + self.self.inputs.beam_species + '.h5'
-        filename = self.locate_h5_dir(local_dir, self.self.inputs.beam_species) + '/' + file_name
+        file_name = 'rate_coeffs_' + str(self.inputs.beam_energy) + '_' + self.inputs.beam_species + '.h5'
+        filename = self.locate_h5_dir(local_dir, self.inputs.beam_species) + '/' + file_name
         temperature_array = get_data_from_hdf5.get_data_from_hdf5(filename, 'Temperature axis')
         # \1e4 - changing of units
         electron_neutral_collisions_array =\

@@ -11,7 +11,7 @@ class Solve:
     @staticmethod
     def solve_numerically(inputs):
         inp = inputs
-        coeffmatrix = CoefficientMatrix(inp)
+        coeffmatrix = CoefficientMatrix()
         ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)
         numerical = ode_init.calculate_solution()
         return numerical
@@ -40,6 +40,7 @@ class Solve:
         h5f.create_dataset('electron_temperature', data=inp.electron_temperature)
         h5f.create_dataset('ion_temperature', data=inp.ion_temperature)
         h5f.close()
+        print('hdf5 file created.')
 
     @staticmethod
     def locate_h5_dir(cwd):

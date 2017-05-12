@@ -23,9 +23,6 @@ class Inputs:
         self.density = self.interpolate_profile(self.profiles.density_2d)
 
     def interpolate_profile(self, profile):
-        print("profile " + str(profile.shape))
-        print ('r '+ str(len(self.profiles.r_axis)))
-        print ('z '+ str(len(self.profiles.z_axis)))
         new_profile = interpn((self.profiles.z_axis, self.profiles.r_axis), profile, (self.vertical, self.steps))
         return new_profile
 
@@ -58,15 +55,10 @@ class Profiles:
         self.get_electron_temperature_2d()
         self.get_ion_temperature_2d()
 
-
-
-
     def get_grid(self):
         self.r_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/xAxis')
         self.z_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/yAxis')
         self.t_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/tAxis')
-        print(self.z_axis)
-
 
     def get_density_2d(self):
         time_density_2d = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'fields/density')
@@ -75,7 +67,6 @@ class Profiles:
 
     def get_electron_temperature_2d(self):
         time_temperature_2d = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'fields/electronTemperature')
-        print(time_temperature_2d.shape)
         self.electron_temperature_2d = time_temperature_2d[self.time_index, :, :]
         del time_temperature_2d
 

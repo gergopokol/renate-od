@@ -4,9 +4,9 @@ from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
-    def __init__(self, inputs):
-        self.inputs = inputs
-        self.rates = Rates(self.inputs)
+    def __init__(self):
+        self.inputs = inputs.Inputs()
+        self.rates = Rates()
         self.matrix = self.assemble()
 
     def assemble(self):
