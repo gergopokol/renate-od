@@ -1,12 +1,10 @@
 import numpy
-from crm_solver import solve
 from utility import get_data_from_hdf5
 from scipy.interpolate import interpn
 
 
 class Inputs:
-    def __init__(self, filename='/marconi_work/eufus_gw/work/g2bszond/renate-od.git/trunk/'
-                                'data/Profiles/SOL_profiles/EAST_412.h5', time_index=0):
+    def __init__(self, filename='/marconi_work/eufus_gw/work/g2bszond/renate-od.git/trunk/data/Profiles/SOL_profiles/EAST_412.h5', time_index=50):
         self.filename = filename
         self.time_index = time_index
         self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -15,7 +13,7 @@ class Inputs:
         self.step_number = 100
         self.beam_energy = 60
         self.beam_species = 'Li'
-        self.profiles = Profiles(filename, time_index=self.time_index)
+        self.profiles = Profiles(filename, time_index)
         self.profiles.calculate_new_r_axis() # Shift coordinate
 
         self.vertical = numpy.zeros(self.step_number)
@@ -23,11 +21,11 @@ class Inputs:
         self.electron_temperature = self.interpolate_profile(self.profiles.electron_temperature_2d)
         self.ion_temperature = self.interpolate_profile(self.profiles.ion_temperature_2d)
         self.density = self.interpolate_profile(self.profiles.density_2d)
-        self.time_interval = [0, 0.005]
-        self.time_slices = numpy.array([self.profiles.t_axis[time] for time in range(len(self.profiles.t_axis))
-                                       if self.time_interval[0] < self.profiles.t_axis[time] < self.time_interval[1]])
 
     def interpolate_profile(self, profile):
+        print("profile " + str(profile.shape))
+        print ('r '+ str(len(self.profiles.r_axis)))
+        print ('z '+ str(len(self.profiles.z_axis)))
         new_profile = interpn((self.profiles.z_axis, self.profiles.r_axis), profile, (self.vertical, self.steps))
         return new_profile
 
@@ -56,28 +54,34 @@ class Profiles:
         self.electron_temperature_2d = numpy.array([0])
         self.ion_temperature_2d = numpy.array([0])
         self.get_grid()
-        self.get_density_2d(time_index=self.time_index)
-        self.get_electron_temperature_2d(time_index=self.time_index)
-        self.get_ion_temperature_2d(time_index=self.time_index)
+        self.get_density_2d()
+        self.get_electron_temperature_2d()
+        self.get_ion_temperature_2d()
+
+
+
 
     def get_grid(self):
         self.r_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/xAxis')
         self.z_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/yAxis')
         self.t_axis = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'grid/tAxis')
+        print(self.z_axis)
 
-    def get_density_2d(self,time_index):
+
+    def get_density_2d(self):
         time_density_2d = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'fields/density')
-        self.density_2d = time_density_2d[time_index, :, :] # [t, z, r]
+        self.density_2d = time_density_2d[self.time_index, :, :] # [t, z, r]
         del time_density_2d
 
-    def get_electron_temperature_2d(self, time_index):
+    def get_electron_temperature_2d(self):
         time_temperature_2d = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'fields/electronTemperature')
-        self.electron_temperature_2d = time_temperature_2d[time_index, :, :]
+        print(time_temperature_2d.shape)
+        self.electron_temperature_2d = time_temperature_2d[self.time_index, :, :]
         del time_temperature_2d
 
-    def get_ion_temperature_2d(self, time_index):
+    def get_ion_temperature_2d(self):
         time_temperature_2d = get_data_from_hdf5.get_data_from_hdf5(self.filename, 'fields/ionTemperature')
-        self.ion_temperature_2d = time_temperature_2d[time_index, :, :]
+        self.ion_temperature_2d = time_temperature_2d[self.time_index, :, :]
         del time_temperature_2d
 
     def calculate_new_r_axis(self):
