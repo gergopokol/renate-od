@@ -1,4 +1,4 @@
-from crm_solver import inputs
+from turbulence_diagnostics import inputs
 from crm_solver import coefficientmatrix
 from crm_solver.ode import Ode
 import matplotlib.pyplot
