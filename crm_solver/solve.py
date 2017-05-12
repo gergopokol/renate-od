@@ -39,9 +39,9 @@ class Solve:
 
     @staticmethod
     def save_populations():
-        inp = inputs.Inputs()
         solutions_4d = Solve.change_in_time()
         print('size: ' + str(numpy.size(solutions_4d)))
+        inp = inputs.Inputs()
         local_dir=os.getcwd()
         h5f = h5py.File(Solve.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
         h5f.create_dataset('steps', data=inp.steps)
