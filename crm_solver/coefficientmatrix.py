@@ -1,10 +1,10 @@
 import numpy
-from crm_solver.inputs import Inputs
+from crm_solver import inputs
 from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
-    def __init__(self, inputs=Inputs()):
+    def __init__(self, inputs):
         self.inputs = inputs
         self.rates = Rates(self.inputs)
         self.matrix = self.assemble()

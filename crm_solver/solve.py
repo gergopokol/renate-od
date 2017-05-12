@@ -1,5 +1,5 @@
-from crm_solver.inputs import Inputs
-from crm_solver.coefficientmatrix import CoefficientMatrix
+from crm_solver import inputs
+from crm_solver import coefficientmatrix
 from crm_solver.ode import Ode
 import matplotlib.pyplot
 import h5py
@@ -8,25 +8,24 @@ import numpy
 
 
 class Solve:
-    @staticmethod
-    def solve_numerically(inputs):
-        inp = inputs
-        coeffmatrix = CoefficientMatrix()
-        ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)
-        numerical = ode_init.calculate_solution()
-        return numerical
+    def __init__(self):
+        self.time_index = 0
+        return
 
-    def change_in_time(self, inp):
-        solution_4d = numpy.empty([])
-        numpy.size(solution_4d)
-        solution_4d=solution_4d[:,numpy.newaxis]
+    @staticmethod
+    def change_in_time():
+        inp = inputs.Inputs()
+        solution_4d = numpy.empty([inp.step_number, inp.number_of_levels])
+        print(numpy.size(solution_4d))
         for time_index in range(len(inp.time_slices)):
-            solution_slice=self.solve_numerically(inputs=Inputs(time_index=time_index))
-            solution_4d = numpy.append(solution_4d, solution_slice, axis=2)
+            print('time' + str(time_index))
+            inp_new = inputs.Inputs(time_index=time_index)
+            solution_slice = Solve.solve_numerically(inputs=inp_new)
+            solution_4d = numpy.dstack([solution_4d, solution_slice])
         return solution_4d
 
     def plot_populations(self):
-        inp = Inputs()
+        inp = inputs.Inputs()
         solutions = self.solve_numerically(inputs=inp)
         print(solutions)
         for level in range(inp.number_of_levels):
@@ -38,12 +37,13 @@ class Solve:
         matplotlib.pyplot.grid()
         matplotlib.pyplot.show()
 
-    def save_populations(self):
-        inp = Inputs()
-        solutions_4d = self.change_in_time(Solve, inp=inp)
+    @staticmethod
+    def save_populations():
+        inp = inputs.Inputs()
+        solutions_4d = Solve.change_in_time()
         print('size: ' + str(numpy.size(solutions_4d)))
         local_dir=os.getcwd()
-        h5f = h5py.File(self.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
+        h5f = h5py.File(Solve.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
         h5f.create_dataset('steps', data=inp.steps)
         h5f.create_dataset('solutions', data=solutions_4d)
         h5f.create_dataset('density', data=inp.density)
@@ -56,5 +56,12 @@ class Solve:
         rod_loc = (str.find(cwd, 'renate-od.git'))
         return cwd[0:rod_loc] + 'renate-od.git/trunk/data/'
 
+    @staticmethod
+    def solve_numerically(inputs):
+        inp = inputs
+        coeffmatrix = coefficientmatrix.CoefficientMatrix(inputs=inp)
+        ode_init = Ode(coefficient_matrix=coeffmatrix.matrix, initial_condition=inp.initial_condition, steps=inp.steps)
+        numerical = ode_init.calculate_solution()
+        return numerical
 
-Solve.save_populations(Solve)
+Solve.save_populations()
