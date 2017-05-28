@@ -22,8 +22,9 @@ class TestOde(TestCase):
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
         s = ode.set_up_equation(variable_vector=self.test_initial_condition,
-                                calculation_point=self.steps,
-                                coefficient_matrix=self.test_coefficient_matrix)
+                                calculation_point=0,
+                                coefficient_matrix=self.test_coefficient_matrix,
+                                steps=[])
         self.assertEqual(2, s.size)
 
     def test_size_of_solution(self):
