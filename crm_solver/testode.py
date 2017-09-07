@@ -22,7 +22,7 @@ class TestOde(TestCase):
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
         s = ode.set_up_equation(variable_vector=self.test_initial_condition,
-                                calculation_point=0,
+                                actual_position=0,
                                 coefficient_matrix=self.test_coefficient_matrix,
                                 steps=[])
         self.assertEqual(2, s.size)
