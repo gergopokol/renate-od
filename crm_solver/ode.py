@@ -34,9 +34,7 @@ class Ode:
     @staticmethod
     def set_up_equation(variable_vector, calculation_point, coefficient_matrix, steps):
         if coefficient_matrix.ndim == 3:
-            k = 0
-            derivative_vector = numpy.dot(variable_vector, coefficient_matrix[:, :, k])
-            k = k+1
+            derivative_vector = numpy.dot(variable_vector, coefficient_matrix[:, :, calculation_point])
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
         return derivative_vector
