@@ -56,6 +56,7 @@ class Rates:
 
     def setup_rate_coeff_arrays(self):
         local_dir = os.getcwd()
+        print(local_dir)
         file_name = 'rate_coeffs_' + str(self.inputs.beam_energy) + '_' + self.inputs.beam_species + '.h5'
         filename = self.locate_h5_dir(local_dir, self.inputs.beam_species) + '/' + file_name
         temperature_array = get_data_from_hdf5.get_data_from_hdf5(filename, 'Temperature axis')
@@ -81,9 +82,10 @@ class Rates:
         return mass_kg
 
     def locate_h5_dir(self, cwd, atom):
-        rod_loc = (str.find(cwd, 'renate-od.git'))
+        rod_loc = (str.find(cwd, 'trunk'))
+        print(rod_loc)
         atom_folder = self.choose_atom_folder(atom)
-        return cwd[0:rod_loc] + 'renate-od.git/trunk/data/' + atom_folder
+        return cwd[0:rod_loc] + 'trunk/data/' + atom_folder
 
     @staticmethod
     def choose_atom_folder(atom):
