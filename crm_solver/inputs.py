@@ -4,7 +4,7 @@ from scipy.interpolate import interpn
 
 
 class Inputs:
-    def __init__(self, filename='/marconi_work/eufus_gw/work/g2bszond/renate-od.git/trunk/data/Profiles/SOL_profiles/EAST_412.h5', time_index=50):
+    def __init__(self,filename='C:\\Users\\asztalos\\Desktop\\Projects\\BES\\Codes\\RENATE v2\\Trunk\\Device data\\EAST\\SOL profiles\\EAST_#412.h5',time_index=50):
         self.filename = filename
         self.time_index = time_index
         self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -26,18 +26,18 @@ class Inputs:
         new_profile = interpn((self.profiles.z_axis, self.profiles.r_axis), profile, (self.vertical, self.steps))
         return new_profile
 
-class Inputs1:
-    initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
-    step_interval = 0.1
-    step_number = 100
-    beam_energy = 60
-    beam_species = 'Li'
-    electron_temperature = numpy.linspace(1,6,step_number)*1e3
-    proton_temperature = numpy.linspace(1,6,step_number)*1e3
-    density = numpy.linspace(1,6,step_number)*1e20
-
-    number_of_levels = len(initial_condition)
-    steps = numpy.linspace(0, step_interval, step_number)
+class Steady_Plasma_Inputs:
+    def __init__(self):
+        self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.number_of_levels = len(self.initial_condition)
+        self.step_interval = 0.1
+        self.step_number = 100
+        self.beam_energy = 60
+        self.beam_species = 'Li'
+        self.electron_temperature = numpy.linspace(1,6,self.step_number)*1e3
+        self.ion_temperature = numpy.linspace(1,6,self.step_number)*1e3
+        self.density = numpy.linspace(1,6,self.step_number)*1e20
+        self.steps = numpy.linspace(0, self.step_interval, self.step_number)
 
 
 class Profiles:
