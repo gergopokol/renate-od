@@ -35,7 +35,7 @@ class Ode:
     @staticmethod
     def set_up_equation(variable_vector, actual_position, coefficient_matrix, steps):
         if coefficient_matrix.ndim == 3:
-            interp_coefficient_matrix = interp1d(steps, coefficient_matrix, axis=2)
+            interp_coefficient_matrix = interp1d(steps, coefficient_matrix, axis=2, fill_value='extrapolate')
             derivative_vector = numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
