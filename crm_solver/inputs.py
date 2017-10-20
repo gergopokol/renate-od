@@ -26,17 +26,17 @@ class Inputs:
         new_profile = interpn((self.profiles.z_axis, self.profiles.r_axis), profile, (self.vertical, self.steps))
         return new_profile
 
-class Steady_Plasma_Inputs:
+class Constant_Plasma_Inputs:
     def __init__(self):
         self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
         self.number_of_levels = len(self.initial_condition)
-        self.step_interval = 0.1
-        self.step_number = 100
+        self.step_interval = 0.3
+        self.step_number = 300
         self.beam_energy = 60
         self.beam_species = 'Li'
-        self.electron_temperature = numpy.linspace(1,6,self.step_number)*1e3
-        self.ion_temperature = numpy.linspace(1,6,self.step_number)*1e3
-        self.density = numpy.linspace(1,6,self.step_number)*1e20
+        self.electron_temperature = numpy.full(self.step_number,2)*1e3
+        self.ion_temperature = numpy.full(self.step_number,1.5)*1e3
+        self.density = numpy.full(self.step_number,2)*1e19
         self.steps = numpy.linspace(0, self.step_interval, self.step_number)
 
 
@@ -79,5 +79,3 @@ class Profiles:
         r = self.r_axis
         shifted_r = abs(r - max(r))
         self.r_axis = shifted_r[::-1]
-
-
