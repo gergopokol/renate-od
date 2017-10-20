@@ -1,4 +1,4 @@
-from crm_solver.inputs import Inputs
+from crm_solver.inputs import Constant_Plasma_Inputs
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
 import matplotlib.pyplot
@@ -17,9 +17,8 @@ class Solve:
         return numerical
 
     def plot_populations(self):
-        inp = Inputs()
+        inp = Constant_Plasma_Inputs()
         solutions = self.solve_numerically(inputs=inp)
-        print(solutions)
         for level in range(inp.number_of_levels):
             matplotlib.pyplot.plot(inp.steps, solutions[:, level], label='level '+str(level))
             matplotlib.pyplot.yscale('log', nonposx='clip')
@@ -30,7 +29,7 @@ class Solve:
         matplotlib.pyplot.show()
 
     def save_populations(self):
-        inp = Inputs()
+        inp = Constant_Plasma_Inputs()
         solutions = self.solve_numerically(inputs=inp)
         local_dir=os.getcwd()
         h5f = h5py.File(self.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
@@ -47,5 +46,4 @@ class Solve:
         rod_loc = (str.find(cwd, 'renate-od.git'))
         return cwd[0:rod_loc] + 'renate-od.git/trunk/data/'
 
-
-Solve.save_populations(Solve)
+Solve.plot_populations(Solve)
