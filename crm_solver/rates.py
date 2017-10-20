@@ -10,7 +10,7 @@ from utility import get_data_from_hdf5
 class Rates:
     # Get rate coefficients from hdf5 files:
     def __init__(self):
-        self.inputs = inputs.Inputs()
+        self.inputs = inputs.Constant_Plasma_Inputs()
         rate_coefficients = self.setup_rate_coeff_arrays()
         temperature_array = rate_coefficients[0]
         electron_neutral_collisions_array = rate_coefficients[1]
