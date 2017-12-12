@@ -1,10 +1,11 @@
 from crm_solver.inputs import Constant_Plasma_Inputs
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
+from observation.observation import Obs_1d
 import matplotlib.pyplot
 import h5py
 import os
-
+from pdb import set_trace as bp
 
 
 class Solve:
@@ -23,9 +24,17 @@ class Solve:
             matplotlib.pyplot.plot(inp.steps, solutions[:, level], label='level '+str(level))
             matplotlib.pyplot.yscale('log', nonposx='clip')
             matplotlib.pyplot.ylim((0, 1))
-        matplotlib.pyplot.legend(loc='cene',bbox_to_anchor=(1, 0.5), ncol=1)
+        matplotlib.pyplot.legend(loc='best', bbox_to_anchor=(1, 0.5), ncol=1)
         matplotlib.pyplot.xlabel('x')
         matplotlib.pyplot.grid()
+        matplotlib.pyplot.show()
+
+        obs = Obs_1d(inp)
+        photon_current = Obs_1d.calculate_light_profile(obs,solutions)
+        matplotlib.pyplot.scatter(inp.observation_profile,photon_current, label='photon_current')
+        matplotlib.pyplot.legend(loc='best')
+        matplotlib.pyplot.xlabel('Distance along beam [m]')
+        matplotlib.pyplot.ylabel('Photon current [1/s]')
         matplotlib.pyplot.show()
 
     def save_populations(self):

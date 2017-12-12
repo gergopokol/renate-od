@@ -76,7 +76,7 @@ class Rates:
                              einstein_coeffs_array, impurity_collisions_array]
         return rate_coeff_arrays
 
-    def get_mass(self, local_dir=os.getcwd(), beam_species='D'):
+    def get_mass(self, local_dir=os.getcwd(), beam_species='Li'):
         mass_kg = numpy.loadtxt(self.locate_h5_dir(local_dir, beam_species) + '/Mass/' + beam_species + '_m.txt')
         return mass_kg
 
