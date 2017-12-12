@@ -1,7 +1,30 @@
 import numpy
 from utility import get_data_from_hdf5
 from scipy.interpolate import interpn
+#import imas
+import sys
 
+class Input_IMAS:
+    def __init__(self):
+        self.initial_condition = numpy.array([1, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.number_of_levels = len(self.initial_condition)
+        self.beam_energy = 60
+        self.beam_species = 'Li'
+        self.beam_current = 0.0002
+        self.observation_profile = [0.02, 0.06, 0.1, 0.14, 0.18, 0.22, 0.26]
+        self.detector_size = 0.02
+        self.aperture_diamater = 0.05
+        self.observation_point = [0.9, 0.8]
+
+        self.shot = 1123
+        self.run = 12
+
+        self.steps = numpy.linspace(0, self.step_interval, self.step_number)
+        self.step_interval = 0.08
+        self.step_number = 100
+
+    def get_coreprof_profile(self, time_index):
+        self.density
 
 class Inputs:
     def __init__(self,filename='C:\\Users\\asztalos\\Desktop\\Projects\\BES\\Codes\\RENATE v2\\Trunk\\Device data\\EAST\\SOL profiles\\EAST_#412.h5',time_index=50):
@@ -38,7 +61,11 @@ class Constant_Plasma_Inputs:
         self.ion_temperature = numpy.full(self.step_number,1.5)*1e3
         self.density = numpy.full(self.step_number,2)*1e19
         self.steps = numpy.linspace(0, self.step_interval, self.step_number)
-
+        self.beam_current = 0.002
+        self.observation_profile = numpy.array([0.02, 0.06, 0.1, 0.14, 0.18, 0.22, 0.26])
+        self.detector_size = 0.02
+        self.aperture_diamater = 0.05
+        self.observation_point = [0.9,0.8]
 
 class Profiles:
     def __init__(self, filename, time_index):
