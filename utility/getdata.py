@@ -83,15 +83,16 @@ class GetData:
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
             self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data is used in the user local directory (' + self.access_path + ')!')
+            print('Warning: Dummy data is used from the user local directory (' + self.access_path + ')!')
             return True
         else:
             return False
 
     def get_public_data(self):
         server_public_path = self.server_public_address + "/" + self.data_path_name
-        print('Attempting to download from server: ' + server_public_path)
+        print('Attempting to download dummy data from public server: ' + server_public_path)
         try:
+            self.ensure_dir(self.user_local_dummy_path)
             urllib.request.urlretrieve(server_public_path, self.user_local_dummy_path)
             self.access_path = self.user_local_dummy_path
             print('Warning: Dummy data has been downloaded to the user local directory (' + self.access_path + ')!')
@@ -99,3 +100,10 @@ class GetData:
         except:
             print('Warning: Could not read data from ' + server_public_path + '!')
             return False
+
+    @staticmethod
+    def ensure_dir(file_path):
+        directory = os.path.dirname(file_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
