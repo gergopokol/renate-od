@@ -4,7 +4,8 @@ import urllib.request
 
 class GetData:
     def __init__(self,
-                 data_path_name="test.txt"):
+                 data_path_name="test.txt",
+                 source=""):
 
         # Set constants that can later be read from setup files
         self.dummy_directory = "dummy"
@@ -15,28 +16,36 @@ class GetData:
         self.server_public_address = "http://deep.reak.bme.hu/~data/renate-od"
         self.contact_address = "pokol@reak.bme.hu"
 
-        # Assemble paths
         self.data_path_name = data_path_name
+        self.source = source
         self.common_local_data_path = self.common_local_data_directory + '/' + data_path_name
         self.user_local_data_path = self.user_local_data_directory + '/' + data_path_name
         self.user_local_dummy_path = self.user_local_data_directory + '/' + self.dummy_directory + '/' + data_path_name
 
+        self.access_path = ''
+        self.data = ''
         self.read_data()
 
     def read_data(self):
         if self.get_data():
-            pass # Read to desired format (pandas.DataFrame?)
+            extension = os.path.splitext(self.data_path_name)[1]
+            if extension == '.hd5':
+                import utility.get_data_from_hdf5
+                self.data = utility.get_data_from_hdf5.get_data_from_hdf5(self.access_path, self.source)
+                return True
+            else:
+                raise NameError('Unknown extension. Unable to load!')
 
     def get_data(self):
         if self.check_common_local_data_path():
             return True
-        if self.check_user_local_data_path():
+        elif self.check_user_local_data_path():
             return True
-        if self.get_private_data():
+        elif self.get_private_data():
             return True
-        if self.check_user_local_dummy_path():
+        elif self.check_user_local_dummy_path():
             return True
-        if self.get_public_data():
+        elif self.get_public_data():
             return True
         else:
             print('Error: No data source available!')
@@ -106,4 +115,3 @@ class GetData:
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-
