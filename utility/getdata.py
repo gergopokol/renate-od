@@ -2,6 +2,7 @@ import os
 import urllib.request
 import utility.settings
 
+
 class GetData:
     """
     This class is to access and load data from files. It looks for data in the following order:
@@ -14,6 +15,7 @@ class GetData:
     data_path_name should include relative path from RENATE-OD root directory
     Paths are read from utility/getdata_setup.xml file.
     """
+
     def __init__(self,
                  data_path_name="test.txt",
                  source=""):
@@ -100,9 +102,11 @@ class GetData:
         print('Attempting to download from server: ' + server_private_path)
         try:
             if os.name == 'posix':
-                scp_answer = os.system('scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path, self.user_local_data_path))
+                scp_answer = os.system('scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
+                                                                  self.user_local_data_path))
             else:
-                scp_answer = os.system('pscp -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path, self.user_local_data_path))
+                scp_answer = os.system('pscp -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
+                                                                        self.user_local_data_path))
         except:
             scp_answer = 1
         if scp_answer == 0:
