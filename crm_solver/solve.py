@@ -22,7 +22,7 @@ class Solve:
         solutions = self.solve_numerically(inputs=inp)
         for level in range(inp.number_of_levels):
             matplotlib.pyplot.plot(inp.steps, solutions[:, level], label='level '+str(level))
-            matplotlib.pyplot.yscale('log', nonposx='clip')
+            matplotlib.pyplot.yscale('log', nonposy='clip')
             matplotlib.pyplot.ylim((0, 1))
         matplotlib.pyplot.legend(loc='best', bbox_to_anchor=(1, 0.5), ncol=1)
         matplotlib.pyplot.xlabel('x')
@@ -40,7 +40,7 @@ class Solve:
     def save_populations(self):
         inp = Constant_Plasma_Inputs()
         solutions = self.solve_numerically(inputs=inp)
-        local_dir=os.getcwd()
+        local_dir = os.getcwd()
         h5f = h5py.File(self.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
         h5f.create_dataset('steps', data=inp.steps)
         h5f.create_dataset('solutions', data=solutions)
@@ -54,5 +54,6 @@ class Solve:
     def locate_h5_dir(cwd):
         rod_loc = (str.find(cwd, 'renate-od.git'))
         return cwd[0:rod_loc] + 'renate-od.git/trunk/data/'
+
 
 Solve.plot_populations(Solve)
