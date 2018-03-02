@@ -1,20 +1,32 @@
 import os
 import urllib.request
-
+import utility.settings
 
 class GetData:
+    """
+    This class is to access and load data from files. It looks for data in the following order:
+    1. Common local data path
+    2. User's local data path
+    3. Remote private data path (downloads if accessable)
+    4. Local user dummy data path
+    5. Remote public dummy data path (downloads if accessable)
+
+    data_path_name should include relative path from RENATE-OD root directory
+    Paths are read from utility/getdata_setup.xml file.
+    """
     def __init__(self,
                  data_path_name="test.txt",
                  source=""):
 
-        # Set constants that can later be read from setup files
-        self.dummy_directory = "dummy"
-        self.common_local_data_directory = "/data"
-        self.user_local_data_directory = "data"
-        self.server_private_address = "data@deep.reak.bme.hu:~/private_html/renate-od"
-        self.private_key = "data/deep-data.ppk"
-        self.server_public_address = "http://deep.reak.bme.hu/~data/renate-od"
-        self.contact_address = "pokol@reak.bme.hu"
+        # Read info from setup file.
+        setup = utility.settings.Settings(filename='utility/getdata_setup.xml')
+        self.dummy_directory = setup.return_text(element_name='dummy_directory')
+        self.common_local_data_directory = setup.return_text(element_name='common_local_data_directory')
+        self.user_local_data_directory = setup.return_text(element_name='user_local_data_directory')
+        self.server_private_address = setup.return_text(element_name='server_private_address')
+        self.private_key = setup.return_text(element_name='private_key')
+        self.server_public_address = setup.return_text(element_name='server_public_address')
+        self.contact_address = setup.return_text(element_name='contact_address')
 
         self.data_path_name = data_path_name
         self.source = source
@@ -27,16 +39,28 @@ class GetData:
         self.read_data()
 
     def read_data(self):
+        """
+        Reads data into the self.data property. Data can be narrowed down by the self.source variable.
+        :return: True if successful
+        """
         if self.get_data():
             extension = os.path.splitext(self.data_path_name)[1]
             if extension == '.hd5':
                 import utility.get_data_from_hdf5
                 self.data = utility.get_data_from_hdf5.get_data_from_hdf5(self.access_path, self.source)
                 return True
+            elif extension == '.txt':
+                file = open(self.access_path, 'r')
+                self.data = file.read()
+                return True
             else:
                 raise NameError('Unknown extension. Unable to load!')
 
     def get_data(self):
+        """
+        Looks for data file at different locations.
+        :return: True if successful
+        """
         if self.check_common_local_data_path():
             return True
         elif self.check_user_local_data_path():
