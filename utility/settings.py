@@ -63,6 +63,16 @@ class Settings:
             element = self.tree.find('body')  # Set body as default element.
         element.set(attribute, value)
 
+    def return_attribute(self, element_name='test_element', attribute_name='test_attribute'):
+        """
+        This sets an attribute of an element to a value.
+        :param element_name: Element to read the attribute of
+        :param attribute_name: Attribute to read
+        :return: Value of attribute
+        """
+        element = self.tree.find(element_name)
+        return element.attribute
+
     def return_text(self, parent_element='', element_name='test_element'):
         """
         This returns text content of an element with element_name
