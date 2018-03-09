@@ -62,16 +62,21 @@ class Rates:
         data_path_name = self.locate_h5_dir() + file_name
         temperature_array = utility.getdata.GetData(data_path_name, 'Temperature axis').data
         electron_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Electron Neutral Collisions').data
+            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Electron Neutral Collisions',
+                                    data_format="array").data
         proton_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Proton Neutral Collisions').data
+            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Proton Neutral Collisions',
+                                    data_format="array").data
         impurity_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Impurity Neutral Collisions').data
+            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Impurity Neutral Collisions',
+                                    data_format="array").data
         electron_loss_collisions_array = \
-            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Electron Loss Collisions').data
-        einstein_coeffs_array = utility.getdata.GetData(data_path_name, 'Einstein Coeffs').data
-        impurity_collisions_array = utility.getdata.GetData(data_path_name,
-                                                           'Impurity Collisions').data
+            utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Electron Loss Collisions',
+                                    data_format="array").data
+        einstein_coeffs_array = utility.getdata.GetData(data_path_name, 'Einstein Coeffs',
+                                                        data_format="array").data
+        impurity_collisions_array = utility.getdata.GetData(data_path_name, 'Impurity Collisions',
+                                                            data_format="array").data
         # This is to be removed when input file is in SI
         electron_neutral_collisions_array = self.convert_from_cm2_to_m2(electron_neutral_collisions_array)
         proton_neutral_collisions_array = self.convert_from_cm2_to_m2(proton_neutral_collisions_array)
@@ -88,7 +93,7 @@ class Rates:
     def get_mass(self):
         data_path_name = 'atomic_data/' + self.beamlet_param.beam_species + '/supplementary_data/default/' + \
                          self.beam_species + '_m.txt'
-        mass_str = utility.getdata.GetData(data_path_name = data_path_name).data
+        mass_str = utility.getdata.GetData(data_path_name = data_path_name, data_format="array").data
         try:
             mass = float(mass_str)
         except ValueError:
