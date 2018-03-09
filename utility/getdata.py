@@ -47,6 +47,7 @@ class GetData:
         Reads data into the self.data property. Data can be narrowed down by the self.data_key variable.
         :return: True if successful
         """
+
         if self.get_data():
             extension = os.path.splitext(self.data_path_name)[1]
             if extension == '.h5':
@@ -57,6 +58,8 @@ class GetData:
                 self.read_xml()
             else:
                 print('No data read from file: ' + self.access_path)
+        else:
+            raise OSError
 
     def read_h5(self):
         try:
@@ -65,7 +68,8 @@ class GetData:
                 print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path)
             else:
                 self.data = pandas.read_hdf(self.access_path, self.data_key)
-                print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path + " with key: " + self.data_key)
+                print('Data read to Pandas DataFrame from HD5 file: ' +
+                      self.access_path + " with key: " + self.data_key)
         except ValueError:
             if self.data_key != "":
                 with h5py.File(self.access_path, 'r') as hdf5_id:
@@ -74,7 +78,6 @@ class GetData:
                 print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
             else:
                 print('Data could not be read from HD5 file: ' + self.access_path)
-
 
     def read_txt(self):
         with open(self.access_path, 'r') as file:
@@ -94,6 +97,7 @@ class GetData:
         Looks for data file at different locations.
         :return: True if successful
         """
+
         if self.check_common_local_data_path():
             return True
         elif self.check_user_local_data_path():
@@ -136,8 +140,8 @@ class GetData:
                 scp_answer = os.system('scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
                                                                   self.user_local_data_path))
             else:
-                scp_answer = os.system('pscp -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
-                                                                        self.user_local_data_path))
+                scp_answer = os.system('pscp -batch -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
+                                                                               self.user_local_data_path))
         except:
             scp_answer = 1
         if scp_answer == 0:
