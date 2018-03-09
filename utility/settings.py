@@ -10,21 +10,23 @@ class Settings:
                  filename='setup.xml'):
 
         self.filename = filename
-        self.doc = 'File content'
+        self.tree = 'File content'
+        self.dict = {'Filename' : self.filename}
         try:
-            self.doc = etree.parse(filename)
+            self.tree = etree.parse(filename)
             print('Settings read from ' + filename)
         except:
             print('Could not read settings read from ' + filename)
-            self.new_doc()
+            self.new_tree()
             self.write_to_file()
+        self.parse_to_dictionary()
 
-    def new_doc(self):
+    def new_tree(self):
         """
-        This creates new doc structure with basic parts.
+        This creates new tree structure with basic parts.
         """
-        page = etree.Element('html')
-        self.doc = etree.ElementTree(page)
+        page = etree.Element('xml')
+        self.tree = etree.ElementTree(page)
         head_element = etree.SubElement(page, 'head')
         body_element = etree.SubElement(page, 'body')
         title = etree.SubElement(head_element, 'title')
@@ -32,9 +34,9 @@ class Settings:
 
     def write_to_file(self):
         """
-        This writes doc structure to the corresponding XML file.
+        This writes tree structure to the corresponding XML file.
         """
-        self.doc.write(self.filename, pretty_print=True)
+        self.tree.write(self.filename, pretty_print=True)
         print('Setting file written to ' + self.filename)
 
     def append_element(self, parent_element='', new_element='test_element', new_text='Test element text'):
@@ -45,7 +47,7 @@ class Settings:
         :param new_text: Text content of new child
         """
         if parent_element == '':
-            parent_element = self.doc.find('body')  # Set body as default parent element.
+            parent_element = self.tree.find('body')  # Set body as default parent element.
         new_element = etree.Element(new_element)
         new_element.text = new_text
         parent_element.append(new_element)
@@ -58,7 +60,7 @@ class Settings:
         :param value: Value to set
         """
         if element == '':
-            element = self.doc.find('body')  # Set body as default element.
+            element = self.tree.find('body')  # Set body as default element.
         element.set(attribute, value)
 
     def return_text(self, parent_element='', element_name='test_element'):
@@ -69,7 +71,14 @@ class Settings:
         :return: Text content of the element
         """
         if parent_element == '':
-            parent_element = self.doc.find('body')  # Set body as default parent element.
+            parent_element = self.tree.find('body')  # Set body as default parent element.
         element = parent_element.find(element_name)
         return element.text
 
+    def parse_to_dictionary(self):
+        """
+        This parses all elements in the 'body' into a dictionary. Attributes not supported.
+        """
+        parent_element = self.tree.find('body')
+        for element in parent_element.getchildren():
+            self.dict[element.tag] = element.text
