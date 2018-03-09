@@ -20,7 +20,8 @@ class GetData:
 
     def __init__(self,
                  data_path_name="test.txt",
-                 data_key=""):
+                 data_key="",
+                 data_format="pandas"):
 
         # Read info from setup file.
         setup = utility.settings.Settings(filename='utility/getdata_setup.xml')
@@ -34,6 +35,7 @@ class GetData:
 
         self.data_path_name = data_path_name
         self.data_key = data_key
+        self.data_format = data_format
         self.common_local_data_path = self.common_local_data_directory + '/' + data_path_name
         self.user_local_data_path = self.user_local_data_directory + '/' + data_path_name
         self.user_local_dummy_path = self.user_local_data_directory + '/' + self.dummy_directory + '/' + data_path_name
@@ -51,7 +53,10 @@ class GetData:
         if self.get_data():
             extension = os.path.splitext(self.data_path_name)[1]
             if extension == '.h5':
-                self.read_h5()
+                if self.data_format == "pandas":
+                    self.read_h5_to_pandas()
+                else:
+                    self.read_h5_to_array()
             elif extension == '.txt':
                 self.read_txt()
             elif extension == '.xml':
@@ -61,7 +66,7 @@ class GetData:
         else:
             raise OSError
 
-    def read_h5(self):
+    def read_h5_to_pandas(self):
         try:
             if self.data_key == "":
                 self.data = pandas.read_hdf(self.access_path)
@@ -71,13 +76,16 @@ class GetData:
                 print('Data read to Pandas DataFrame from HD5 file: ' +
                       self.access_path + " with key: " + self.data_key)
         except ValueError:
-            if self.data_key != "":
-                with h5py.File(self.access_path, 'r') as hdf5_id:
-                    self.data = hdf5_id[self.data_key].value
-                    hdf5_id.close()
-                print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
-            else:
-                print('Data could not be read from HD5 file: ' + self.access_path)
+                print('Data could not be read to Pandas DataFrame from HD5 file: ' + self.access_path)
+
+    def read_h5_to_array(self):
+        if self.data_key != "":
+            with h5py.File(self.access_path, 'r') as hdf5_id:
+                self.data = hdf5_id[self.data_key].value
+                hdf5_id.close()
+            print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
+        else:
+            print('Data could not be read to array from HD5 file: ' + self.access_path)
 
     def read_txt(self):
         with open(self.access_path, 'r') as file:
@@ -137,8 +145,9 @@ class GetData:
         print('Attempting to download from server: ' + server_private_path)
         try:
             if os.name == 'posix':
-                scp_answer = os.system('scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
-                                                                  self.user_local_data_path))
+                scp_answer = os.system('scp -i "%s" -o "BatchMode yes" "%s" "%s"' % (self.private_key,
+                                                                                     server_private_path,
+                                                                                     self.user_local_data_path))
             else:
                 scp_answer = os.system('pscp -batch -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
                                                                                self.user_local_data_path))
