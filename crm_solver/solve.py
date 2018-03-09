@@ -1,11 +1,12 @@
-from crm_solver.inputs import Constant_Plasma_Inputs
-from crm_solver.coefficientmatrix import CoefficientMatrix
-from crm_solver.ode import Ode
-from observation.observation import Obs_1d
-import matplotlib.pyplot
-import h5py
-import os
-from pdb import set_trace as bp
+"""
+#from crm_solver.coefficientmatrix import CoefficientMatrix
+#from crm_solver.ode import Ode
+#from observation.observation import Obs_1d
+#import matplotlib.pyplot
+#import h5py
+#import os
+"""
+
 import utility
 import pandas
 
@@ -14,17 +15,22 @@ class Solve:
 
     def __init__(self, beamlet_param="beamlet/test.xml"):
         if isinstance(beamlet_param, str):
-            self.read_beamlet_param()
+            self.read_beamlet_param(beamlet_param)
         else:
             self.param = beamlet_param
 
-    def read_beamlet_param(self):
-        xml_path = utility.getdata.GetData(data_path_name=self.beamlet_param).access_path
+    def read_beamlet_param(self, beamlet_path):
+        xml_path = utility.getdata.GetData(data_path_name=beamlet_path).access_path
         self.param = utility.settings.Settings(filename=xml_path).dict
         hdf5_path = self.param['profiles_path']
         self.param.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
-        assert isinstance(self.param.profiles,pandas.DataFrame)
+        assert isinstance(self.param.profiles, pandas.DataFrame)
+        print(xml_path)
 
+beamlet=Solve()
+
+
+"""
     @staticmethod
     def solve_numerically(beamlet_param):
         inp = beamlet_param
@@ -34,7 +40,7 @@ class Solve:
         return numerical
 
     def plot_populations(self):
-        inp = Constant_Plasma_Inputs()
+        #inp = beamlet_param
         solutions = self.solve_numerically(beamlet_param=inp)
         for level in range(inp.number_of_levels):
             matplotlib.pyplot.plot(inp.steps, solutions[:, level], label='level '+str(level))
@@ -54,7 +60,7 @@ class Solve:
         matplotlib.pyplot.show()
 
     def save_populations(self):
-        inp = Constant_Plasma_Inputs()
+        #inp = Constant_Plasma_Inputs()
         solutions = self.solve_numerically(beamlet_param=inp)
         local_dir = os.getcwd()
         h5f = h5py.File(self.locate_h5_dir(local_dir) + 'solutions.h5', 'w')
@@ -73,3 +79,4 @@ class Solve:
 
 
 Solve.plot_populations(Solve)
+"""
