@@ -1,6 +1,8 @@
 import os
 import urllib.request
-import utility.settings
+import utility
+import pandas
+import h5py
 
 
 class GetData:
@@ -18,7 +20,7 @@ class GetData:
 
     def __init__(self,
                  data_path_name="test.txt",
-                 source=""):
+                 data_key=""):
 
         # Read info from setup file.
         setup = utility.settings.Settings(filename='utility/getdata_setup.xml')
@@ -31,7 +33,7 @@ class GetData:
         self.contact_address = setup.return_text(element_name='contact_address')
 
         self.data_path_name = data_path_name
-        self.source = source
+        self.data_key = data_key
         self.common_local_data_path = self.common_local_data_directory + '/' + data_path_name
         self.user_local_data_path = self.user_local_data_directory + '/' + data_path_name
         self.user_local_dummy_path = self.user_local_data_directory + '/' + self.dummy_directory + '/' + data_path_name
@@ -42,23 +44,50 @@ class GetData:
 
     def read_data(self):
         """
-        Reads data into the self.data property. Data can be narrowed down by the self.source variable.
+        Reads data into the self.data property. Data can be narrowed down by the self.data_key variable.
         :return: True if successful
         """
         if self.get_data():
             extension = os.path.splitext(self.data_path_name)[1]
-            if extension == '.hd5':
-                import utility.get_data_from_hdf5
-                self.data = utility.get_data_from_hdf5.get_data_from_hdf5(self.access_path, self.source)
-                print('Data read from HD5 file: ' + self.access_path)
-                return True
+            if extension == '.h5':
+                self.read_h5()
             elif extension == '.txt':
-                file = open(self.access_path, 'r')
-                self.data = file.read()
-                print('Text read from: ' + self.access_path)
-                return True
+                self.read_txt()
+            elif extension == '.xml':
+                self.read_xml()
             else:
                 print('No data read from file: ' + self.access_path)
+
+    def read_h5(self):
+        try:
+            if self.data_key == "":
+                self.data = pandas.read_hdf(self.access_path)
+                print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path)
+            else:
+                self.data = pandas.read_hdf(self.access_path, self.data_key)
+                print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path + " with key: " + self.data_key)
+        except ValueError:
+            if self.data_key != "":
+                with h5py.File(self.access_path, 'r') as hdf5_id:
+                    self.data = hdf5_id[self.data_key].value
+                    hdf5_id.close()
+                print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
+            else:
+                print('Data could not be read from HD5 file: ' + self.access_path)
+
+
+    def read_txt(self):
+        with open(self.access_path, 'r') as file:
+            self.data = file.read()
+            print('Data read to string from: ' + self.access_path)
+
+    def read_xml(self):
+        if self.data_key == "":
+            self.data = utility.settings.Settings(filename=self.access_path).dict
+            print('Data read to dictionary from: ' + self.access_path)
+        else:
+            self.data = utility.settings.Settings(filename=self.access_path).dict[self.data_key]
+            print('Text read from: ' + self.access_path + " with key: " + self.data_key)
 
     def get_data(self):
         """
