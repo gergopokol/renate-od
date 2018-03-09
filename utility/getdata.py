@@ -50,13 +50,15 @@ class GetData:
             if extension == '.hd5':
                 import utility.get_data_from_hdf5
                 self.data = utility.get_data_from_hdf5.get_data_from_hdf5(self.access_path, self.source)
+                print('Data read from HD5 file: ' + self.access_path)
                 return True
             elif extension == '.txt':
                 file = open(self.access_path, 'r')
                 self.data = file.read()
+                print('Text read from: ' + self.access_path)
                 return True
             else:
-                raise NameError('Unknown extension. Unable to load!')
+                print('No data read from file: ' + self.access_path)
 
     def get_data(self):
         """
