@@ -1,4 +1,4 @@
-<html>
+<xml>
   <head>
     <title>getdata_setup</title>
   </head>
@@ -11,4 +11,4 @@
     <server_public_address>http://deep.reak.bme.hu/~data/renate-od</server_public_address>
     <contact_address>pokol@reak.bme.hu</contact_address>
   </body>
-</html>
+</xml>
