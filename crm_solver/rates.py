@@ -16,9 +16,7 @@ class Rates:
 
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
-        self.number_of_levels = from_beamlet_profiles
-        self.number_of_steps = from_beamlet_profiles
-
+        self.number_of_steps = self.beamlet_profiles.beamlet_grid.size
         self.rate_type = rate_type
 
         rate_coefficients = self.setup_rate_coeff_arrays()
@@ -27,39 +25,41 @@ class Rates:
         proton_neutral_collisions_array = rate_coefficients[2]
         electron_loss_collisions_array = rate_coefficients[4]
         einstein_coeffs_array = rate_coefficients[5]
+        self.number_of_levels = einstein_coeffs_array.size
+
 
         # Interpolate rate coeffs to new grid:
-        electron_neutral_collisions_array_new = numpy.zeros((self.beamlet_param.number_of_levels,
-                                                             self.beamlet_param.number_of_levels,
-                                                             len(self.beamlet_param.steps)))
-        proton_neutral_collisions_array_new = numpy.zeros((self.beamlet_param.number_of_levels,
-                                                           self.beamlet_param.number_of_levels,
-                                                           len(self.beamlet_param.steps)))
-        electron_loss_collisions_array_new = numpy.zeros((2, self.beamlet_param.number_of_levels,
-                                                          len(self.beamlet_param.steps)))
-        for from_level in range(self.beamlet_param.number_of_levels):
-            for to_level in range(self.beamlet_param.number_of_levels):
-                for step in range(len(self.beamlet_param.steps)):
+        electron_neutral_collisions_array_new = numpy.zeros((self.number_of_levels,
+                                                             self.number_of_levels,
+                                                             self.number_of_steps))
+        proton_neutral_collisions_array_new = numpy.zeros((self.number_of_levels,
+                                                           self.number_of_levels,
+                                                           self.number_of_steps))
+        electron_loss_collisions_array_new = numpy.zeros((2, self.number_of_levels,
+                                                          self.number_of_steps))
+        for from_level in range(self.number_of_levels):
+            for to_level in range(self.number_of_levels):
+                for step in range(self.number_of_steps):
                     if to_level != from_level:
                         x = temperature_array
                         y = electron_neutral_collisions_array[from_level, to_level, :], \
                             proton_neutral_collisions_array[from_level, to_level, :]
                         f = interp1d(x, y)
                         electron_neutral_collisions_array_new[from_level, to_level, step] =\
-                            f(self.beamlet_param.profiles.electron_temperature[step])[0]
+                            f(self.beamlet_profiles.electron_temperature[step])[0]
                         proton_neutral_collisions_array_new[from_level, to_level, step]\
-                            = f(self.beamlet_param.profiles.ion_temperature[step])[1]
+                            = f(self.beamlet_profiles.ion_temperature[step])[1]
                     else:
                         continue
-        for from_level in range(self.beamlet_param.number_of_levels):
-            for step in range(len(self.beamlet_param.steps)):
+        for from_level in range(self.number_of_levels):
+            for step in range(self.number_of_steps):
                 x = temperature_array
                 y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
                 electron_loss_collisions_array_new[0, from_level, step] = \
-                    f(self.beamlet_param.profiles.electron_temperature[step])[0]
+                    f(self.beamlet_profiles.electron_temperature[step])[0]
                 electron_loss_collisions_array_new[1, from_level, step] = \
-                    f(self.beamlet_param.profiles.ion_temperature[step])[1]
+                    f(self.beamlet_profiles.ion_temperature[step])[1]
 
         self.electron_neutral_collisions = electron_neutral_collisions_array_new
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
