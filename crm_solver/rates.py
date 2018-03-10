@@ -90,11 +90,11 @@ class Rates:
         impurity_collisions_array = utility.getdata.GetData(data_path_name, 'Impurity Collisions',
                                                             data_format="array").data
         # This is to be removed when input file is in SI
-        electron_neutral_collisions_array = self.convert_from_cm2_to_m2(electron_neutral_collisions_array)
-        proton_neutral_collisions_array = self.convert_from_cm2_to_m2(proton_neutral_collisions_array)
-        impurity_neutral_collisions_array = self.convert_from_cm2_to_m2(impurity_neutral_collisions_array)
-        electron_loss_collisions_array = self.convert_from_cm2_to_m2(electron_loss_collisions_array)
-        impurity_collisions_array = self.convert_from_cm2_to_m2(impurity_collisions_array)
+        electron_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(electron_neutral_collisions_array)
+        proton_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(proton_neutral_collisions_array)
+        impurity_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(impurity_neutral_collisions_array)
+        electron_loss_collisions_array = utility.convert.convert_from_cm2_to_m2(electron_loss_collisions_array)
+        impurity_collisions_array = utility.convert.convert_from_cm2_to_m2(impurity_collisions_array)
         # To-be-removed end
 
         rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
@@ -115,7 +115,3 @@ class Rates:
 
     def locate_h5_dir(self):
         return 'atomic_data/' + self.beamlet_species + '/rates/' + self.rate_type + '/'
-
-    @staticmethod
-    def convert_from_cm2_to_m2(cross_section):
-        return cross_section / 1.e4
