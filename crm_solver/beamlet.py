@@ -37,9 +37,9 @@ class Beamlet:
     def plot_populations(self):
         solutions = self.solve_numerically()
         for level in range(self.coefficient_matrix.number_of_levels):
-            matplotlib.pyplot.plot(self.coefficient_matrix.number_of_steps, solutions[:, level], label='level '+str(level))
+            matplotlib.pyplot.plot(self.profiles['beamlet_grid'], solutions[:, level], label='level '+str(level))
             matplotlib.pyplot.yscale('log', nonposy='clip')
-            matplotlib.pyplot.ylim((0, 1))
+            matplotlib.pyplot.ylim((1e-5, 1))
         matplotlib.pyplot.legend(loc='best', bbox_to_anchor=(1, 0.5), ncol=1)
         matplotlib.pyplot.xlabel('x')
         matplotlib.pyplot.grid()

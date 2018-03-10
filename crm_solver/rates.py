@@ -1,5 +1,4 @@
 import numpy
-import math
 import utility
 import pandas
 from lxml import etree
@@ -11,8 +10,8 @@ class Rates:
     def __init__(self, beamlet_param, beamlet_profiles, rate_type='default'):
 
         assert isinstance(beamlet_param, etree._ElementTree)
-        self.beamlet_energy = beamlet_param.getroot().find('body').find('beamlet_energy')
-        self.beamlet_species = beamlet_param.getroot().find('body').find('beamlet_species')
+        self.beamlet_energy = beamlet_param.getroot().find('body').find('beamlet_energy').text
+        self.beamlet_species = beamlet_param.getroot().find('body').find('beamlet_species').text
 
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
@@ -25,7 +24,7 @@ class Rates:
         proton_neutral_collisions_array = rate_coefficients[2]
         electron_loss_collisions_array = rate_coefficients[4]
         einstein_coeffs_array = rate_coefficients[5]
-        self.number_of_levels = einstein_coeffs_array.size
+        self.number_of_levels = int(einstein_coeffs_array.size ** 0.5)
 
 
         # Interpolate rate coeffs to new grid:
@@ -46,9 +45,9 @@ class Rates:
                             proton_neutral_collisions_array[from_level, to_level, :]
                         f = interp1d(x, y)
                         electron_neutral_collisions_array_new[from_level, to_level, step] =\
-                            f(self.beamlet_profiles.electron_temperature[step])[0]
+                            f(self.beamlet_profiles.beamlet_electron_temp[step])[0]
                         proton_neutral_collisions_array_new[from_level, to_level, step]\
-                            = f(self.beamlet_profiles.ion_temperature[step])[1]
+                            = f(self.beamlet_profiles.beamlet_ion_temp[step])[1]
                     else:
                         continue
         for from_level in range(self.number_of_levels):
@@ -57,16 +56,16 @@ class Rates:
                 y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
                 electron_loss_collisions_array_new[0, from_level, step] = \
-                    f(self.beamlet_profiles.electron_temperature[step])[0]
+                    f(self.beamlet_profiles.beamlet_electron_temp[step])[0]
                 electron_loss_collisions_array_new[1, from_level, step] = \
-                    f(self.beamlet_profiles.ion_temperature[step])[1]
+                    f(self.beamlet_profiles.beamlet_ion_temp[step])[1]
 
         self.electron_neutral_collisions = electron_neutral_collisions_array_new
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
         self.mass = self.get_mass()
-        self.velocity = math.sqrt(2 * self.beamlet_energy * 1.602176487e-16 / self.mass)
+        self.velocity = (2 * float(self.beamlet_energy) * 1.602176487e-16 / self.mass) ** 0.5
 
     def setup_rate_coeff_arrays(self):
         file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
