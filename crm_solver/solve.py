@@ -13,7 +13,6 @@ from lxml import etree
 
 
 class Solve:
-
     def __init__(self, param="", profiles="", data_path="beamlet/test.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
@@ -24,16 +23,15 @@ class Solve:
 
     def read_beamlet_param(self, data_path):
         self.param = utility.getdata.GetData(data_path_name=data_path).data
-        assert isinstance(self.param.profiles, pandas.DataFrame)
+        assert isinstance(self.param, etree._ElementTree)
         print('Beamlet.param read from file: ' + data_path)
 
-    def read_beamlet_profiles(self, beamlet_path):
+    def read_beamlet_profiles(self):
         hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
         self.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
-beamlet=Solve()
 
 
 """
