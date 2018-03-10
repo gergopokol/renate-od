@@ -9,23 +9,29 @@
 
 import utility
 import pandas
+from lxml import etree
 
 
 class Solve:
 
-    def __init__(self, beamlet_param="beamlet/test.xml"):
-        if isinstance(beamlet_param, str):
-            self.read_beamlet_param(beamlet_param)
-        else:
-            self.param = beamlet_param
+    def __init__(self, param="", profiles="", data_path="beamlet/test.xml"):
+        self.param = param
+        if not isinstance(self.param, etree._ElementTree):
+            self.read_beamlet_param(data_path)
+        self.profiles = profiles
+        if not isinstance(self.profiles, pandas.DataFrame):
+            self.read_beamlet_profiles()
 
-    def read_beamlet_param(self, beamlet_path):
-        xml_path = utility.getdata.GetData(data_path_name=beamlet_path).access_path
-        self.param = utility.settings.Settings(filename=xml_path).dict
-        hdf5_path = self.param['profiles_path']
-        self.param.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
+    def read_beamlet_param(self, data_path):
+        self.param = utility.getdata.GetData(data_path_name=data_path).data
         assert isinstance(self.param.profiles, pandas.DataFrame)
-        print(xml_path)
+        print('Beamlet.param read from file: ' + data_path)
+
+    def read_beamlet_profiles(self, beamlet_path):
+        hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
+        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
+        assert isinstance(self.profiles, pandas.DataFrame)
+        print('Beamlet.profiles read from file: ' + hdf5_path)
 
 beamlet=Solve()
 

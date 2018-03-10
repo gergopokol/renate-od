@@ -1,14 +1,26 @@
 import numpy
 import math
 import utility
+import pandas
+from lxml import etree
 from scipy.interpolate import interp1d
 
 
 class Rates:
     # Get rate coefficients from hdf5 files:
-    def __init__(self,beamlet_param,rate_type='default'):
-        self.beamlet_param = beamlet_param
+    def __init__(self, beamlet_param, beamlet_profiles, rate_type='default'):
+
+        assert isinstance(beamlet_param, etree._ElementTree)
+        self.beamlet_energy = beamlet_param.getroot().find('body').find('beamlet_energy')
+        self.beamlet_species = beamlet_param.getroot().find('body').find('beamlet_species')
+
+        assert isinstance(beamlet_profiles, pandas.DataFrame)
+        self.beamlet_profiles = beamlet_profiles
+        self.number_of_levels = from_beamlet_profiles
+        self.number_of_steps = from_beamlet_profiles
+
         self.rate_type = rate_type
+
         rate_coefficients = self.setup_rate_coeff_arrays()
         temperature_array = rate_coefficients[0]
         electron_neutral_collisions_array = rate_coefficients[1]
@@ -54,13 +66,13 @@ class Rates:
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
         self.mass = self.get_mass()
-        self.velocity = math.sqrt(2 * self.beamlet_param.beam_energy * 1.602176487e-16 / self.mass)
+        self.velocity = math.sqrt(2 * self.beamlet_energy * 1.602176487e-16 / self.mass)
 
     def setup_rate_coeff_arrays(self):
-        file_name = 'rate_coeffs_' + str(self.beamlet_param.beam_energy) + '_' + \
-                    self.beamlet_param.beam_species + '.h5'
+        file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
+                    self.beamlet_species + '.h5'
         data_path_name = self.locate_h5_dir() + file_name
-        temperature_array = utility.getdata.GetData(data_path_name, 'Temperature axis').data
+        temperature_array = utility.getdata.GetData(data_path_name, 'Temperature axis', data_format='array').data
         electron_neutral_collisions_array = \
             utility.getdata.GetData(data_path_name, 'Collisional Coeffs/Electron Neutral Collisions',
                                     data_format="array").data
@@ -91,8 +103,8 @@ class Rates:
         return rate_coeff_arrays
 
     def get_mass(self):
-        data_path_name = 'atomic_data/' + self.beamlet_param.beam_species + '/supplementary_data/default/' + \
-                         self.beam_species + '_m.txt'
+        data_path_name = 'atomic_data/' + self.beamlet_species + '/supplementary_data/default/' + \
+                         self.beamlet_species + '_m.txt'
         mass_str = utility.getdata.GetData(data_path_name = data_path_name, data_format="array").data
         try:
             mass = float(mass_str)
@@ -102,7 +114,7 @@ class Rates:
         return mass
 
     def locate_h5_dir(self):
-        return 'atomic_data/' + self.beamlet_param.beam_species + '/rates/' + self.rate_type + '/'
+        return 'atomic_data/' + self.beamlet_species + '/rates/' + self.rate_type + '/'
 
     @staticmethod
     def convert_from_cm2_to_m2(cross_section):

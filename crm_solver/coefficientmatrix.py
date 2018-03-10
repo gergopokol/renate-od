@@ -1,11 +1,13 @@
 import numpy
+from lxml import etree
 from crm_solver.rates import Rates
 
 
 class CoefficientMatrix:
-    def __init__(self, beamlet_param):
-        self.beamlet_param = beamlet_param
-        self.rates = Rates(beamlet_param)
+    def __init__(self, beamlet_param, beamlet_profiles):
+
+        self.beamlet_profiles = beamlet_profiles
+        self.rates = Rates(beamlet_param, beamlet_profiles)
         self.matrix = self.assemble()
 
     def assemble(self):
