@@ -2,7 +2,6 @@ import pandas
 import h5py
 import os
 
-@staticmethod
 def convert_beamlet_profiles(data_path_name='data/beamlet/test_profiles.h5'):
     h5file = h5py.File(data_path_name,'r')
     pandas_profiles = pandas.DataFrame()
@@ -13,7 +12,6 @@ def convert_beamlet_profiles(data_path_name='data/beamlet/test_profiles.h5'):
     os.rename(data_path_name,data_path_name + '.old')
     pandas_profiles.to_hdf(data_path_name)
 
-@staticmethod
 def convert_from_cm2_to_m2(cross_section):
         return cross_section / 1.e4
 
