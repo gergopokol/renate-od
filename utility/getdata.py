@@ -78,7 +78,7 @@ class GetData:
                 self.data = pandas.read_hdf(self.access_path)
                 print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path)
             else:
-                self.data = pandas.read_hdf(self.access_path, self.data_key)
+                self.data = pandas.read_hdf(self.access_path, key=self.data_key)
                 print('Data read to Pandas DataFrame from HD5 file: ' +
                       self.access_path + " with key: " + self.data_key)
         except ValueError:
