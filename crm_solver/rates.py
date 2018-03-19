@@ -15,7 +15,7 @@ class Rates:
 
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
-        self.number_of_steps = self.beamlet_profiles.beamlet_grid.size
+        self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
         self.rate_type = rate_type
 
         rate_coefficients = self.setup_rate_coeff_arrays()
@@ -45,9 +45,9 @@ class Rates:
                             proton_neutral_collisions_array[from_level, to_level, :]
                         f = interp1d(x, y)
                         electron_neutral_collisions_array_new[from_level, to_level, step] =\
-                            f(self.beamlet_profiles.beamlet_electron_temp[step])[0]
+                            f(self.beamlet_profiles['beamlet_electron_temp'][step])[0]
                         proton_neutral_collisions_array_new[from_level, to_level, step]\
-                            = f(self.beamlet_profiles.beamlet_ion_temp[step])[1]
+                            = f(self.beamlet_profiles['beamlet_ion_temp'][step])[1]
                     else:
                         continue
         for from_level in range(self.number_of_levels):
@@ -56,9 +56,9 @@ class Rates:
                 y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
                 electron_loss_collisions_array_new[0, from_level, step] = \
-                    f(self.beamlet_profiles.beamlet_electron_temp[step])[0]
+                    f(self.beamlet_profiles['beamlet_electron_temp'][step])[0]
                 electron_loss_collisions_array_new[1, from_level, step] = \
-                    f(self.beamlet_profiles.beamlet_ion_temp[step])[1]
+                    f(self.beamlet_profiles['beamlet_ion_temp'][step])[1]
 
         self.electron_neutral_collisions = electron_neutral_collisions_array_new
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
