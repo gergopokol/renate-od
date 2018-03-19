@@ -27,13 +27,13 @@ class CoefficientMatrix:
                                         self.rates.electron_loss_collisions[1, from_level, step]
                         photon_terms = sum(self.rates.einstein_coeffs[:, from_level]) / self.rates.velocity
                         coefficient_matrix[from_level, from_level, step] = \
-                            -self.beamlet_profiles.beamlet_density[step] * electron_terms - \
-                            self.beamlet_profiles.beamlet_density[step] * ion_terms - \
+                            -self.beamlet_profiles['beamlet_density'][step] * electron_terms - \
+                            self.beamlet_profiles['beamlet_density'][step] * ion_terms - \
                             photon_terms
                     else:
-                        coefficient_matrix[from_level, to_level, step] = self.beamlet_profiles.beamlet_density[step] \
+                        coefficient_matrix[from_level, to_level, step] = self.beamlet_profiles['beamlet_density'][step] \
                                                       * self.rates.electron_neutral_collisions[to_level, from_level, step] \
-                                                      + self.beamlet_profiles.beamlet_density[step] \
+                                                      + self.beamlet_profiles['beamlet_density'][step] \
                                                       * self.rates.proton_neutral_collisions[to_level, from_level, step] \
                                                       + self.rates.einstein_coeffs[from_level, to_level] / self.rates.velocity
         return coefficient_matrix
