@@ -29,9 +29,9 @@ class Beamlet:
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
     def solve_numerically(self):
-        ode_init = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
+        ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
                        steps=self.profiles['beamlet_grid'])
-        numerical = ode_init.calculate_solution()
+        numerical = ode.calculate_solution()
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
