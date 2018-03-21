@@ -24,13 +24,13 @@ class Beamlet:
 
     def read_beamlet_profiles(self):
         hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
-        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
+        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key='profiles').data
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
     def solve_numerically(self):
         ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
-                       steps=self.profiles['beamlet_grid'])
+                  steps=self.profiles['beamlet_grid'])
         numerical = ode.calculate_solution()
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
@@ -47,3 +47,4 @@ class Beamlet:
         matplotlib.pyplot.xlabel('x')
         matplotlib.pyplot.grid()
         matplotlib.pyplot.show()
+
