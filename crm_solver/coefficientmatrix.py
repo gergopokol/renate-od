@@ -51,3 +51,4 @@ class CoefficientMatrix:
             self.matrix[:, :, step] = self.beamlet_profiles['beamlet_density'][step] * self.electron_terms[:, :, step] \
                                       + self.beamlet_profiles['beamlet_density'][step] * self.ion_terms[:, :, step] \
                                       + self.photon_terms[:, :, step]
+

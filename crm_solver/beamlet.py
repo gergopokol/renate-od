@@ -30,7 +30,7 @@ class Beamlet:
 
     def solve_numerically(self):
         ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
-                       steps=self.profiles['beamlet_grid'])
+                  steps=self.profiles['beamlet_grid'])
         numerical = ode.calculate_solution()
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
@@ -47,3 +47,4 @@ class Beamlet:
         matplotlib.pyplot.xlabel('x')
         matplotlib.pyplot.grid()
         matplotlib.pyplot.show()
+
