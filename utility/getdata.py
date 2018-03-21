@@ -68,7 +68,7 @@ class GetData:
             elif extension == '.xml':
                 self.read_xml()
             else:
-                print('No data read from file: ' + self.access_path)
+                print('NO data read from file: ' + self.access_path)
         else:
             raise OSError
 
@@ -82,7 +82,7 @@ class GetData:
                 print('Data read to Pandas DataFrame from HD5 file: ' +
                       self.access_path + " with key: " + self.data_key)
         except ValueError:
-                print('Data could not be read to Pandas DataFrame from HD5 file: ' + self.access_path)
+                print('Data could NOT be read to Pandas DataFrame from HD5 file: ' + self.access_path)
 
     def read_h5_to_array(self):
         if self.data_key != "":
@@ -91,7 +91,7 @@ class GetData:
                 hdf5_id.close()
             print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
         else:
-            print('Data could not be read to array from HD5 file: ' + self.access_path)
+            print('Data could NOT be read to array from HD5 file: ' + self.access_path)
 
     def read_txt(self):
         with open(self.access_path, 'r') as file:
@@ -139,17 +139,19 @@ class GetData:
     def check_common_local_data_path(self):
         if os.path.isfile(self.common_local_data_path):
             self.access_path = self.common_local_data_path
-            print('Data is located in the common local directory (' + self.access_path + ')')
+            print('Data is located in the common local directory: ' + self.common_local_data_path)
             return True
         else:
+            print('Data is NOT located in the common local directory: ' + self.common_local_data_path)
             return False
 
     def check_user_local_data_path(self):
         if os.path.isfile(self.user_local_data_path):
             self.access_path = self.user_local_data_path
-            print('Data is located in the user local directory (' + self.access_path + ')')
+            print('Data is located in the user local directory: ' + self.user_local_data_path)
             return True
         else:
+            print('Data is NOT present in the user local directory: ' + self.user_local_data_path)
             return False
 
     def get_private_data(self):
@@ -168,18 +170,19 @@ class GetData:
             scp_answer = 1
         if scp_answer == 0:
             self.access_path = self.user_local_data_path
-            print('Data has been downloaded from the server to the user local directory (' + self.access_path + ')')
+            print('Data has been downloaded from the server to the user local directory: ' + self.user_local_data_path)
             return True
         else:
-            print('Warning: Could not read data from server: ' + server_private_path + '!')
+            print('Warning: Could not read data from server: ' + server_private_path)
             return False
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
             self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data is used from the user local directory (' + self.access_path + ')!')
+            print('Warning: Dummy data is used from the user local directory: ' + self.user_local_dummy_path)
             return True
         else:
+            print('Data is NOT present in the user local dummy directory: ' + self.user_local_dummy_path)
             return False
 
     def get_public_data(self):
@@ -189,10 +192,10 @@ class GetData:
             self.ensure_dir(self.user_local_dummy_path)
             urllib.request.urlretrieve(server_public_path, self.user_local_dummy_path)
             self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data has been downloaded to the user local directory (' + self.access_path + ')!')
+            print('Warning: Dummy data has been downloaded to the user local directory: ' + self.user_local_dummy_path)
             return True
         except:
-            print('Warning: Could not read data from ' + server_public_path + '!')
+            print('Warning: Could NOT read data from: ' + server_public_path)
             return False
 
     @staticmethod
