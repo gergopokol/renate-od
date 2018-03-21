@@ -24,7 +24,7 @@ class Beamlet:
 
     def read_beamlet_profiles(self):
         hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
-        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path).data
+        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key='profiles').data
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
