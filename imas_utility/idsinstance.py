@@ -3,7 +3,7 @@ import os
 
 
 class ImasObject:
-    def __init__(self, shot, run, user=None, machine=None):
+    def __init__(self, shot, run, user, machine):
         assert isinstance(shot, int)
         self.shot = shot
 
