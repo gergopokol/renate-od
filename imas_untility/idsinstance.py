@@ -24,14 +24,14 @@ class ImasObject:
             assert isinstance(machine, str)
             self.machine = machine
 
-        self.load_ids()
+        self.build_imas_pointer()
 
-    def load_ids(self):
+    def build_imas_pointer(self):
         try:
             if self.local_data_base is True:
-                self.ids = pyual.Client(self.shot, self.run, user=self.user, machine=self.machine)
+                self.imas_pointer = pyual.Client(self.shot, self.run, user=self.user, machine=self.machine)
             else:
-                self.ids = pyual.Client(self.shot, self.run)
+                self.imas_pointer = pyual.Client(self.shot, self.run)
         except:
             print, 'Shot ' + str(self.shot) + ', run ' + str(self.run) + ' could not be opened'
             print, 'IDS load ----> Aborted. Check for the existence of IDS in one of the following locations:'
