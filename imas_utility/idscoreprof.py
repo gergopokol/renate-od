@@ -10,8 +10,8 @@ class CoreprofIds(ImasObject):
 
     def load_coreprof_ids(self):
         try:
-            self.coreprof = self.imas_pointer.get('coreprof')
+            self.coreprof = self.imas_pointer.get('core_profiles')
         except:
-            print, 'The coreprof IDS is absent from data file. Muhaha.'
-            print, 'Please get more information about shot ' + self.shot + ' at run ' + self.run
+            print('The core_profiles IDS is absent from data file. Muhaha.')
+            print('Please get more information about shot ' + self.shot + ' at run ' + self.run)
             exit()

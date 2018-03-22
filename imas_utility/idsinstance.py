@@ -33,8 +33,8 @@ class ImasObject:
             else:
                 self.imas_pointer = pyual.Client(self.shot, self.run)
         except:
-            print, 'Shot ' + str(self.shot) + ', run ' + str(self.run) + ' could not be opened'
-            print, 'IDS load ----> Aborted. Check for the existence of IDS in one of the following locations:'
-            print, '1. /work/imas/shared/'+self.machine+'db/3/0/....'
-            print, '2. /home/ITER/user/public/imasdb/....'
+            print('Shot ' + str(self.shot) + ', run ' + str(self.run) + ' could not be opened')
+            print('IDS load ----> Aborted. Check for the existence of IDS in one of the following locations:')
+            print('1. /work/imas/shared/'+self.machine+'db/3/0/....')
+            print('2. /home/ITER/user/public/imasdb/....')
             exit()
