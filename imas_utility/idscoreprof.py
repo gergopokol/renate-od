@@ -5,7 +5,7 @@ import os
 
 class CoreprofIds(ImasObject):
     def __init__(self, shot, run, user=None, machine=None):
-        super().__init__(self, shot, run, user, machine)
+        super().__init__(shot, run, user, machine)
         self.load_coreprof_ids()
 
     def load_coreprof_ids(self):
