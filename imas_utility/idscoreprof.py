@@ -59,8 +59,8 @@ class CoreprofIds(ImasObject):
             print('Aborting calculations')
             exit()
 
-        if (time_array[time_array.argmin] <= time) and (time_array[time_array.argmax] >= time) :
-            return (np.abs(time_array - time)).argmin
+        if (time_array[time_array.argmin()] <= time) and (time_array[time_array.argmax()] >= time) :
+            return (np.abs(time_array - time)).argmin()
         else:
             print('Time value : '+str(time)+' is out of bound. Please select new time instance.')
             print('Min time instance is '+str(time_array[time_array.argmin]) +
