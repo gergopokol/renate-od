@@ -44,7 +44,12 @@ class CoreprofIds(ImasObject):
 
     def get_ion_temperature(self, time):
         time_index = self.get_time_index(time)
-        return self.core_profiles.profiles_1d[time_index].ion[0].density
+        try:
+            return self.core_profiles.profiles_1d[time_index].ion[1].temperature
+        except:
+            print('There is no available D temperature for Shot:' + str(self.shot) + 'at Run: ' + str(self.run))
+            print('Aborting run.')
+            exit()
 
     def get_time_index(self, time):
         try:
