@@ -18,7 +18,7 @@ class CoreprofIds(ImasObject):
     def get_grid_in_rho_tor_norm(self, time):
         time_index = self.get_time_index(time)
         try:
-            return self.core_profiles.profiles_1[time_index].grid.rho_tor_norm
+            return self.core_profiles.profiles_1d[time_index].grid.rho_tor_norm
         except:
             print('There is no available rho tor norm based grid for Shot:' +
                   str(self.shot) + ' at Run: ' + str(self.run))
@@ -28,7 +28,7 @@ class CoreprofIds(ImasObject):
     def get_grid_in_psi(self, time):
         time_index = self.get_time_index(time)
         try:
-            return self.core_profiles.profiles_1[time_index].grid.psi
+            return self.core_profiles.profiles_1d[time_index].grid.psi
         except:
             print('There is no available psi based grid for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
@@ -37,7 +37,7 @@ class CoreprofIds(ImasObject):
     def get_grid_in_rho_tor(self, time):
         time_index = self.get_time_index(time)
         try:
-            return self.core_profiles.profiles_1[time_index].grid.rho_tor
+            return self.core_profiles.profiles_1d[time_index].grid.rho_tor
         except:
             print('There is no available rho tor based grid for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
