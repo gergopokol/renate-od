@@ -34,6 +34,15 @@ class CoreprofIds(ImasObject):
             print('Aborting run.')
             exit()
 
+    def get_grid_in_rho_tor(self, time):
+        time_index = self.get_time_index(time)
+        try:
+            return self.core_profiles.profiles_1[time_index].grid.rho_tor
+        except:
+            print('There is no available rho tor based grid for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
+            print('Aborting run.')
+            exit()
+
     def get_electron_density(self, time):
         time_index = self.get_time_index(time)
         try:
