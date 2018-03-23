@@ -15,12 +15,22 @@ class CoreprofIds(ImasObject):
             print('Please get more information about shot ' + str(self.shot) + ' at run ' + str(self.run))
             exit()
 
+    def get_grid_in_rho_tor_norm(self, time):
+        time_index = self.get_time_index(time)
+        try:
+            return self.core_profiles.profiles_1[time_index].grid.rho_tor_norm
+        except:
+            print('There is no available rho tor norm based grid for Shot:' +
+                  str(self.shot) + ' at Run: ' + str(self.run))
+            print('Aborting run.')
+            exit()
+
     def get_grid_in_psi(self, time):
         time_index = self.get_time_index(time)
         try:
             return self.core_profiles.profiles_1[time_index].grid.psi
         except:
-            print('There is no available grid for Shot:' + str(self.shot) + 'at Run: ' + str(self.run))
+            print('There is no available psi based grid for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
             exit()
 
@@ -29,7 +39,7 @@ class CoreprofIds(ImasObject):
         try:
             return self.core_profiles.profiles_1d[time_index].electrons.density
         except:
-            print('There is no available electron density for Shot:' + str(self.shot) + 'at Run: '+ str(self.run))
+            print('There is no available electron density for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
             exit()
 
@@ -38,7 +48,7 @@ class CoreprofIds(ImasObject):
         try:
             return self.core_profiles.profiles_1d[time_index].electrons.temperature
         except:
-            print('There is no available electron temperature for Shot:' + str(self.shot) + 'at Run: '+ str(self.run))
+            print('There is no available electron temperature for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
             exit()
 
@@ -47,7 +57,7 @@ class CoreprofIds(ImasObject):
         try:
             return self.core_profiles.profiles_1d[time_index].ion[1].temperature
         except:
-            print('There is no available D temperature for Shot:' + str(self.shot) + 'at Run: ' + str(self.run))
+            print('There is no available D temperature for Shot:' + str(self.shot) + ' at Run: ' + str(self.run))
             print('Aborting run.')
             exit()
 
