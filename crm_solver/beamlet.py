@@ -7,7 +7,7 @@ import matplotlib.pyplot
 
 
 class Beamlet:
-    def __init__(self, param="", profiles="", data_path="beamlet/test.xml"):
+    def __init__(self, param=None, profiles=None, data_path="beamlet/test.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
@@ -36,6 +36,15 @@ class Beamlet:
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
         return
+
+    def write_beamlet_profiles(self):
+        hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
+        try:
+            self.profiles.to_hdf(path_or_buf="data/" + hdf5_path, key="profiles")
+            print('Beamlet profile data written to file: ' + hdf5_path)
+        except:
+            print('Beamlet profile data could NOT be written to file: ' + hdf5_path)
+            raise
 
     def plot_populations(self):
         for level in range(self.coefficient_matrix.number_of_levels):
