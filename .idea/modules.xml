@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://D:/pokol/renate-od/.idea/renate-od.iml" filepath="D:/pokol/renate-od/.idea/renate-od.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/renate-od.iml" filepath="$PROJECT_DIR$/.idea/renate-od.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/renate-od_git.iml" filepath="$PROJECT_DIR$/.idea/renate-od_git.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/trunk.iml" filepath="$PROJECT_DIR$/.idea/trunk.iml" />
     </modules>
   </component>
