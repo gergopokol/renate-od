@@ -20,8 +20,14 @@ class GetData:
 
     def __init__(self,
                  data_path_name="test.txt",
-                 data_key="",
+                 data_key=[],
                  data_format="pandas"):
+        """
+        Init does everything: searches for the requested data, and loads it into the data property.
+        :param data_path_name: File name with relative path inside the data directory
+        :param data_key: List of keys specifying the groups at the subsequent levels of the hierarchy
+        :param data_format: Specifies output data format if ambiguous for the given file type
+        """
 
         self.data_path_name = data_path_name
         self.data_key = data_key
@@ -74,24 +80,39 @@ class GetData:
 
     def read_h5_to_pandas(self):
         try:
-            if self.data_key == "":
+            if not self.data_key:
                 self.data = pandas.read_hdf(self.access_path)
                 print('Data read to Pandas DataFrame from HD5 file: ' + self.access_path)
+            elif len(self.data_key) > 1:
+                print('Data could NOT be read to Pandas DataFrame from HD5 file: ' + self.access_path +
+                      " with key: " + str(self.data_key) + '. Must have only one key maximum!')
+                raise ValueError
             else:
-                self.data = pandas.read_hdf(self.access_path, key=self.data_key)
+                self.data = pandas.read_hdf(self.access_path, key=self.data_key[0])
                 print('Data read to Pandas DataFrame from HD5 file: ' +
-                      self.access_path + " with key: " + self.data_key)
+                      self.access_path + " with key: " + str(self.data_key[0]))
         except ValueError:
-                print('Data could NOT be read to Pandas DataFrame from HD5 file: ' + self.access_path)
+                print('Data could NOT be read to Pandas DataFrame from HD5 file: ' + self.access_path +
+                      " with key: " + str(self.data_key))
 
     def read_h5_to_array(self):
-        if self.data_key != "":
+        if not self.data_key:
+            print('Data could NOT be read to array from HD5 file: ' + self.access_path + '. Key is missing!')
+            raise ValueError
+        try:
             with h5py.File(self.access_path, 'r') as hdf5_id:
-                self.data = hdf5_id[self.data_key].value
+                hdf5_group = hdf5_id
+                for key in self.data_key:
+                    hdf5_group = hdf5_group[key]
+                self.data = hdf5_group.value
                 hdf5_id.close()
-            print('Data read to array from HD5 file: ' + self.access_path + " with key: " + self.data_key)
-        else:
-            print('Data could NOT be read to array from HD5 file: ' + self.access_path)
+            print("Data read to array from HD5 file: " + self.access_path + " with key: " + str(self.data_key))
+        except ValueError:
+            print("Data could NOT be read to array from HD5 file: " + self.access_path +
+                  " with key: " + str(self.data_key))
+        except AttributeError:
+            print("Data could NOT be read to array from HD5 file: " + self.access_path +
+                  " with key: " + str(self.data_key) + '. Check if the key sequence fits the groups of the HDF5 file!')
 
     def read_txt(self):
         with open(self.access_path, 'r') as file:
@@ -99,18 +120,18 @@ class GetData:
             print('Data read to string from: ' + self.access_path)
 
     def read_xml(self):
-        if self.data_key == "":
+        if not self.data_key:
             self.data = etree.parse(self.access_path)
             assert isinstance(self.data, etree._ElementTree)
             print('ElementTree read to dictionary from: ' + self.access_path)
         else:
             tree = etree.parse(self.access_path)
             element = tree.getroot()
-            for name in self.data_key.split('/'):
+            for name in self.data_key:
                 element = element.find(name)
             self.data = element
             assert isinstance(self.data, etree._Element)
-            print('Element read from: ' + self.access_path + " with key: " + self.data_key)
+            print('Element read from: ' + self.access_path + " with key: " + str(self.data_key))
 
     def get_data(self):
         """

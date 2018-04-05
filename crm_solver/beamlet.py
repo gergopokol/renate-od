@@ -7,7 +7,7 @@ import matplotlib.pyplot
 
 
 class Beamlet:
-    def __init__(self, param="", profiles="", data_path="beamlet/test.xml"):
+    def __init__(self, param=None, profiles=None, data_path="beamlet/test.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
@@ -24,7 +24,7 @@ class Beamlet:
 
     def read_beamlet_profiles(self):
         hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
-        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key='profiles').data
+        self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
@@ -35,12 +35,21 @@ class Beamlet:
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
-        return numerical
+        return
+
+    def write_beamlet_profiles(self):
+        hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
+        try:
+            self.profiles.to_hdf(path_or_buf="data/" + hdf5_path, key="profiles")
+            print('Beamlet profile data written to file: ' + hdf5_path)
+        except:
+            print('Beamlet profile data could NOT be written to file: ' + hdf5_path)
+            raise
 
     def plot_populations(self):
-        solutions = self.solve_numerically()
         for level in range(self.coefficient_matrix.number_of_levels):
-            matplotlib.pyplot.plot(self.profiles['beamlet_grid'], solutions[:, level], label='level '+str(level))
+            label = 'level ' + str(level)
+            matplotlib.pyplot.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
             matplotlib.pyplot.yscale('log', nonposy='clip')
             matplotlib.pyplot.ylim((1e-5, 1))
         matplotlib.pyplot.legend(loc='best', bbox_to_anchor=(1, 0.5), ncol=1)
