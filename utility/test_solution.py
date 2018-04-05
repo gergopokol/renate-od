@@ -27,5 +27,6 @@ profiles=pandas.DataFrame(hdf5_id['profiles']['block0_values'].value,
                           columns=['beamlet_density','beamlet_electron_temp','beamlet_grid','beamlet_ion_temp'] )
 
 ROD_beamlet=beamlet.Beamlet(profiles=profiles, data_path='../data/beamlet/test.xml')
+ROD_beamlet.solve_numerically()
 ROD_beamlet.plot_populations()
 

@@ -49,6 +49,8 @@ class Beamlet:
     def plot_populations(self):
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
+ #           if label == 'level 0':
+#              label = 'ground level'
             matplotlib.pyplot.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
             matplotlib.pyplot.yscale('log', nonposy='clip')
             matplotlib.pyplot.ylim((1e-5, 1))
