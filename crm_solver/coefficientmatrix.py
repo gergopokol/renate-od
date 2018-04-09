@@ -26,24 +26,24 @@ class CoefficientMatrix:
             for to_level in range(self.number_of_levels):
                 for step in range(self.number_of_steps):
                     if to_level == from_level:
-                        self.electron_terms[to_level, from_level, step] = \
-                            - sum(self.rates.electron_neutral_collisions[:to_level, from_level, step]) \
-                            - sum(self.rates.electron_neutral_collisions[(to_level+1):self.number_of_levels,
-                                  from_level, step]) \
+                        self.electron_terms[from_level, to_level, step] = \
+                            - sum(self.rates.electron_neutral_collisions[from_level, :to_level, step]) \
+                            - sum(self.rates.electron_neutral_collisions[from_level, (to_level+1):self.number_of_levels,
+                                  step]) \
                             - self.rates.electron_loss_collisions[0, from_level, step]
-                        self.ion_terms[to_level, from_level, step] = \
-                            - sum(self.rates.proton_neutral_collisions[:to_level, from_level, step]) \
-                            - sum(self.rates.proton_neutral_collisions[(to_level+1):self.number_of_levels,
-                                  from_level, step]) \
+                        self.ion_terms[from_level, to_level, step] = \
+                            - sum(self.rates.proton_neutral_collisions[from_level, :to_level, step]) \
+                            - sum(self.rates.proton_neutral_collisions[from_level, (to_level+1):self.number_of_levels,
+                                  step]) \
                             - self.rates.electron_loss_collisions[1, from_level, step]
-                        self.photon_terms[to_level, from_level, step] = \
+                        self.photon_terms[from_level, to_level, step] = \
                             - sum(self.rates.einstein_coeffs[:, from_level]) / self.rates.velocity
                     else:
-                        self.electron_terms[to_level, from_level, step] = \
-                            self.rates.electron_neutral_collisions[to_level, from_level, step]
-                        self.ion_terms[to_level, from_level, step] = \
-                            self.rates.proton_neutral_collisions[to_level, from_level, step]
-                        self.photon_terms[to_level, from_level, step] = \
+                        self.electron_terms[from_level, to_level, step] = \
+                            self.rates.electron_neutral_collisions[from_level, to_level, step]
+                        self.ion_terms[from_level, to_level, step] = \
+                            self.rates.proton_neutral_collisions[from_level, to_level, step]
+                        self.photon_terms[from_level, to_level, step] = \
                             self.rates.einstein_coeffs[to_level, from_level] / self.rates.velocity
 
     def apply_density(self):
