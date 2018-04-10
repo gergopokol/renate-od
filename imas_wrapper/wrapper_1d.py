@@ -21,6 +21,16 @@ class BeamletFromIds:
         self.equilibrium_source = self.param.getroot().find('body').find('device_magnetic_geometry').text
         self.load_imas_equilibrium()
 
+    def get_beamlet_energy(self, energy=None):
+        if isinstance(energy, int):
+
+
+    def get_beamlet_current(self, current=False):
+        pass
+
+    def get_beamlet_species(self, species=False):
+        pass
+
     def load_imas_profiles(self):
         if self.profile_source is 'core_profiles':
             self.run_prof = CoreprofIds(self.shotnumber, self.runnumber)
