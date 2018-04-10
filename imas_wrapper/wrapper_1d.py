@@ -15,8 +15,8 @@ class BeamletFromIds:
         self.read_imas_xml()
         self.machine = self.param.getroot().find('body').find('imas_machine').text
         self.user = self.param.getroot().find('body').find('imas_user').text
-        self.shotnumber = int(self.param.getroot().find('body').find('imas_shotmuner').text)
-        self.runnumber = int(self.param.getroot().find('body').find('imas_runmuner').text)
+        self.shotnumber = int(self.param.getroot().find('body').find('imas_shotnumber').text)
+        self.runnumber = int(self.param.getroot().find('body').find('imas_runnumber').text)
         self.timeslice = float(self.param.getroot().find('body').find('imas_timeslice').text)
 
         self.profile_source = self.param.getroot().find('body').find('beamlet_profiles').text
