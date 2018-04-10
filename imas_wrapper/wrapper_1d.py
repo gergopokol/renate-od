@@ -3,6 +3,9 @@ from utility.getdata import GetData
 from crm_solver.beamlet import Beamlet
 from imas_utility.idscoreprof import CoreprofIds
 from imas_utility.idsequilibrium import EquilibriumIds
+import numpy
+import pandas
+from scipy.interpolate import interp1d
 
 
 class BeamletFromIds:
@@ -14,6 +17,7 @@ class BeamletFromIds:
         self.user = self.param.getroot().find('body').find('imas_user').text
         self.shotnumber = int(self.param.getroot().find('body').find('imas_shotmuner').text)
         self.runnumber = int(self.param.getroot().find('body').find('imas_runmuner').text)
+        self.timeslice = float(self.param.getroot().find('body').find('imas_timeslice').text)
 
         self.profile_source = self.param.getroot().find('body').find('beamlet_profiles').text
         self.load_imas_profiles()
@@ -71,8 +75,23 @@ class BeamletFromIds:
             raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
 
     def beamlet_profile_configuration(self):
-        self.profiles = 0
-        pass
+        ids_density = self.run_prof.get_electron_density(self.timeslice)
+        ids_electron_temperature = self.run_prof.get_electron_temperature(self.timeslice)
+        ids_ion_temperature = self.run_prof.get_ion_temperature(self.timeslice)
+
+        #This part is hardcoded for 10 cm of beam
+        ids_grid = numpy.linspace(0.1, 0, ids_density.size)
+        resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
+        beamlet_gird = numpy.linspace(0.1, 0, resolution)
+
+        f_density = interp1d(ids_grid, ids_density)
+        f_ion_temp = interp1d(ids_grid, ids_ion_temperature)
+        f_electron_temp = interp1d(ids_grid, ids_electron_temperature)
+
+        self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_gird),
+                                               'beamlet_electron_temp': f_electron_temp(beamlet_gird),
+                                               'beamlet_grid': beamlet_gird,
+                                               'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
 
     def compute_beamevolution(self):
         beamlet = Beamlet(param=self.param, profiles=self.profiles)
