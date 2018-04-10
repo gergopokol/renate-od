@@ -61,14 +61,14 @@ class BeamletFromIds:
             raise Exception('Missisng beam species input.')
 
     def load_imas_profiles(self):
-        if self.profile_source is 'core_profiles':
+        if self.profile_source == 'core_profiles':
             self.run_prof = CoreprofIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.profile_source + ' IDS')
             raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
 
     def load_imas_equilibrium(self):
-        if self.equilibrium_source is 'equilibrium':
+        if self.equilibrium_source == 'equilibrium':
             self.run_equi = EquilibriumIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.equilibrium_source + ' IDS')
