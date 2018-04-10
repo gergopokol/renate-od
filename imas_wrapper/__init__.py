@@ -1,1 +1,1 @@
-from imas_wrapper import 1d_wrapper
+from imas_wrapper import wrapper_1d
