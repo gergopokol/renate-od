@@ -65,3 +65,6 @@ class BeamletFromIds:
             self.run_equi = EquilibriumIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.equilibrium_source + ' IDS')
+
+    def beamlet_profile_configuration(self):
+        pass
