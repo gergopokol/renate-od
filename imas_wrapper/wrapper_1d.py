@@ -25,6 +25,8 @@ class BeamletFromIds:
         self.get_beamlet_energy(energy=60)
         self.get_beamlet_species(species='Li')
 
+        self.beamlet_profile_configuration()
+
     def read_imas_xml(self):
         self.param = GetData(data_path_name=self.access_path).data
         assert isinstance(self.param, etree._ElementTree)
@@ -59,12 +61,20 @@ class BeamletFromIds:
             self.run_prof = CoreprofIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.profile_source + ' IDS')
+            raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
 
     def load_imas_equilibrium(self):
         if self.equilibrium_source is 'equilibrium':
             self.run_equi = EquilibriumIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.equilibrium_source + ' IDS')
+            raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
 
     def beamlet_profile_configuration(self):
+        self.profiles = 0
         pass
+
+    def compute_beamevolution(self):
+        beamlet = Beamlet(param=self.param, profiles=self.profiles)
+        beamlet.solve_numerically()
+        beamlet.write_beamlet_profiles()
