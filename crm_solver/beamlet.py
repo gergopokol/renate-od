@@ -46,16 +46,5 @@ class Beamlet:
             print('Beamlet profile data could NOT be written to file: ' + hdf5_path)
             raise
 
-    def plot_populations(self):
-        for level in range(self.coefficient_matrix.number_of_levels):
-            label = 'level ' + str(level)
- #           if label == 'level 0':
-#              label = 'ground level'
-            matplotlib.pyplot.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
-            matplotlib.pyplot.yscale('log', nonposy='clip')
-            matplotlib.pyplot.ylim((1e-5, 1))
-        matplotlib.pyplot.legend(loc='best', bbox_to_anchor=(1, 0.5), ncol=1)
-        matplotlib.pyplot.xlabel('x')
-        matplotlib.pyplot.grid()
-        matplotlib.pyplot.show()
+
 
