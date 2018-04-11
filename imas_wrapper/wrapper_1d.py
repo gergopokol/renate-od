@@ -96,4 +96,5 @@ class BeamletFromIds:
     def compute_beamevolution(self):
         beamlet = Beamlet(param=self.param, profiles=self.profiles)
         beamlet.solve_numerically()
+        self.profiles = beamlet.profiles
         beamlet.write_beamlet_profiles()
