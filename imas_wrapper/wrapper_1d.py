@@ -94,7 +94,7 @@ class BeamletFromIds:
                                                'beamlet_ion_temp': numpy.flip(f_ion_temp(beamlet_gird), 0)})
 
     def compute_beamevolution(self):
-        beamlet = Beamlet(param=self.param, profiles=self.profiles)
+        beamlet = Beamlet(param=self.param, profiles=self.profiles, data_path=self.access_path)
         beamlet.solve_numerically()
         self.profiles = beamlet.profiles
         beamlet.write_beamlet_profiles()
