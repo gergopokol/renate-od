@@ -123,7 +123,7 @@ class GetData:
         if not self.data_key:
             self.data = etree.parse(self.access_path)
             assert isinstance(self.data, etree._ElementTree)
-            print('ElementTree read to dictionary from: ' + self.access_path)
+            print('ElementTree read from: ' + self.access_path)
         else:
             tree = etree.parse(self.access_path)
             element = tree.getroot()
