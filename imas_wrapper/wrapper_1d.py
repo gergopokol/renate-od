@@ -80,9 +80,9 @@ class BeamletFromIds:
         ids_ion_temperature = self.run_prof.get_ion_temperature(self.timeslice)
 
         #This part is hardcoded for 10 cm of beam
-        ids_grid = numpy.linspace(0.1, 0, ids_density.size)
+        ids_grid = self.run_prof.get_grid_in_rho_tor_norm(self.timeslice)*1.8  #normalized cordinates multiplied by midplane minor radius
         resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
-        beamlet_gird = numpy.linspace(0.1, 0, resolution)
+        beamlet_gird = numpy.linspace(1.8, 0, resolution)
 
         f_density = interp1d(ids_grid, ids_density)
         f_ion_temp = interp1d(ids_grid, ids_ion_temperature)
