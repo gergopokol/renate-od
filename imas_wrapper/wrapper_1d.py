@@ -25,7 +25,7 @@ class BeamletFromIds:
         self.equilibrium_source = self.param.getroot().find('body').find('device_magnetic_geometry').text
         self.load_imas_equilibrium()
 
-        self.get_beamlet_current(current=0.001)
+        self.get_beamlet_current(current=0.002)
         self.get_beamlet_energy(energy=60)
         self.get_beamlet_species(species='Li')
 
@@ -79,7 +79,7 @@ class BeamletFromIds:
         ids_electron_temperature = self.run_prof.get_electron_temperature(self.timeslice)
         ids_ion_temperature = self.run_prof.get_ion_temperature(self.timeslice)
 
-        #This part is hardcoded for 10 cm of beam
+        #This part is hardcoded for 1.8 m of beam
         ids_grid = self.run_prof.get_grid_in_rho_tor_norm(self.timeslice)*1.8  #normalized cordinates multiplied by midplane minor radius
         resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
         beamlet_gird = numpy.linspace(1.8, 0, resolution)
@@ -88,10 +88,10 @@ class BeamletFromIds:
         f_ion_temp = interp1d(ids_grid, ids_ion_temperature)
         f_electron_temp = interp1d(ids_grid, ids_electron_temperature)
 
-        self.profiles = pandas.DataFrame(data={'beamlet_density': numpy.flip(f_density(beamlet_gird), 0),
-                                               'beamlet_electron_temp': numpy.flip(f_electron_temp(beamlet_gird), 0),
-                                               'beamlet_grid': numpy.flip(beamlet_gird, 0),
-                                               'beamlet_ion_temp': numpy.flip(f_ion_temp(beamlet_gird), 0)})
+        self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_gird), 
+                                               'beamlet_electron_temp': f_electron_temp(beamlet_gird), 
+						'beamlet_grid': 1.8-beamlet_gird,
+                                               'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
 
     def compute_beamevolution(self):
         beamlet = Beamlet(param=self.param, profiles=self.profiles, data_path=self.access_path)
