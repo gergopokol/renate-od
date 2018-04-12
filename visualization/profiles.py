@@ -34,7 +34,6 @@ class Profiles:
         matplotlib.pyplot.title('Plasma profiles')
         ax1.grid()
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.show()
         matplotlib.pyplot.subplot(grid[1:,0])
         for level in range(9):
             label = 'level ' + str(level)
