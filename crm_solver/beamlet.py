@@ -3,7 +3,6 @@ import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
-import matplotlib.pyplot
 
 
 class Beamlet:
@@ -38,13 +37,16 @@ class Beamlet:
         return
 
     def write_beamlet_profiles(self):
-        hdf5_path = self.param.getroot().find('body').find('beamlet_profiles').text
+        output_path = self.param.getroot().find('head').find('id').text
+        h5_output_path = "data/output/beamlet/" + output_path + ".h5"
+        xml_output_path = "data/output/beamlet/" + output_path + ".xml"
+        utility.getdata.GetData.ensure_dir(h5_output_path)
         try:
-            self.profiles.to_hdf(path_or_buf="data/" + hdf5_path, key="profiles")
-            print('Beamlet profile data written to file: ' + hdf5_path)
+            self.profiles.to_hdf(path_or_buf=h5_output_path, key="profiles")
+            self.param.write(xml_output_path)
+            print('Beamlet profile data written to file: ' + output_path)
         except:
-            print('Beamlet profile data could NOT be written to file: ' + hdf5_path)
+            print('Beamlet profile data could NOT be written to file: ' + output_path)
             raise
-
 
 
