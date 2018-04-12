@@ -10,18 +10,22 @@ class Profiles:
 
     def plot_populations(self):
         profiles = pandas.read_hdf(self.access_path, key=self.key)
-        for level in range(9):
+        number_of_levels = self.get_number_of_levels(profiles)
+        for level in range(number_of_levels):
             label = 'level ' + str(level)
             matplotlib.pyplot.plot(profiles['beamlet_grid'], profiles[label], label=label)
             matplotlib.pyplot.yscale('log', nonposy='clip')
             matplotlib.pyplot.ylim((1e-5, 1))
         matplotlib.pyplot.legend(loc='best', ncol=1)
-        matplotlib.pyplot.xlabel('x')
+        matplotlib.pyplot.xlabel('Distance [m]')
+        matplotlib.pyplot.ylabel('Relative population [-]')
+        matplotlib.pyplot.title('Beamlet profiles')
         matplotlib.pyplot.grid()
         matplotlib.pyplot.show()
 
     def plot_all_profiles(self):
         profiles = pandas.read_hdf(self.access_path, key=self.key)
+        number_of_levels = self.get_number_of_levels(profiles)
         matplotlib.pyplot.figure()
         grid = matplotlib.pyplot.GridSpec(3,1)
         ax1 = matplotlib.pyplot.subplot(grid[0,0])
@@ -38,7 +42,7 @@ class Profiles:
         ax1.grid()
         matplotlib.pyplot.tight_layout()
         matplotlib.pyplot.subplot(grid[1:,0])
-        for level in range(9):
+        for level in range(number_of_levels):
             label = 'level ' + str(level)
             matplotlib.pyplot.plot(profiles['beamlet_grid'], profiles[label], label=label)
         matplotlib.pyplot.yscale('log', nonposy='clip')
@@ -70,3 +74,8 @@ class Profiles:
         matplotlib.pyplot.grid()
         matplotlib.pyplot.tight_layout()
         matplotlib.pyplot.show()
+
+    def get_number_of_levels(self, profiles):
+        levels=profiles.filter(like='level', axis=1)
+        number_of_levels = len(levels.keys())
+        return number_of_levels
