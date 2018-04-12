@@ -37,3 +37,7 @@ def convert_beamlet_profiles_to_si(data_path_name='beamlet/test_profiles.h5'):
     pandas_profiles.to_hdf(full_data_path_name,'profiles')
     print('Beamlet.param converted to SI in file: ' + full_data_path_name)
 
+
+def calculate_velocity_from_energy(energy, mass):
+    velocity = (2 * float(energy) * 1.602176487e-16 / mass) ** 0.5
+    return velocity

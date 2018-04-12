@@ -64,7 +64,7 @@ class Rates:
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
         self.mass = self.get_mass()
-        self.velocity = (2 * float(self.beamlet_energy) * 1.602176487e-16 / self.mass) ** 0.5
+        self.velocity = utility.convert.calculate_velocity_from_energy(self.beamlet_energy, self.mass)
 
     def setup_rate_coeff_arrays(self):
         file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
