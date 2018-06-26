@@ -4,7 +4,7 @@ import h5py
 
 
 class Profiles:
-    def __init__(self, access_path, key='profiles'):
+    def __init__(self, access_path='../data/output/beamlet/beamlet_test.xml', key='profiles'):
         self.access_path = access_path
         self.key = key
         self.profiles = pandas.read_hdf(self.access_path, key=self.key)
@@ -37,8 +37,8 @@ class Profiles:
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def get_number_of_levels(self, profiles):
-        levels=profiles.filter(like='level', axis=1)
+    def get_number_of_levels(self):
+        levels=self.profiles.filter(like='level', axis=1)
         number_of_levels = len(levels.keys())
         if number_of_levels ==0:
             number_of_levels = 9
