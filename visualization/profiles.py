@@ -63,7 +63,7 @@ class Profiles:
         return axis
 
     def setup_population_axis(self, axis):
-        number_of_levels = self.get_number_of_levels(self.profiles)
+        number_of_levels = self.get_number_of_levels()
         for level in range(number_of_levels):
             label = 'level ' + str(level)
             axis.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
