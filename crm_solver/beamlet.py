@@ -6,7 +6,7 @@ from crm_solver.ode import Ode
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, data_path="beamlet/test.xml"):
+    def __init__(self, param=None, profiles=None, data_path="beamlet/test0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
