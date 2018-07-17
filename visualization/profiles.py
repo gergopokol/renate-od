@@ -27,18 +27,19 @@ class Profiles:
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def benchmark_to_renate(self):
+    def benchmark(self, path = '../data/beamlet/IMAS_beamlet_test_profiles_Li.h5'):
         fig1 = matplotlib.pyplot.figure()
         ax1 = matplotlib.pyplot.subplot()
         ax1=self.setup_population_axis(ax1)
+        ax1=self.setup_benchmark_axis(path, axis=ax1)
         ax1.legend(loc='best', ncol=2)
-        ax1.set_title('Beamlet profiles - benchmark of RENATE-OD to RENATE')
+        ax1.set_title('Beamlet profiles - benchmark')
         ax1.grid()
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def get_number_of_levels(self):
-        levels=self.profiles.filter(like='level', axis=1)
+    def get_number_of_levels(self, profiles):
+        levels=profiles.filter(like='level', axis=1)
         number_of_levels = len(levels.keys())
         if number_of_levels ==0:
             number_of_levels = 9
@@ -63,7 +64,7 @@ class Profiles:
         return axis
 
     def setup_population_axis(self, axis):
-        number_of_levels = self.get_number_of_levels()
+        number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
             label = 'level ' + str(level)
             axis.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
@@ -76,8 +77,10 @@ class Profiles:
         axis.grid()
         return axis
 
-    def setup_benchmark_axis(self):
-        benchmark_profiles = h5py.File(self.access_path, 'r')
-        for i in range(9):
-            matplotlib.pyplot.plot(self.profiles['beamlet_grid'], benchmark_profiles['benchmark']['renate_data_values'].value[i, :],
-                      label='RENATE - level ' + str(i))
+    def setup_benchmark_axis(self, path, axis):
+        benchmark_profiles = pandas.read_hdf(path, self.key)
+        number_of_levels = self.get_number_of_levels(benchmark_profiles)
+        for level in range(number_of_levels):
+            label = 'level ' + str(level)
+            axis.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label+' bm.')
+        return axis
