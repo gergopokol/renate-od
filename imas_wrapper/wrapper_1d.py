@@ -89,12 +89,8 @@ class BeamletFromIds:
         f_electron_temp = interp1d(ids_grid, ids_electron_temperature)
 
         self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_gird), 
-                                               'beamlet_electron_temp': f_electron_temp(beamlet_gird), 
-						'beamlet_grid': 1.8-beamlet_gird,
+                                               'beamlet_electron_temp': f_electron_temp(beamlet_gird),
+                                               'beamlet_grid': 1.8-beamlet_gird,
                                                'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
 
-    def compute_beamevolution(self):
-        beamlet = Beamlet(param=self.param, profiles=self.profiles, data_path=self.access_path)
-        beamlet.solve_numerically()
-        self.profiles = beamlet.profiles
-        beamlet.write_beamlet_profiles()
+

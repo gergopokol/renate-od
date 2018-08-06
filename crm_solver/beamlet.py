@@ -13,6 +13,10 @@ class Beamlet:
         self.profiles = profiles
         if not isinstance(self.profiles, pandas.DataFrame):
             self.read_beamlet_profiles()
+        self.coefficient_matrix = None
+        self.initial_condition = None
+
+    def initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles)
         self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
 
@@ -28,6 +32,8 @@ class Beamlet:
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
     def solve_numerically(self):
+        if self.coefficient_matrix is None or self.initial_condition is None:
+            self.initialize_ode()
         ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
                   steps=self.profiles['beamlet_grid'])
         numerical = ode.calculate_solution()
