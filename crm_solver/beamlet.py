@@ -36,17 +36,4 @@ class Beamlet:
             self.profiles[label] = numerical[:, level]
         return
 
-    def write_beamlet_profiles(self):
-        output_path = self.param.getroot().find('head').find('id').text
-        h5_output_path = "data/output/beamlet/" + output_path + ".h5"
-        xml_output_path = "data/output/beamlet/" + output_path + ".xml"
-        utility.getdata.GetData.ensure_dir(h5_output_path)
-        try:
-            self.profiles.to_hdf(path_or_buf=h5_output_path, key="profiles")
-            self.param.write(xml_output_path)
-            print('Beamlet profile data written to file: ' + output_path)
-        except:
-            print('Beamlet profile data could NOT be written to file: ' + output_path)
-            raise
-
 
