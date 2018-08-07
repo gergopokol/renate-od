@@ -2,6 +2,7 @@ import pandas
 import h5py
 import os
 import utility
+from utility.constants import Constants
 
 
 def convert_beamlet_profiles(data_path_name='data/beamlet/test_profiles.h5'):
@@ -38,11 +39,12 @@ def convert_beamlet_profiles_to_si(data_path_name='beamlet/test_profiles.h5'):
     full_data_path_name = 'data/' + data_path_name
     pandas_profiles['beamlet_density'] = convert_from_10_19_to_1(pandas_profiles['beamlet_density'])
     # pandas_profiles['beamlet_grid'] = convert_from_cm_to_m(pandas_profiles['beamlet_grid'])
-    os.rename(full_data_path_name,full_data_path_name + '.non-si')
-    pandas_profiles.to_hdf(full_data_path_name,'profiles')
+    os.rename(full_data_path_name, full_data_path_name + '.non-si')
+    pandas_profiles.to_hdf(full_data_path_name, 'profiles')
     print('Beamlet.param converted to SI in file: ' + full_data_path_name)
 
 
 def calculate_velocity_from_energy(energy, mass):
-    velocity = (2 * float(energy) * 1.602176487e-16 / mass) ** 0.5
+    constants = Constants()
+    velocity = (2 * float(energy) * constants.charge_electron / mass) ** 0.5
     return velocity
