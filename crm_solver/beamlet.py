@@ -16,6 +16,8 @@ class Beamlet:
             self.read_beamlet_profiles()
         self.coefficient_matrix = None
         self.initial_condition = None
+        if not isinstance(self.param.getroot().find('body').find('mass'), etree._Element):
+            self.get_mass()
 
     def initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles)
@@ -52,4 +54,8 @@ class Beamlet:
         except ValueError:
             print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
             raise ValueError
-        return mass
+        new_element = etree.Element('mass')
+        new_element.text = mass
+        new_element.set('unit', 'kg')
+        self.param.getroot().find('body').append(new_element)
+        return
