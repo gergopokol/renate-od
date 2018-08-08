@@ -1,5 +1,6 @@
 import utility
 from utility.getdata import GetData
+from utility.convert import calculate_velocity_from_energy
 import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
@@ -14,14 +15,12 @@ class Beamlet:
         self.profiles = profiles
         if not isinstance(self.profiles, pandas.DataFrame):
             self.read_beamlet_profiles()
+        if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
+            self.get_mass()
+        if not isinstance(self.param.getroot().find('body').find('beamlet_velocity'), etree._Element):
+            self.get_velocity()
         self.coefficient_matrix = None
         self.initial_condition = None
-        if not isinstance(self.param.getroot().find('body').find('mass'), etree._Element):
-            self.get_mass()
-
-    def initialize_ode(self):
-        self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles)
-        self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
 
     def read_beamlet_param(self, data_path):
         self.param = utility.getdata.GetData(data_path_name=data_path).data
@@ -34,6 +33,36 @@ class Beamlet:
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
+    def get_mass(self):
+        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species') + \
+                         '/supplementary_data/default/' + \
+                         self.param.getroot().find('body').find('beamlet_species') + '_m.txt'
+        mass_str = GetData(data_path_name=data_path_name, data_format="array").data
+        try:
+            mass = float(mass_str)
+        except ValueError:
+            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
+            raise ValueError
+        new_element = etree.Element('beamlet_mass')
+        new_element.text = mass
+        new_element.set('unit', 'kg')
+        self.param.getroot().find('body').append(new_element)
+        return
+
+    def get_velocity(self):
+        energy = self.param.getroot().find('body').find('beamlet_energy').text
+        mass = self.param.getroot().find('body').find('beamlet_mass').text
+        velocity = calculate_velocity_from_energy(energy, mass)
+        new_element = etree.Element('beamlet_velocity')
+        new_element.text = velocity
+        new_element.set('unit', 'm/s')
+        self.param.getroot().find('body').append(new_element)
+        return
+
+    def initialize_ode(self):
+        self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles)
+        self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
+
     def solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
             self.initialize_ode()
@@ -45,17 +74,3 @@ class Beamlet:
             self.profiles[label] = numerical[:, level]
         return
 
-    def get_mass(self):
-        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species') + '/supplementary_data/default/' + \
-                         self.param.getroot().find('body').find('beamlet_species') + '_m.txt'
-        mass_str = GetData(data_path_name=data_path_name, data_format="array").data
-        try:
-            mass = float(mass_str)
-        except ValueError:
-            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
-            raise ValueError
-        new_element = etree.Element('mass')
-        new_element.text = mass
-        new_element.set('unit', 'kg')
-        self.param.getroot().find('body').append(new_element)
-        return

@@ -64,8 +64,8 @@ class Rates:
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
-        self.mass = float(beamlet_param.getroot().find('body').find('mass').text)
-        self.velocity = float(beamlet_param.getroot().find('body').find('velocity').text)
+        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
+        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
         
 
 

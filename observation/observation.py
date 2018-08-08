@@ -13,7 +13,7 @@ class Obs1d:
         self.beamlet = beamlet
         self.constants = Constants()
         self.photon_fraction = beam_current/self.constants.charge_electron\
-                               / float(beamlet.param.getroot().find('body').find('velocity').text)
+                               / float(beamlet.param.getroot().find('body').find('beamlet_velocity').text)
         self.obs_param = self.read_observation_param(data_path)
         self.obs_profile = self.read_observation_profile(data_path=self.obs_param.getroot().find('body').find('observation_profile_path').text)
 
