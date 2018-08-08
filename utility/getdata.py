@@ -227,18 +227,6 @@ class GetData:
             os.makedirs(directory)
 
 
-def get_mass(beamlet_species):
-    data_path_name = 'atomic_data/' + beamlet_species + '/supplementary_data/default/' + \
-                     beamlet_species + '_m.txt'
-    mass_str = GetData(data_path_name=data_path_name, data_format="array").data
-    try:
-        mass = float(mass_str)
-    except ValueError:
-        print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
-        raise ValueError
-    return mass
-
-
 def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
     file_name = 'rate_coeffs_' + str(beamlet_energy) + '_' + \
                 beamlet_species + '.h5'

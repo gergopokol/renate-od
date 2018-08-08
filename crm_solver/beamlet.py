@@ -1,4 +1,5 @@
 import utility
+from utility.getdata import GetData
 import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
@@ -42,4 +43,13 @@ class Beamlet:
             self.profiles[label] = numerical[:, level]
         return
 
-
+    def get_mass(self):
+        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species') + '/supplementary_data/default/' + \
+                         self.param.getroot().find('body').find('beamlet_species') + '_m.txt'
+        mass_str = GetData(data_path_name=data_path_name, data_format="array").data
+        try:
+            mass = float(mass_str)
+        except ValueError:
+            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
+            raise ValueError
+        return mass
