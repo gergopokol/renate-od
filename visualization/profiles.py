@@ -1,12 +1,19 @@
 import matplotlib.pyplot
 import pandas
+from lxml import etree
+import utility
+from matplotlib.backends.backend_pdf import PdfPages
+import datetime
 
 
 class Profiles:
-    def __init__(self, access_path='../data/output/beamlet/beamlet_test.xml', key='profiles'):
-        self.access_path = access_path
+    def __init__(self, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
+        self.param_path = param_path
+        self.param = utility.getdata.GetData(data_path_name=self.param_path).data
+        self.access_path = self.param.getroot().find('body').find('beamlet_profiles').text
         self.key = key
-        self.profiles = pandas.read_hdf(self.access_path, key=self.key)
+        self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
+        self.title = None
 
     def plot_populations(self):
         axis = matplotlib.pyplot.subplot()
@@ -20,19 +27,24 @@ class Profiles:
         ax1 = self.setup_density_axis(ax1)
         ax2 = ax1.twinx()
         self.setup_temperature_axis(ax2)
-        ax1.set_title('Plasma profiles')
+        self.title = 'Plasma profiles'
+        ax1.set_title(self.title)
         ax3 = matplotlib.pyplot.subplot(grid[1:, 0])
         self.setup_population_axis(ax3)
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def benchmark(self, path = '../data/beamlet/IMAS_beamlet_test_profiles_Li.h5'):
+    def benchmark(self, benchmark_param_path='../data/beamlet/IMAS_beamlet_test_profiles_Li.xml', key=['profiles']):
+        benchmark_param = utility.getdata.GetData(data_path_name=benchmark_param_path).data
+        benchmark_path = benchmark_param.getroot().find('body').find('beamlet_profiles').text
+        benchmark_profiles = utility.getdata.GetData(data_path_name=benchmark_path, data_key=key).data
         fig1 = matplotlib.pyplot.figure()
         ax1 = matplotlib.pyplot.subplot()
-        ax1=self.setup_population_axis(ax1)
-        ax1=self.setup_benchmark_axis(path, axis=ax1)
+        ax1 = self.setup_population_axis(ax1)
+        ax1 = self.setup_benchmark_axis(benchmark_profiles, axis=ax1)
         ax1.legend(loc='best', ncol=2)
-        ax1.set_title('Beamlet profiles - benchmark')
+        self.title = 'Beamlet profiles - benchmark'
+        ax1.set_title(self.title)
         ax1.grid()
         fig1.tight_layout()
         matplotlib.pyplot.show()
@@ -73,16 +85,17 @@ class Profiles:
         axis.set_xlabel('Distance [m]')
         axis.set_ylabel('Relative population [-]')
         axis.legend(loc='best', ncol=1)
-        axis.set_title('Beamlet profiles')
+        self.title = 'Beamlet profiles'
+        axis.set_title(self.title)
         axis.grid()
         return axis
 
-    def setup_benchmark_axis(self, path, axis):
-        benchmark_profiles = pandas.read_hdf(path, self.key)
+    def setup_benchmark_axis(self, benchmark_profiles, axis):
+        benchmark_profiles = benchmark_profiles
         number_of_levels = self.get_number_of_levels(benchmark_profiles)
         for level in range(number_of_levels):
             label = 'level ' + str(level)
-            axis.plot(benchmark_profiles['beamlet_grid'], benchmark_profiles[label], '--', label=label+' bm.')
+            axis.plot(benchmark_profiles['beamlet_grid'], benchmark_profiles[label], '--', label=label+' ref.')
         return axis
 
     @staticmethod
@@ -92,3 +105,12 @@ class Profiles:
         if number_of_levels == 0: #Obsolete file structure handling - to be removed later
             number_of_levels = 9
         return number_of_levels
+
+    def save_figure(self, file_path='data/output/beamlet/test_plot.pdf'):
+        #matplotlib.pyplot.savefig(filename=file_path, metadata={'Metadata': 'My metadata'})
+        with PdfPages(file_path) as pdf:
+            pdf.savefig()
+            d = pdf.infodict()
+            d['Title'] = self.title
+            d['Keywords'] = 'Source hdf5 file: ' + self.access_path + ', source xml file: ' + self.param_path
+            d['ModDate'] = datetime.datetime.today()
