@@ -19,7 +19,7 @@ class BeamletFromIds:
         self.runnumber = int(self.param.getroot().find('body').find('imas_runnumber').text)
         self.timeslice = float(self.param.getroot().find('body').find('imas_timeslice').text)
 
-        self.profile_source = self.param.getroot().find('body').find('beamlet_profiles').text
+        self.profile_source = self.param.getroot().find('body').find('profile_source').text
         self.load_imas_profiles()
 
         self.equilibrium_source = self.param.getroot().find('body').find('device_magnetic_geometry').text
