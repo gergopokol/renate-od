@@ -34,9 +34,9 @@ class Beamlet:
         print('Beamlet.profiles read from file: ' + hdf5_path)
 
     def get_mass(self):
-        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species') + \
+        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
                          '/supplementary_data/default/' + \
-                         self.param.getroot().find('body').find('beamlet_species') + '_m.txt'
+                         self.param.getroot().find('body').find('beamlet_species').text + '_m.txt'
         mass_str = GetData(data_path_name=data_path_name, data_format="array").data
         try:
             mass = float(mass_str)
@@ -44,7 +44,7 @@ class Beamlet:
             print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
             raise ValueError
         new_element = etree.Element('beamlet_mass')
-        new_element.text = mass
+        new_element.text = mass_str
         new_element.set('unit', 'kg')
         self.param.getroot().find('body').append(new_element)
         return
@@ -52,9 +52,9 @@ class Beamlet:
     def get_velocity(self):
         energy = self.param.getroot().find('body').find('beamlet_energy').text
         mass = self.param.getroot().find('body').find('beamlet_mass').text
-        velocity = calculate_velocity_from_energy(energy, mass)
+        velocity = calculate_velocity_from_energy(energy, float(mass))
         new_element = etree.Element('beamlet_velocity')
-        new_element.text = velocity
+        new_element.text = str(velocity)
         new_element.set('unit', 'm/s')
         self.param.getroot().find('body').append(new_element)
         return
