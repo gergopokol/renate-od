@@ -18,17 +18,15 @@ class Obs1d:
         self.obs_profile = self.read_observation_profile(data_path=self.obs_param.getroot().find('body').find('observation_profile_path').text)
 
     def calculate_light_profile(self):
-        light_profile = numpy.full(self.obs_profile.size, 0)
+        light_profile = numpy.zeros(self.obs_profile.size)
         for detector_index in range(len(self.obs_profile)):
-            loc_up = self.obs_profile[0][detector_index] + float(self.obs_param.getroot().find('body').find('detector_size').text)/ 2
-            loc_down = self.obs_profile[0][detector_index] - float(self.obs_param.getroot().find('body').find('detector_size').text)/ 2
-            position_index_1 = numpy.where((self.beamlet.profiles.beamlet_grid < loc_up))
-            position_index_2 = numpy.where((self.beamlet.profiles.beamlet_grid > loc_down))
-            low = list(position_index_1)
-            up = list(position_index_2)
-            for step_index in range(up[0][0], low[0][-1]):
-                light_profile[detector_index] = light_profile[detector_index] + self.beamlet.profiles['level 2'][step_index] \
-                                                                                * self.photon_fraction
+            detector_steps = numpy.where(abs(self.beamlet.profiles.beamlet_grid-self.obs_profile[0][detector_index])
+                                         < float(self.obs_param.getroot().find('body').find('detector_size').text) / 2)
+            for step_index in detector_steps[0]:
+                light_profile[detector_index] = light_profile[detector_index] + \
+                                                self.beamlet.profiles[
+                                                    self.obs_param.getroot().find('body')
+                                                        .find('observed_level').text][step_index] * self.photon_fraction
         return light_profile
 
     @staticmethod
