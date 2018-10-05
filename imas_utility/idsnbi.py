@@ -11,6 +11,5 @@ class NbiIds(ImasObject):
         try:
             self.nbi = self.imas_pointer.get('nbi')
         except:
-            print('The nbi IDS is absent from data file. Muhaha.')
-            print('Please get more information about shot ' + str(self.shot) + ' at run ' + str(self.run))
+            print('No nbi IDS found in shot ' + str(self.shot) + ' at run ' + str(self.run))
             exit()
