@@ -20,6 +20,7 @@ class Obs1d:
         self.photon_fraction = beam_current * self.beamlet.coefficient_matrix.rates.einstein_coeffs[0, self.observed_level_index]\
                                / self.constants.charge_electron / float(beamlet.param.getroot().find('body').find('beamlet_velocity').text)
         self.photon_emission_profile = numpy.zeros(self.obs_profile.size)
+        self.emission_profile = pandas.DataFrame()
 
     def calculate_photon_emission_profile(self):
         for detector_index in range(len(self.obs_profile)):
@@ -32,6 +33,8 @@ class Obs1d:
                                                     self.beamlet.profiles[self.observed_level][step_index] * \
                                                     self.photon_fraction
         observing_detectors = numpy.where(self.photon_emission_profile != 0)[0]
+        self.emission_profile = pandas.concat([self.obs_profile, pandas.DataFrame(self.photon_emission_profile)], axis=1,
+                                              keys=['Location', 'Emission'])
         print('Only detectors completely inside the calculated region could observe the virtual beamlet, these detector'
               ' numbers are: ' + str(observing_detectors) + '.')
         return
