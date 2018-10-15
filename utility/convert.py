@@ -3,6 +3,8 @@ import h5py
 import os
 import utility
 from utility.constants import Constants
+import math
+import numpy as np
 
 
 def convert_beamlet_profiles(data_path_name='data/beamlet/test_profiles.h5'):
@@ -48,3 +50,32 @@ def calculate_velocity_from_energy(energy, mass):
     constants = Constants()
     velocity = (2 * float(energy) * constants.charge_electron / mass) ** 0.5
     return velocity
+
+
+def distance(a, b, system='cartesian'):
+    assert len(a) == len(b), 'Points are not given in the same dimensions.'
+    assert isinstance(system, str), 'Not a valid coordinate system.'
+    assert system in ['cartesian'], system + ' is not a supported coordinate system.'
+
+    if system is 'cartesian':
+        s = sum((a[i]-b[i])**2 for i in range(len(a)))
+        return math.sqrt(s)
+
+
+def unit_vector(a, b, system='cartesian'):
+    if system is 'cartesian':
+        s = distance(a, b, system=system)
+        return np.asarray([(a[i]-b[i])/s for i in range(len(a))])
+
+
+def cartesian_to_cylin(point):
+    assert len(point) == 3
+    r, z = math.sqrt(point[0]**2 + point[1]**2), point[2]
+    phi = math.atan2(point[1], point[0])
+    return np.asarray([r, z, phi])
+
+
+def cylin_to_cartesian(point):
+    assert len(point) == 3
+    x, y, z = point[0]*math.cos(point[2]), point[0]*math.sin(point[2]), point[1]
+    return np.asarray([x, y, z])
