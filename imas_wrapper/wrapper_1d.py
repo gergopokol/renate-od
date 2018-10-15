@@ -7,6 +7,7 @@ import numpy
 import pandas
 from scipy.interpolate import interp1d
 from scipy.interpolate import interp2d
+import utility.convert as uc
 
 
 class BeamletFromIds:
@@ -61,6 +62,15 @@ class BeamletFromIds:
             print('Further data exploitation development is in process. Currently beam species to be added manually')
             raise Exception('Missisng beam species input.')
 
+    def get_beamlet_ends(self):
+        start = [float(self.param.getroot().find('body').find('beamlet_start').find('x').text),
+                 float(self.param.getroot().find('body').find('beamlet_start').find('y').text),
+                 float(self.param.getroot().find('body').find('beamlet_start').find('z').text)]
+        end = [float(self.param.getroot().find('body').find('beamlet_end').find('x').text),
+               float(self.param.getroot().find('body').find('beamlet_end').find('y').text),
+               float(self.param.getroot().find('body').find('beamlet_end').find('z').text)]
+        return numpy.asarray(start), numpy.asarray(end)
+
     def load_imas_profiles(self):
         if self.profile_source == 'core_profiles':
             self.run_prof = ProfilesIds(self.shotnumber, self.runnumber, self.profile_source)
@@ -79,20 +89,31 @@ class BeamletFromIds:
         ids_density = self.run_prof.get_electron_density(self.timeslice)
         ids_electron_temperature = self.run_prof.get_electron_temperature(self.timeslice)
         ids_ion_temperature = self.run_prof.get_ion_temperature(self.timeslice)
-
-        #This part is hardcoded for 1.8 m of beam
-        ids_grid = self.run_prof.get_grid_in_rho_tor_norm(self.timeslice)*1.8  #normalized cordinates multiplied by midplane minor radius
-        resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
-        beamlet_gird = numpy.linspace(1.8, 0, resolution)
+        ids_grid = self.run_prof.get_grid_in_psi(self.timeslice)
 
         f_density = interp1d(ids_grid, ids_density)
         f_ion_temp = interp1d(ids_grid, ids_ion_temperature)
         f_electron_temp = interp1d(ids_grid, ids_electron_temperature)
 
-        self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_gird), 
-                                               'beamlet_electron_temp': f_electron_temp(beamlet_gird),
-                                               'beamlet_grid': 1.8-beamlet_gird,
-                                               'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
+        resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
+        start, end = self.get_beamlet_ends()
+        beamlet_gird = numpy.linspace(0, uc.distance(start, end), resolution)
+        beamlet_flux = self.beamlet_grid_psi(beamlet_gird, start, uc.unit_vector(start, end))
 
-    def beamlet_grid_psi(self):
+        self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_flux),
+                                               'beamlet_electron_temp': f_electron_temp(beamlet_flux),
+                                               'beamlet_grid': beamlet_gird,
+                                               'beamlet_ion_temp': f_ion_temp(beamlet_flux)})
+
+    def beamlet_grid_psi(self, beamlet_gird, start, vector):
         normalized_flux = self.equilibrium.get_normalized_2d_flux(self.timeslice)
+        r_flux, z_flux = self.equilibrium.get_2d_equilibrium_grid(self.timeslice)
+        flux_function = interp2d(r_flux, z_flux, normalized_flux, kind='cubic')
+        beamlet_flux = []
+        for distance in beamlet_gird:
+            point = uc.cartesian_to_cylin(start + distance*vector)
+            if point[0] > r_flux.max():
+                beamlet_flux.append(-1)
+            else:
+                beamlet_flux.append(flux_function(point[0], point[1]))
+        return numpy.asarray(beamlet_gird)
