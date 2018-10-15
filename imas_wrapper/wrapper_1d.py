@@ -6,7 +6,7 @@ from imas_utility.idsequilibrium import EquilibriumIds
 import numpy
 import pandas
 from scipy.interpolate import interp1d
-from scipy import interpolate
+from scipy.interpolate import interp2d
 
 
 class BeamletFromIds:
@@ -95,8 +95,4 @@ class BeamletFromIds:
                                                'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
 
     def beamlet_grid_psi(self):
-        r_psi, z_psi = self.equilibrium.get_2d_equilibrium_grid(self.timeslice)
-        r_lcfs, z_lcfs = self.equilibrium.get_lcfs_boundary(self.timeslice)
-        flux_map = self.equilibrium.get_2d_psi_values(self.timeslice)
-        #lcfs_flux =
-        #normalized_flux = flux_map/lcfs_flux
+        normalized_flux = self.equilibrium.get_normalized_2d_flux(self.timeslice)

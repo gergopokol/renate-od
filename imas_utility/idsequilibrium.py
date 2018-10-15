@@ -1,5 +1,6 @@
 from imas_utility.idsinstance import ImasObject
 import numpy as np
+from scipy.interpolate import interp2d
 
 
 class EquilibriumIds(ImasObject):
@@ -54,3 +55,10 @@ class EquilibriumIds(ImasObject):
         except:
             print('No RZ coordinates are available for Shot: ' + str(self.shot) + ' Run: ' + str(self.run))
             exit()
+
+    def get_normalized_2d_flux(self, time):
+        r_grid, z_grid = self.get_2d_equilibrium_grid(time)
+        r_lcfs, z_lcfs = self.get_lcfs_boundary(time)
+        flux = self.get_2d_psi_values(time)
+        flux_function = interp2d(r_grid, z_grid, flux, kind='cubic')
+        return flux / flux_function(r_lcfs[0], z_lcfs[0])
