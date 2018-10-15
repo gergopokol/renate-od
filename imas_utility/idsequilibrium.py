@@ -32,8 +32,8 @@ class EquilibriumIds(ImasObject):
     def get_2d_equilibrium_grid(self, time):
         time_index = self.get_time_index(time)
         try:
-            return self.equilibrium.time_slice[time_index].profiles_2d[0].r,\
-            self.equlibrium.time_slice[time_index].profiles_2d[0].z
+            return self.equilibrium.time_slice[time_index].profiles_2d[0].r, \
+                   self.equilibrium.time_slice[time_index].profiles_2d[0].z
         except:
             print('There is no R grid data in equilibrium IDS @ Shot: ' + str(self.shot) + ' Run: ' + str(self.run))
             exit()
@@ -49,8 +49,8 @@ class EquilibriumIds(ImasObject):
     def get_lcfs_boundary(self, time):
         time_index = self.get_time_index(time)
         try:
-            return self.equilibrium.time_slice[time_index].boundary.outile.r,\
-            self.equilibrium.time_slice[time_index].boundary.outline.z
+            return self.equilibrium.time_slice[time_index].boundary.outline.r,\
+                   self.equilibrium.time_slice[time_index].boundary.outline.z
         except:
             print('No RZ coordinates are available for Shot: ' + str(self.shot) + ' Run: ' + str(self.run))
             exit()
