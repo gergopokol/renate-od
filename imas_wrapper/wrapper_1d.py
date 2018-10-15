@@ -1,11 +1,12 @@
 from lxml import etree
 from utility.getdata import GetData
 from crm_solver.beamlet import Beamlet
-from imas_utility.idscoreprof import CoreprofIds
+from imas_utility.idsprofiles import ProfilesIds
 from imas_utility.idsequilibrium import EquilibriumIds
 import numpy
 import pandas
 from scipy.interpolate import interp1d
+from scipy import interpolate
 
 
 class BeamletFromIds:
@@ -62,14 +63,14 @@ class BeamletFromIds:
 
     def load_imas_profiles(self):
         if self.profile_source == 'core_profiles':
-            self.run_prof = CoreprofIds(self.shotnumber, self.runnumber)
+            self.run_prof = ProfilesIds(self.shotnumber, self.runnumber, self.profile_source)
         else:
             print('There is no input protocol for data stored in ' + self.profile_source + ' IDS')
             raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
 
     def load_imas_equilibrium(self):
         if self.equilibrium_source == 'equilibrium':
-            self.run_equi = EquilibriumIds(self.shotnumber, self.runnumber)
+            self.equilibrium = EquilibriumIds(self.shotnumber, self.runnumber)
         else:
             print('There is no input protocol for data stored in ' + self.equilibrium_source + ' IDS')
             raise Exception('The requested IDS does not exist or data fetch for it is not implemented')
@@ -93,4 +94,9 @@ class BeamletFromIds:
                                                'beamlet_grid': 1.8-beamlet_gird,
                                                'beamlet_ion_temp': f_ion_temp(beamlet_gird)})
 
-
+    def beamlet_grid_psi(self):
+        r_psi, z_psi = self.equilibrium.get_2d_equilibrium_grid(self.timeslice)
+        r_lcfs, z_lcfs = self.equilibrium.get_lcfs_boundary(self.timeslice)
+        flux_map = self.equilibrium.get_2d_psi_values(self.timeslice)
+        #lcfs_flux =
+        #normalized_flux = flux_map/lcfs_flux
