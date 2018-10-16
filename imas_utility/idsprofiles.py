@@ -73,12 +73,11 @@ class ProfilesIds(ImasObject):
             time_array = self.profiles.time
         except:
             raise IdsAttributeLoadError('No time array available for the requested Shot: ' +
-                                        str(self.shot)+' and Run: '+str(self.run) + ' in ' + self.source + ' IDS')
+                                        str(self.shot) + ' and Run: ' + str(self.run) + ' in ' + self.source + ' IDS')
 
         if (time_array[time_array.argmin()] <= time) and (time_array[time_array.argmax()] >= time):
             return (np.abs(time_array - time)).argmin()
         else:
-            print('Time value : '+str(time)+' is out of bound. Please select new time instance.')
-            print('Min time instance is '+str(time_array[time_array.argmin]) +
-                  '. Max time instance is : '+str(time_array[time_array.argmax]))
-            exit()
+            raise ValueError('Time value : ' + str(time) + ' is out of bound. Min time instance is ' +
+                             str(time_array[time_array.argmin]) + '. Max time instance is : ' +
+                             str(time_array[time_array.argmax]))
