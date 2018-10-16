@@ -1,5 +1,6 @@
 from imas_utility.idsinstance import ImasObject
 import numpy as np
+from utility.exceptions import IdsInstanceLoadError
 
 
 class NbiIds(ImasObject):
@@ -11,5 +12,4 @@ class NbiIds(ImasObject):
         try:
             self.nbi = self.imas_pointer.get('nbi')
         except:
-            print('No nbi IDS found in shot ' + str(self.shot) + ' at run ' + str(self.run))
-            exit()
+            raise IdsInstanceLoadError('No nbi IDS found in shot ' + str(self.shot) + ' at run ' + str(self.run))
