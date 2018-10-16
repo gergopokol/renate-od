@@ -1,4 +1,5 @@
 from imas_utility.idsinstance import ImasObject
+from utility.exceptions import IdsInstanceLoadError
 import numpy as np
 
 
@@ -14,8 +15,8 @@ class ProfilesIds(ImasObject):
         try:
             self.profiles = self.imas_pointer.get(source)
         except:
-            print('No core_profiles IDS found in shot ' + str(self.shot) + ' at run ' + str(self.run))
-            exit()
+            raise IdsInstanceLoadError('No ' + source + ' Ids was found for shot: ' 
+                                       + str(self.shot) + ' at run ' + str(self.run))
 
     def get_grid_in_rho_tor_norm(self, time):
         time_index = self.get_time_index(time)
