@@ -100,15 +100,15 @@ class BeamletFromIds:
         beamlet_gird = np.linspace(0, uc.distance(start, end), resolution)
         beamlet_flux = self.beamlet_grid_psi(beamlet_gird, start, uc.unit_vector(start, end))
 
-        beamlet_density = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
-                                                                [1, ids_density[-1]], [1.2, 1E-18]),
-                                          f_density(np.where(beamlet_flux <= 1)[0])))
-        beamlet_electron_temp = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
+        beamlet_density = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
+                                                                [1, ids_grid[-1]], [1.2, 1E-18]),
+                                          f_density(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
+        beamlet_electron_temp = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
                                                                       [1, ids_electron_temperature[-1]], [1.2, 10]),
-                                                f_electron_temp(np.where(beamlet_flux <= 1)[0])))
-        beamlet_ion_temp = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
+                                                f_electron_temp(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
+        beamlet_ion_temp = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
                                                                  [1, ids_ion_temperature[-1]], [1.2, 5]),
-                                           f_ion_temp(np.where(beamlet_flux <= 1)[0])))
+                                           f_ion_temp(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
 
         self.profiles = pandas.DataFrame(data={'beamlet_density': beamlet_density,
                                                'beamlet_electron_temp': beamlet_electron_temp,
