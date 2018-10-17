@@ -61,5 +61,5 @@ class EquilibriumIds(ImasObject):
         r_grid, z_grid = self.get_2d_equilibrium_grid(time)
         r_lcfs, z_lcfs = self.get_lcfs_boundary(time)
         flux = self.get_2d_psi_values(time)
-        flux_function = interp2d(r_grid, z_grid, flux, kind='cubic')
+        flux_function = interp2d(r_grid[:, 0], z_grid[:, 0], flux, kind='cubic')
         return flux / flux_function(r_lcfs[0], z_lcfs[0])
