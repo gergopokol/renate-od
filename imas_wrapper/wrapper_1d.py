@@ -3,7 +3,7 @@ from utility.getdata import GetData
 from crm_solver.beamlet import Beamlet
 from imas_utility.idsprofiles import ProfilesIds
 from imas_utility.idsequilibrium import EquilibriumIds
-import numpy
+import numpy as np
 import pandas
 from scipy.interpolate import interp1d
 from scipy.interpolate import interp2d
@@ -69,7 +69,7 @@ class BeamletFromIds:
         end = [float(self.param.getroot().find('body').find('beamlet_end').find('x').text),
                float(self.param.getroot().find('body').find('beamlet_end').find('y').text),
                float(self.param.getroot().find('body').find('beamlet_end').find('z').text)]
-        return numpy.asarray(start), numpy.asarray(end)
+        return np.asarray(start), np.asarray(end)
 
     def load_imas_profiles(self):
         if self.profile_source == 'core_profiles':
@@ -89,7 +89,7 @@ class BeamletFromIds:
         ids_density = self.run_prof.get_electron_density(self.timeslice)
         ids_electron_temperature = self.run_prof.get_electron_temperature(self.timeslice)
         ids_ion_temperature = self.run_prof.get_ion_temperature(self.timeslice)
-        ids_grid = self.run_prof.get_grid_in_psi(self.timeslice)
+        ids_grid = self.run_prof.get_grid_in_psi(self.timeslice) / self.run_prof.get_grid_in_psi(self.timeslice)[-1]
 
         f_density = interp1d(ids_grid, ids_density)
         f_ion_temp = interp1d(ids_grid, ids_ion_temperature)
@@ -97,13 +97,23 @@ class BeamletFromIds:
 
         resolution = int(self.param.getroot().find('body').find('beamlet_resolution').text)
         start, end = self.get_beamlet_ends()
-        beamlet_gird = numpy.linspace(0, uc.distance(start, end), resolution)
+        beamlet_gird = np.linspace(0, uc.distance(start, end), resolution)
         beamlet_flux = self.beamlet_grid_psi(beamlet_gird, start, uc.unit_vector(start, end))
 
-        self.profiles = pandas.DataFrame(data={'beamlet_density': f_density(beamlet_flux),
-                                               'beamlet_electron_temp': f_electron_temp(beamlet_flux),
+        beamlet_density = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
+                                                                [1, ids_density[-1]], [1.2, 1E-18]),
+                                          f_density(np.where(beamlet_flux <= 1)[0])))
+        beamlet_electron_temp = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
+                                                                      [1, ids_electron_temperature[-1]], [1.2, 10]),
+                                                f_electron_temp(np.where(beamlet_flux <= 1)[0])))
+        beamlet_ion_temp = np.concatenate((self.profile_extrapol(np.where(beamlet_flux > 1)[0],
+                                                                 [1, ids_ion_temperature[-1]], [1.2, 5]),
+                                           f_ion_temp(np.where(beamlet_flux <= 1)[0])))
+
+        self.profiles = pandas.DataFrame(data={'beamlet_density': beamlet_density,
+                                               'beamlet_electron_temp': beamlet_electron_temp,
                                                'beamlet_grid': beamlet_gird,
-                                               'beamlet_ion_temp': f_ion_temp(beamlet_flux)})
+                                               'beamlet_ion_temp': beamlet_ion_temp})
 
     def beamlet_grid_psi(self, beamlet_gird, start, vector):
         normalized_flux = self.equilibrium.get_normalized_2d_flux(self.timeslice)
@@ -112,8 +122,10 @@ class BeamletFromIds:
         beamlet_flux = []
         for distance in beamlet_gird:
             point = uc.cartesian_to_cylin(start + distance*vector)
-            if point[0] > r_flux.max():
-                beamlet_flux.append(-1)
-            else:
-                beamlet_flux.append(flux_function(point[0], point[1]))
-        return numpy.asarray(beamlet_gird)
+            beamlet_flux.append(flux_function(point[0], point[1]))
+        return np.asarray(beamlet_gird)
+
+    def profile_extrapol(self, vector, boundary_point, reference_point):
+        b = np.log(boundary_point[1] / reference_point[1]) / (boundary_point[0] - reference_point[0])
+        a = boundary_point[1] / np.exp(b * boundary_point[0])
+        return a * np.exp(b * vector)
