@@ -100,22 +100,22 @@ class BeamletFromIds:
         beamlet_gird = np.linspace(0, uc.distance(start, end), resolution)
         beamlet_flux = self.beamlet_grid_psi(beamlet_gird, start, uc.unit_vector(start, end))
 
-        print(beamlet_flux)
-
         beamlet_density = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
-                                                                [1, ids_grid[-1]], [1.2, 1E-18]),
+                                                                [1, ids_density[-1]], [1.2, 1e+17]),
                                           f_density(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
+        
         beamlet_electron_temp = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
                                                                       [1, ids_electron_temperature[-1]], [1.2, 10]),
                                                 f_electron_temp(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
+        
         beamlet_ion_temp = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
                                                                  [1, ids_ion_temperature[-1]], [1.2, 5]),
                                            f_ion_temp(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
-
-        self.profiles = pandas.DataFrame(data={'beamlet_density': beamlet_density,
-                                               'beamlet_electron_temp': beamlet_electron_temp,
+        
+        self.profiles = pandas.DataFrame(data={'beamlet_density': np.reshape(beamlet_density,beamlet_density.shape[0]),
+                                               'beamlet_electron_temp': np.reshape(beamlet_electron_temp,beamlet_electron_temp.shape[0]),
                                                'beamlet_grid': beamlet_gird,
-                                               'beamlet_ion_temp': beamlet_ion_temp})
+                                               'beamlet_ion_temp': np.reshape(beamlet_ion_temp,beamlet_ion_temp.shape[0])})
 
     def beamlet_grid_psi(self, beamlet_gird, start, vector):
         normalized_flux = self.equilibrium.get_normalized_2d_flux(self.timeslice)
@@ -123,9 +123,9 @@ class BeamletFromIds:
         flux_function = interp2d(r_flux, z_flux, normalized_flux, kind='cubic')
         beamlet_flux = []
         for distance in beamlet_gird:
-            point = uc.cartesian_to_cylin(start + distance*vector)
+            point = uc.cartesian_to_cylin(start - distance*vector)
             beamlet_flux.append(flux_function(point[0], point[1]))
-        return np.asarray(beamlet_gird)
+        return np.asarray(beamlet_flux)
 
     def profile_extrapol(self, vector, boundary_point, reference_point):
         b = np.log(boundary_point[1] / reference_point[1]) / (boundary_point[0] - reference_point[0])
