@@ -100,6 +100,8 @@ class BeamletFromIds:
         beamlet_gird = np.linspace(0, uc.distance(start, end), resolution)
         beamlet_flux = self.beamlet_grid_psi(beamlet_gird, start, uc.unit_vector(start, end))
 
+        print(beamlet_flux)
+
         beamlet_density = np.concatenate((self.profile_extrapol(beamlet_flux[np.where(beamlet_flux > 1)[0]],
                                                                 [1, ids_grid[-1]], [1.2, 1E-18]),
                                           f_density(beamlet_flux[np.where(beamlet_flux <= 1)[0]])))
