@@ -3,6 +3,7 @@ import urllib.request
 import pandas
 import h5py
 from lxml import etree
+from utility import convert
 
 
 class GetData:
@@ -123,7 +124,7 @@ class GetData:
         if not self.data_key:
             self.data = etree.parse(self.access_path)
             assert isinstance(self.data, etree._ElementTree)
-            print('ElementTree read to dictionary from: ' + self.access_path)
+            print('ElementTree read from: ' + self.access_path)
         else:
             tree = etree.parse(self.access_path)
             element = tree.getroot()
@@ -224,3 +225,49 @@ class GetData:
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+
+def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
+    file_name = 'rate_coeffs_' + str(beamlet_energy) + '_' + \
+                beamlet_species + '.h5'
+    data_path_name = locate_h5_dir(beamlet_species,rate_type) + file_name
+    temperature_array = GetData(data_path_name=data_path_name,
+                                                data_key=['Temperature axis'],
+                                                data_format='array').data
+    electron_neutral_collisions_array = \
+        GetData(data_path_name=data_path_name,
+                                data_key=['Collisional Coeffs/Electron Neutral Collisions'],
+                                data_format="array").data
+    proton_neutral_collisions_array = \
+        GetData(data_path_name=data_path_name,
+                                data_key=['Collisional Coeffs/Proton Neutral Collisions'],
+                                data_format="array").data
+    impurity_neutral_collisions_array = \
+        GetData(data_path_name=data_path_name,
+                                data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
+                                data_format="array").data
+    electron_loss_collisions_array = \
+        GetData(data_path_name=data_path_name,
+                                data_key=['Collisional Coeffs/Electron Loss Collisions'],
+                                data_format="array").data
+    einstein_coeffs_array = GetData(data_path_name=data_path_name,
+                                                    data_key=['Einstein Coeffs'],
+                                                    data_format="array").data
+    impurity_collisions_array = GetData(data_path_name=data_path_name,
+                                                        data_key=['Impurity Collisions'],
+                                                        data_format="array").data
+    # This is to be removed when input file is in SI
+    electron_neutral_collisions_array = convert.convert_from_cm2_to_m2(electron_neutral_collisions_array)
+    proton_neutral_collisions_array = convert.convert_from_cm2_to_m2(proton_neutral_collisions_array)
+    impurity_neutral_collisions_array = convert.convert_from_cm2_to_m2(impurity_neutral_collisions_array)
+    electron_loss_collisions_array = convert.convert_from_cm2_to_m2(electron_loss_collisions_array)
+    impurity_collisions_array = convert.convert_from_cm2_to_m2(impurity_collisions_array)
+    # To-be-removed end
+    rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
+                         impurity_neutral_collisions_array, electron_loss_collisions_array,
+                         einstein_coeffs_array, impurity_collisions_array]
+    return rate_coeff_arrays
+
+
+def locate_h5_dir(beamlet_species, rate_type):
+    return 'atomic_data/' + beamlet_species + '/rates/' + rate_type + '/'

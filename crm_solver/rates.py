@@ -1,5 +1,6 @@
 import numpy
 import utility
+from utility import getdata
 import pandas
 from lxml import etree
 from scipy.interpolate import interp1d
@@ -18,7 +19,7 @@ class Rates:
         self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
         self.rate_type = rate_type
 
-        rate_coefficients = self.setup_rate_coeff_arrays()
+        rate_coefficients = getdata.setup_rate_coeff_arrays(self.beamlet_energy, self.beamlet_species, self.rate_type)
         temperature_array = rate_coefficients[0]
         electron_neutral_collisions_array = rate_coefficients[1]
         proton_neutral_collisions_array = rate_coefficients[2]
@@ -63,61 +64,8 @@ class Rates:
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
-        self.mass = self.get_mass()
-        self.velocity = (2 * float(self.beamlet_energy) * 1.602176487e-16 / self.mass) ** 0.5
+        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
+        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
+        
 
-    def setup_rate_coeff_arrays(self):
-        file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
-                    self.beamlet_species + '.h5'
-        data_path_name = self.locate_h5_dir() + file_name
-        temperature_array = utility.getdata.GetData(data_path_name=data_path_name,
-                                                    data_key=['Temperature axis'],
-                                                    data_format='array').data
-        electron_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name=data_path_name,
-                                    data_key=['Collisional Coeffs/Electron Neutral Collisions'],
-                                    data_format="array").data
-        proton_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name=data_path_name,
-                                    data_key=['Collisional Coeffs/Proton Neutral Collisions'],
-                                    data_format="array").data
-        impurity_neutral_collisions_array = \
-            utility.getdata.GetData(data_path_name=data_path_name,
-                                    data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
-                                    data_format="array").data
-        electron_loss_collisions_array = \
-            utility.getdata.GetData(data_path_name=data_path_name,
-                                    data_key=['Collisional Coeffs/Electron Loss Collisions'],
-                                    data_format="array").data
-        einstein_coeffs_array = utility.getdata.GetData(data_path_name=data_path_name,
-                                                        data_key=['Einstein Coeffs'],
-                                                        data_format="array").data
-        impurity_collisions_array = utility.getdata.GetData(data_path_name=data_path_name,
-                                                            data_key=['Impurity Collisions'],
-                                                            data_format="array").data
-        # This is to be removed when input file is in SI
-        electron_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(electron_neutral_collisions_array)
-        proton_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(proton_neutral_collisions_array)
-        impurity_neutral_collisions_array = utility.convert.convert_from_cm2_to_m2(impurity_neutral_collisions_array)
-        electron_loss_collisions_array = utility.convert.convert_from_cm2_to_m2(electron_loss_collisions_array)
-        impurity_collisions_array = utility.convert.convert_from_cm2_to_m2(impurity_collisions_array)
-        # To-be-removed end
 
-        rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
-                             impurity_neutral_collisions_array, electron_loss_collisions_array,
-                             einstein_coeffs_array, impurity_collisions_array]
-        return rate_coeff_arrays
-
-    def get_mass(self):
-        data_path_name = 'atomic_data/' + self.beamlet_species + '/supplementary_data/default/' + \
-                         self.beamlet_species + '_m.txt'
-        mass_str = utility.getdata.GetData(data_path_name=data_path_name, data_format="array").data
-        try:
-            mass = float(mass_str)
-        except ValueError:
-            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
-            raise ValueError
-        return mass
-
-    def locate_h5_dir(self):
-        return 'atomic_data/' + self.beamlet_species + '/rates/' + self.rate_type + '/'
