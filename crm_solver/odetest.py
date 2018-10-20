@@ -93,5 +93,5 @@ class OdeTest(TestCase):
 
     @staticmethod
     def formula_1d(init, coefficient, variable):
-        value = init * numpy.exp(coefficient * variable)
-        return value
+        return init * numpy.exp(coefficient * variable)
+
