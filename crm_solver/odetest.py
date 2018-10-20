@@ -47,11 +47,11 @@ class OdeTest(TestCase):
 
     def test_1d_analytical(self):
         for init in self.test_initial_condition_1d:
-            for coeff in self.test_coefficient_matrix_1d:
-                ode = Ode(coefficient_matrix=coeff, initial_condition=init, steps=self.steps)
+            for coefficient in self.test_coefficient_matrix_1d:
+                ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.steps)
                 solution = ode.analytical_solution()
                 for index, variable in enumerate(self.steps):
-                    self.assertEqual(solution[index], self.formula_1d(init, coeff, variable))
+                    self.assertEqual(solution[index], self.formula_1d(init, coefficient, variable))
 
     def test_diagonal_numerical(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
@@ -89,6 +89,6 @@ class OdeTest(TestCase):
         self.assertAlmostEqual(1, 1.004, 2)
 
     @staticmethod
-    def formula_1d(init, coeff, variable):
-        value = init * numpy.exp(coeff * variable)
+    def formula_1d(init, coefficient, variable):
+        value = init * numpy.exp(coefficient * variable)
         return value
