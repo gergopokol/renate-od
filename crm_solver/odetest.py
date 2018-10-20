@@ -4,9 +4,9 @@ import numpy
 
 
 class OdeTest(TestCase):
-    step_interval = 0.1
-    step_number = 100
-    steps = numpy.linspace(0, step_interval, step_number)
+    STEP_INTERVAL = 0.1
+    STEP_NUMBER = 100
+    steps = numpy.linspace(0, STEP_INTERVAL, STEP_NUMBER)
 
     test_initial_condition = numpy.array([1., 2.])
     test_coefficient_matrix_constant = numpy.array([[-0.2, 0.],
@@ -43,7 +43,7 @@ class OdeTest(TestCase):
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
         s = ode.calculate_solution()
-        self.assertEqual(s.size, self.step_number * self.test_initial_condition.size)
+        self.assertEqual(s.size, self.STEP_NUMBER * self.test_initial_condition.size)
 
     def test_1d_analytical(self):
         for init in self.test_initial_condition_1d:
@@ -58,7 +58,7 @@ class OdeTest(TestCase):
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
         solution = ode.calculate_solution()
-        for i in range(self.step_number):
+        for i in range(self.STEP_NUMBER):
             for j in range(self.test_initial_condition.size):
                 self.assertAlmostEqual(solution[i, j], self.formula_1d(self.test_initial_condition[j],
                                                                        self.test_coefficient_matrix_constant[j, j],
@@ -69,7 +69,7 @@ class OdeTest(TestCase):
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
         solution = ode.analytical_solution()
-        for i in range(self.step_number):
+        for i in range(self.STEP_NUMBER):
             for j in range(self.test_initial_condition.size):
                 self.assertAlmostEqual(solution[i, j], self.formula_1d(self.test_initial_condition[j],
                                                                        self.test_coefficient_matrix_constant[j, j],
