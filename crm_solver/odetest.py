@@ -4,6 +4,9 @@ import numpy
 
 
 class OdeTest(TestCase):
+
+    DECIMALS_2 = 2
+    DECIMALS_6 = 6
     STEP_INTERVAL = 0.1
     STEP_NUMBER = 100
     steps = numpy.linspace(0, STEP_INTERVAL, STEP_NUMBER)
@@ -62,7 +65,7 @@ class OdeTest(TestCase):
             for j in range(self.test_initial_condition.size):
                 self.assertAlmostEqual(solution[i, j], self.formula_1d(self.test_initial_condition[j],
                                                                        self.test_coefficient_matrix_constant[j, j],
-                                                                       self.steps[i]), 6)
+                                                                       self.steps[i]), self.DECIMALS_6)
 
     def test_diagonal_analytical(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
@@ -73,7 +76,7 @@ class OdeTest(TestCase):
             for j in range(self.test_initial_condition.size):
                 self.assertAlmostEqual(solution[i, j], self.formula_1d(self.test_initial_condition[j],
                                                                        self.test_coefficient_matrix_constant[j, j],
-                                                                       self.steps[i]), 6)
+                                                                       self.steps[i]), self.DECIMALS_6)
 
     def test_numerical_to_analytical(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
@@ -83,10 +86,10 @@ class OdeTest(TestCase):
         analytical = ode.analytical_solution()
         for i in range(self.STEP_NUMBER):
             for j in range(self.test_initial_condition.size):
-                self.assertAlmostEqual(numerical[i, j], analytical[i, j], 6)
+                self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
 
     def test_almost_equal(self):
-        self.assertAlmostEqual(1.004, 1, 2)
+        self.assertAlmostEqual(1.004, 1, self.DECIMALS_2)
 
     @staticmethod
     def formula_1d(init, coefficient, variable):
