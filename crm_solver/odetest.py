@@ -20,26 +20,27 @@ class OdeTest(TestCase):
     test_coefficient_matrix_1d = [numpy.array([[2.]]), ]
     test_initial_condition_1d.append(numpy.array([1.]))
     test_coefficient_matrix_1d.append(numpy.array([[2.]]))
+    EXPECTED_SIZE_2 = 2
 
     def test_size_of_set_up_equation_constant(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
-        s = ode.set_up_equation(variable_vector=self.test_initial_condition,
-                                actual_position=(self.steps[0]+self.steps[1])/2.,
-                                coefficient_matrix=self.test_coefficient_matrix_constant,
-                                steps=self.steps)
-        self.assertEqual(2, s.size)
+        actual = ode.set_up_equation(variable_vector=self.test_initial_condition,
+                                     actual_position=(self.steps[0]+self.steps[1])/2.,
+                                     coefficient_matrix=self.test_coefficient_matrix_constant,
+                                     steps=self.steps)
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_set_up_equation_changing(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_changing,
                   initial_condition=self.test_initial_condition,
                   steps=self.steps)
-        s = ode.set_up_equation(variable_vector=self.test_initial_condition,
-                                actual_position=(self.steps[0]+self.steps[1])/2.,
-                                coefficient_matrix=self.test_coefficient_matrix_changing,
-                                steps=self.steps)
-        self.assertEqual(2, s.size)
+        actual = ode.set_up_equation(variable_vector=self.test_initial_condition,
+                                     actual_position=(self.steps[0]+self.steps[1])/2.,
+                                     coefficient_matrix=self.test_coefficient_matrix_changing,
+                                     steps=self.steps)
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_solution(self):
         ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
