@@ -3,7 +3,7 @@ from crm_solver.ode import Ode
 import numpy
 
 
-class TestOde(TestCase):
+class OdeTest(TestCase):
     step_interval = 0.1
     step_number = 100
     steps = numpy.linspace(0, step_interval, step_number)
