@@ -85,8 +85,8 @@ class OdeTest(TestCase):
             for j in range(self.test_initial_condition.size):
                 self.assertAlmostEqual(numerical[i, j], analytical[i, j], 6)
 
-    def test_almostequal(self):
-        self.assertAlmostEqual(1, 1.004, 2)
+    def test_almost_equal(self):
+        self.assertAlmostEqual(1.004, 1, 2)
 
     @staticmethod
     def formula_1d(init, coefficient, variable):
