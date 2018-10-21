@@ -1,9 +1,10 @@
-from unittest import TestCase
-from crm_solver.ode import Ode
+import unittest
 import numpy
 
+from crm_solver.ode import Ode
 
-class OdeTest(TestCase):
+
+class OdeTest(unittest.TestCase):
 
     DECIMALS_2 = 2
     DECIMALS_6 = 6
