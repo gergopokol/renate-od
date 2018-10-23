@@ -1,7 +1,7 @@
 import unittest
 import numpy
 
-from crm_solver.ode import Ode
+import crm_solver.ode
 
 
 class OdeTest(unittest.TestCase):
@@ -24,9 +24,9 @@ class OdeTest(unittest.TestCase):
     EXPECTED_SIZE_2 = 2
 
     def test_size_of_set_up_equation_constant(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         actual = ode.set_up_equation(variable_vector=self.test_initial_condition,
                                      actual_position=(self.steps[0]+self.steps[1])/2.,
                                      coefficient_matrix=self.test_coefficient_matrix_constant,
@@ -34,9 +34,9 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_set_up_equation_changing(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_changing,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_changing,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         actual = ode.set_up_equation(variable_vector=self.test_initial_condition,
                                      actual_position=(self.steps[0]+self.steps[1])/2.,
                                      coefficient_matrix=self.test_coefficient_matrix_changing,
@@ -44,24 +44,24 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_solution(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         s = ode.calculate_solution()
         self.assertEqual(s.size, self.STEP_NUMBER * self.test_initial_condition.size)
 
     def test_1d_analytical(self):
         for init in self.test_initial_condition_1d:
             for coefficient in self.test_coefficient_matrix_1d:
-                ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.steps)
+                ode = crm_solver.ode.Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.steps)
                 solution = ode.analytical_solution()
                 for index, variable in enumerate(self.steps):
                     self.assertEqual(solution[index], self.formula_1d(init, coefficient, variable))
 
     def test_diagonal_numerical(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         solution = ode.calculate_solution()
         for i in range(self.STEP_NUMBER):
             for j in range(self.test_initial_condition.size):
@@ -70,9 +70,9 @@ class OdeTest(unittest.TestCase):
                                                                        self.steps[i]), self.DECIMALS_6)
 
     def test_diagonal_analytical(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         solution = ode.analytical_solution()
         for i in range(self.STEP_NUMBER):
             for j in range(self.test_initial_condition.size):
@@ -81,9 +81,9 @@ class OdeTest(unittest.TestCase):
                                                                        self.steps[i]), self.DECIMALS_6)
 
     def test_numerical_to_analytical(self):
-        ode = Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
-                  initial_condition=self.test_initial_condition,
-                  steps=self.steps)
+        ode = crm_solver.ode.Ode(coefficient_matrix=self.test_coefficient_matrix_constant,
+                                 initial_condition=self.test_initial_condition,
+                                 steps=self.steps)
         numerical = ode.calculate_solution()
         analytical = ode.analytical_solution()
         for i in range(self.STEP_NUMBER):
