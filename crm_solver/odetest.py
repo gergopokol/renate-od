@@ -17,10 +17,10 @@ class OdeTest(unittest.TestCase):
                                       [0., -1.]])
     COEFFICIENT_MATRIX_CHANGING = numpy.tensordot(COEFFICIENT_MATRIX, STEPS, axes=0)
 
-    TEST_INITIAL_CONDITION_1D = [numpy.array([0.]), ]
-    TEST_COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), ]
-    TEST_INITIAL_CONDITION_1D.append(numpy.array([1.]))
-    TEST_COEFFICIENT_MATRIX_1D.append(numpy.array([[2.]]))
+    INITIAL_CONDITION_1D = [numpy.array([0.]), ]
+    COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), ]
+    INITIAL_CONDITION_1D.append(numpy.array([1.]))
+    COEFFICIENT_MATRIX_1D.append(numpy.array([[2.]]))
     EXPECTED_SIZE_2 = 2
 
     def test_size_of_set_up_equation_constant(self):
@@ -51,8 +51,8 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(s.size, self.STEP_NUMBER * self.INITIAL_CONDITION.size)
 
     def test_1d_analytical(self):
-        for init in self.TEST_INITIAL_CONDITION_1D:
-            for coefficient in self.TEST_COEFFICIENT_MATRIX_1D:
+        for init in self.INITIAL_CONDITION_1D:
+            for coefficient in self.COEFFICIENT_MATRIX_1D:
                 ode = crm_solver.ode.Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
                 solution = ode.analytical_solution()
                 for index, variable in enumerate(self.STEPS):
