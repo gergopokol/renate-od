@@ -11,7 +11,7 @@ class OdeTest(unittest.TestCase):
     STEP_INTERVAL = 0.1
     STEP_NUMBER = 100
     STEPS = numpy.linspace(0, STEP_INTERVAL, STEP_NUMBER)
-
+    START_POSITION = (STEPS[0] + STEPS[1]) / 2.
     INITIAL_CONDITION = numpy.array([1., 2.])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
                                       [0., -1.]])
@@ -28,7 +28,7 @@ class OdeTest(unittest.TestCase):
                                  initial_condition=self.INITIAL_CONDITION,
                                  steps=self.STEPS)
         actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
-                           actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
+                           actual_position=self.START_POSITION,
                            coefficient_matrix=self.COEFFICIENT_MATRIX,
                            steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
@@ -38,7 +38,7 @@ class OdeTest(unittest.TestCase):
                                  initial_condition=self.INITIAL_CONDITION,
                                  steps=self.STEPS)
         actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
-                           actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
+                           actual_position=self.START_POSITION,
                            coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
                            steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
