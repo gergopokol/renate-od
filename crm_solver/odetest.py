@@ -27,20 +27,20 @@ class OdeTest(unittest.TestCase):
         ode = crm_solver.ode.Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                                  initial_condition=self.INITIAL_CONDITION,
                                  steps=self.STEPS)
-        actual = ode.set_up_equation(variable_vector=self.INITIAL_CONDITION,
-                                     actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
-                                     coefficient_matrix=self.COEFFICIENT_MATRIX,
-                                     steps=self.STEPS)
+        actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
+                           actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
+                           coefficient_matrix=self.COEFFICIENT_MATRIX,
+                           steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_set_up_equation_changing(self):
         ode = crm_solver.ode.Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
                                  initial_condition=self.INITIAL_CONDITION,
                                  steps=self.STEPS)
-        actual = ode.set_up_equation(variable_vector=self.INITIAL_CONDITION,
-                                     actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
-                                     coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
-                                     steps=self.STEPS)
+        actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
+                           actual_position=(self.STEPS[0]+self.STEPS[1])/2.,
+                           coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
+                           steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_solution(self):
