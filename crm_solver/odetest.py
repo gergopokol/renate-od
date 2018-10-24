@@ -8,9 +8,10 @@ class OdeTest(unittest.TestCase):
 
     DECIMALS_2 = 2
     DECIMALS_6 = 6
-    STEP_INTERVAL = 0.1
+    START_INTERVAL = 0
+    END_INTERVAL = 0.1
     STEP_NUMBER = 100
-    STEPS = numpy.linspace(0, STEP_INTERVAL, STEP_NUMBER)
+    STEPS = numpy.linspace(START_INTERVAL, END_INTERVAL, STEP_NUMBER)
     START_POSITION = (STEPS[0] + STEPS[1]) / 2.
     INITIAL_CONDITION = numpy.array([1., 2.])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
