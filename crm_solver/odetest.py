@@ -22,6 +22,8 @@ class OdeTest(unittest.TestCase):
     INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
     COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), numpy.array([[2.]])]
     EXPECTED_SIZE_2 = 2
+    EXPECTED_SIZE_100 = 100
+    EXPECTED_SIZE_200 = 200
     EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
@@ -62,7 +64,7 @@ class OdeTest(unittest.TestCase):
             for coefficient in self.COEFFICIENT_MATRIX_1D:
                 ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
                 actual = ode.calculate_analytical_solution()
-                # TODO test size of actual
+                self.assertEqual(actual.size, self.EXPECTED_SIZE_100)
                 for index, variable in enumerate(self.STEPS):
                     expected = ode.formula_1d(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
@@ -72,7 +74,7 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         actual = ode.calculate_numerical_solution()
-        # TODO test size of actual
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
@@ -83,7 +85,7 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         actual = ode.calculate_analytical_solution()
-        # TODO test size of actual
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
@@ -95,7 +97,8 @@ class OdeTest(unittest.TestCase):
                   steps=self.STEPS)
         numerical = ode.calculate_numerical_solution()
         analytical = ode.calculate_analytical_solution()
-        # TODO test size of numerical and size of analytical
+        self.assertEqual(numerical.size, self.EXPECTED_SIZE_100)
+        self.assertEqual(analytical.size, self.EXPECTED_SIZE_100)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
