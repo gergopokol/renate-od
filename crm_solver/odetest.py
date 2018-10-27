@@ -85,7 +85,7 @@ class OdeTest(unittest.TestCase):
                 expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
-    def test_numerical_to_analytical(self):
+    def test_two_solutions_with_each_other(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
