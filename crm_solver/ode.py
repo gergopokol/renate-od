@@ -13,9 +13,8 @@ class Ode:
         self.steps = steps
 
     def calculate_solution(self):
-        solution = odeint(func=self.setup, y0=self.initial_condition, t=self.steps,
+        return odeint(func=self.setup, y0=self.initial_condition, t=self.steps,
                           args=(self.coefficient_matrix, self.steps))
-        return solution
 
     def analytical_solution(self):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coefficient_matrix)
