@@ -41,5 +41,5 @@ class Ode:
         return derivative_vector
 
     @staticmethod
-    def formula_1d(init, coefficient, variable):
+    def calculate_1d_solution(init, coefficient, variable):
         return init * numpy.exp(coefficient * variable)

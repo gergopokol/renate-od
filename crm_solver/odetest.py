@@ -66,7 +66,7 @@ class OdeTest(unittest.TestCase):
                 actual = ode.calculate_analytical_solution()
                 self.assertEqual(actual.size, self.EXPECTED_SIZE_100)
                 for index, variable in enumerate(self.STEPS):
-                    expected = ode.formula_1d(init, coefficient, variable)
+                    expected = ode.calculate_1d_solution(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
     def test_calculate_numerical_solution_diagonal(self):
@@ -77,7 +77,9 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
-                expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
+                expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
+                                                     self.COEFFICIENT_MATRIX[j, j],
+                                                     self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_calculate_analytical_solution_diagonal(self):
@@ -88,7 +90,9 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
-                expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
+                expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
+                                                     self.COEFFICIENT_MATRIX[j, j],
+                                                     self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_two_solutions_with_each_other(self):
