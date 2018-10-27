@@ -40,3 +40,7 @@ class Ode:
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
         return derivative_vector
+
+    @staticmethod
+    def formula_1d(init, coefficient, variable):
+        return init * numpy.exp(coefficient * variable)

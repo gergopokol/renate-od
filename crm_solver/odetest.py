@@ -57,7 +57,7 @@ class OdeTest(unittest.TestCase):
                 ode = crm_solver.ode.Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
                 actual = ode.analytical_solution()
                 for index, variable in enumerate(self.STEPS):
-                    expected = self.formula_1d(init, coefficient, variable)
+                    expected = ode.formula_1d(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
     def test_diagonal_numerical(self):
@@ -67,7 +67,7 @@ class OdeTest(unittest.TestCase):
         actual = ode.calculate_solution()
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
-                expected = self.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
+                expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_diagonal_analytical(self):
@@ -77,7 +77,7 @@ class OdeTest(unittest.TestCase):
         actual = ode.analytical_solution()
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
-                expected = self.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
+                expected = ode.formula_1d(self.INITIAL_CONDITION[j], self.COEFFICIENT_MATRIX[j, j], self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_numerical_to_analytical(self):
@@ -94,8 +94,3 @@ class OdeTest(unittest.TestCase):
         actual = 1.004
         expected = 1
         self.assertAlmostEqual(actual, expected, self.DECIMALS_2)
-
-    @staticmethod
-    def formula_1d(init, coefficient, variable):
-        return init * numpy.exp(coefficient * variable)
-
