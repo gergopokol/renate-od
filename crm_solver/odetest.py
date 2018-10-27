@@ -49,7 +49,7 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_size_of_solution(self):
+    def test_calculate_integrate_solution(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
