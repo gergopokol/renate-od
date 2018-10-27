@@ -24,7 +24,7 @@ class Ode:
                 analytical_solution[step] = 1 / eigenvectors * self.initial_condition * eigenvectors \
                                          * numpy.exp(eigenvalues * self.steps[step])
         else:
-            analytical_solution = numpy.zeros((self.steps.size, self.initial_condition.size))
+            analytical_solution = numpy.zeros(self.steps.size, self.initial_condition.size)
             for step in range(self.steps.size):
                 analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
                                                                    self.initial_condition), eigenvectors)\
