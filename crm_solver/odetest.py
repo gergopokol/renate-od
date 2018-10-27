@@ -19,10 +19,8 @@ class OdeTest(unittest.TestCase):
                                       [0., -1.]])
     COEFFICIENT_MATRIX_CHANGING = numpy.tensordot(COEFFICIENT_MATRIX, STEPS, axes=0)
 
-    INITIAL_CONDITION_1D = [numpy.array([0.]), ]
-    COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), ]
-    INITIAL_CONDITION_1D.append(numpy.array([1.]))
-    COEFFICIENT_MATRIX_1D.append(numpy.array([[2.]]))
+    INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
+    COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), numpy.array([[2.]])]
     EXPECTED_SIZE_2 = 2
 
     def test_size_of_set_up_equation_constant(self):
