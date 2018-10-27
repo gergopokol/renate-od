@@ -56,7 +56,7 @@ class OdeTest(unittest.TestCase):
         actual = ode.calculate_integrate_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION.size)
 
-    def test_1d_analytical(self):
+    def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
             for coefficient in self.COEFFICIENT_MATRIX_1D:
                 ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
