@@ -101,8 +101,8 @@ class OdeTest(unittest.TestCase):
                   steps=self.STEPS)
         numerical = ode.calculate_numerical_solution()
         analytical = ode.calculate_analytical_solution()
-        self.assertEqual(numerical.size, self.EXPECTED_SIZE_100)
-        self.assertEqual(analytical.size, self.EXPECTED_SIZE_100)
+        self.assertEqual(numerical.size, self.EXPECTED_SIZE_200)
+        self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
