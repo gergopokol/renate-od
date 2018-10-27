@@ -12,11 +12,11 @@ class Ode:
         self.initial_condition = initial_condition
         self.steps = steps
 
-    def calculate_solution(self):
+    def calculate_integrate_solution(self):
         return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=self.steps,
                           args=(self.coefficient_matrix, self.steps))
 
-    def analytical_solution(self):
+    def calculate_analytical_solution(self):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coefficient_matrix)
         if self.initial_condition.size == 1:
             analytical_solution = numpy.zeros(self.steps.size)
