@@ -65,7 +65,7 @@ class OdeTest(unittest.TestCase):
                     expected = ode.formula_1d(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
-    def test_diagonal_numerical(self):
+    def test_calculate_integrate_solution_diagonal(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
