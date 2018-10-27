@@ -27,20 +27,20 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
-                           actual_position=self.START_POSITION,
-                           coefficient_matrix=self.COEFFICIENT_MATRIX,
-                           steps=self.STEPS)
+        actual = ode.setup_derivative_vector(variable_vector=self.INITIAL_CONDITION,
+                                             actual_position=self.START_POSITION,
+                                             coefficient_matrix=self.COEFFICIENT_MATRIX,
+                                             steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_set_up_equation_changing(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.setup(variable_vector=self.INITIAL_CONDITION,
-                           actual_position=self.START_POSITION,
-                           coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
-                           steps=self.STEPS)
+        actual = ode.setup_derivative_vector(variable_vector=self.INITIAL_CONDITION,
+                                             actual_position=self.START_POSITION,
+                                             coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
+                                             steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
 
     def test_size_of_solution(self):

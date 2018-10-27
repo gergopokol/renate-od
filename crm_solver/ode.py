@@ -13,7 +13,7 @@ class Ode:
         self.steps = steps
 
     def calculate_solution(self):
-        return odeint(func=self.setup, y0=self.initial_condition, t=self.steps,
+        return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=self.steps,
                           args=(self.coefficient_matrix, self.steps))
 
     def analytical_solution(self):
@@ -32,7 +32,7 @@ class Ode:
         return analytical_solution
 
     @staticmethod
-    def setup(variable_vector, actual_position, coefficient_matrix, steps):
+    def setup_derivative_vector(variable_vector, actual_position, coefficient_matrix, steps):
         if coefficient_matrix.ndim == 3:
             interp_coefficient_matrix = interp1d(steps, coefficient_matrix, axis=2, fill_value='extrapolate')
             derivative_vector = numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
