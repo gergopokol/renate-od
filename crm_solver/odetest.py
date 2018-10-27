@@ -49,11 +49,11 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_calculate_integrate_solution(self):
+    def test_calculate_numerical_solution(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.calculate_integrate_solution()
+        actual = ode.calculate_numerical_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION.size)
         # TODO test values in actual
 
@@ -67,11 +67,11 @@ class OdeTest(unittest.TestCase):
                     expected = ode.formula_1d(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
-    def test_calculate_integrate_solution_diagonal(self):
+    def test_calculate_numerical_solution_diagonal(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.calculate_integrate_solution()
+        actual = ode.calculate_numerical_solution()
         # TODO test size of actual
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
@@ -93,9 +93,9 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        numerical = ode.calculate_integrate_solution()
+        numerical = ode.calculate_numerical_solution()
         analytical = ode.calculate_analytical_solution()
-        # TODO test size of integrate and size of analytical
+        # TODO test size of numerical and size of analytical
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
