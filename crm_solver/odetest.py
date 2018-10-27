@@ -22,8 +22,9 @@ class OdeTest(unittest.TestCase):
     INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
     COEFFICIENT_MATRIX_1D = [numpy.array([[2.]]), numpy.array([[2.]])]
     EXPECTED_SIZE_2 = 2
+    EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
 
-    def test_size_of_set_up_equation_constant(self):
+    def test_setup_derivative_vector_with_coefficient_matrix(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
@@ -32,6 +33,8 @@ class OdeTest(unittest.TestCase):
                                              coefficient_matrix=self.COEFFICIENT_MATRIX,
                                              steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
+        self.assertEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_1[0])
+        self.assertEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_1[1])
 
     def test_size_of_set_up_equation_changing(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
