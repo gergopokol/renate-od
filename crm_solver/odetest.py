@@ -17,6 +17,11 @@ class OdeTest(unittest.TestCase):
     INITIAL_CONDITION = numpy.array([1., 2.])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
                                       [0., -1.]])
+    INITIAL_CONDITION_GENERAL = [17, -103, 84]
+    COEFFICIENT_MATRIX_GENERAL = numpy.array([[1, -1, -1],
+                                              [3, 1, -3],
+                                              [-4, -2, 1]])
+    EXPECTED_RESULT_GENERAL = numpy.array([21.2430633727, -138.170872548, 109.979067124])
     COEFFICIENT_MATRIX_CHANGING = numpy.tensordot(COEFFICIENT_MATRIX, STEPS, axes=0)
 
     INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
@@ -26,7 +31,6 @@ class OdeTest(unittest.TestCase):
     EXPECTED_SIZE_200 = 200
     EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
-    EXPECTED_RESULT_1 = numpy.array([0.9801986733, 1.80967483607])
 
     def test_setup_derivative_vector_with_coefficient_matrix(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
@@ -52,15 +56,16 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_calculate_numerical_solution(self):
-        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
-                  initial_condition=self.INITIAL_CONDITION,
+    def test_calculate_numerical_solution_general(self):
+        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_GENERAL,
+                  initial_condition=self.INITIAL_CONDITION_GENERAL,
                   steps=self.STEPS)
         actual = ode.calculate_numerical_solution()
-        self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION.size)
-        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION.size))
-        self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_1[0], self.DECIMALS_6)
-        self.assertAlmostEqual(actual[-1, 1], self.EXPECTED_RESULT_1[1], self.DECIMALS_6)
+        self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_GENERAL.size)
+        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_GENERAL.size))
+        self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_GENERAL[0], self.DECIMALS_6)
+        self.assertAlmostEqual(actual[-1, 1], self.EXPECTED_RESULT_GENERAL[1], self.DECIMALS_6)
+        self.assertAlmostEqual(actual[-1, 2], self.EXPECTED_RESULT_GENERAL[2], self.DECIMALS_6)
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
