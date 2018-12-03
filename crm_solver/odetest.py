@@ -26,6 +26,7 @@ class OdeTest(unittest.TestCase):
     EXPECTED_SIZE_200 = 200
     EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
+    EXPECTED_RESULT_1 = numpy.array([0.9801986733, 1.80967483607])
 
     def test_setup_derivative_vector_with_coefficient_matrix(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
@@ -57,7 +58,9 @@ class OdeTest(unittest.TestCase):
                   steps=self.STEPS)
         actual = ode.calculate_numerical_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION.size)
-        # TODO test values in actual
+        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION.size))
+        self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_1[0], self.DECIMALS_6)
+        self.assertAlmostEqual(actual[-1, 1], self.EXPECTED_RESULT_1[1], self.DECIMALS_6)
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
