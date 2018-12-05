@@ -55,11 +55,11 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_calculate_numerical_solution_general(self):
+    def test_calculate_integrate_solution_general(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_GENERAL,
                   initial_condition=self.INITIAL_CONDITION_GENERAL,
                   steps=self.STEPS)
-        actual = ode.calculate_numerical_solution()
+        actual = ode.calculate_integrate_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_GENERAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_GENERAL.size))
         self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_GENERAL[0], self.DECIMALS_6)
@@ -76,11 +76,11 @@ class OdeTest(unittest.TestCase):
                     expected = ode.calculate_1d_solution(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
-    def test_calculate_numerical_solution_diagonal(self):
+    def test_calculate_integrate_solution_diagonal(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.calculate_numerical_solution()
+        actual = ode.calculate_integrate_solution()
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
@@ -106,13 +106,13 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        numerical = ode.calculate_numerical_solution()
+        integrate = ode.calculate_integrate_solution()
         analytical = ode.calculate_analytical_solution()
-        self.assertEqual(numerical.size, self.EXPECTED_SIZE_200)
+        self.assertEqual(integrate.size, self.EXPECTED_SIZE_200)
         self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
-                self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
+                self.assertAlmostEqual(integrate[i, j], analytical[i, j], self.DECIMALS_6)
 
     def test_almost_equal(self):
         actual = 1.004
