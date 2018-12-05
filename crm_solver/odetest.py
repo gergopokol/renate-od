@@ -6,7 +6,6 @@ from crm_solver.ode import Ode
 
 
 class OdeTest(unittest.TestCase):
-
     DECIMALS_2 = 2
     DECIMALS_6 = 6
     START_INTERVAL = 0
