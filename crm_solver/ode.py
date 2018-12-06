@@ -38,6 +38,8 @@ class Ode:
             derivative_vector = numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
+        else:
+            raise ValueError('Rate Coefficient Matrix of dimensions: '+str(coefficient_matrix.ndim)+' is not supported')
         return derivative_vector
 
     @staticmethod
