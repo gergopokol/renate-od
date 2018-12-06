@@ -16,11 +16,13 @@ class OdeTest(unittest.TestCase):
     INITIAL_CONDITION = numpy.array([1., 2.])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
                                       [0., -1.]])
-    INITIAL_CONDITION_GENERAL = numpy.array([3, -11, 11])
-    COEFFICIENT_MATRIX_GENERAL = numpy.array([[1, 3, -4],
+
+    INITIAL_CONDITION_CONSTANT_NONDIAGONAL = numpy.array([3, -11, 11])
+    COEFFICIENT_MATRIX_CONSTANT_NONDIAGONAL = numpy.array([[1, 3, -4],
                                               [-1, 1, -2],
                                               [-1, -3, 1]])
-    EXPECTED_RESULT_GENERAL = numpy.array([3.38999231881, -14.9942067896, 13.5292786755])
+    EXPECTED_RESULT_CONSTANT_NONDIAGONAL = numpy.array([3.38999231881, -14.9942067896, 13.5292786755])
+
     COEFFICIENT_MATRIX_CHANGING = numpy.tensordot(COEFFICIENT_MATRIX, STEPS, axes=0)
 
     INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
@@ -55,15 +57,15 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_calculate_integrate_solution_general(self):
-        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_GENERAL,
-                  initial_condition=self.INITIAL_CONDITION_GENERAL,
+    def test_calculate_integrate_solution_constant_nondiagonal(self):
+        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_NONDIAGONAL,
+                  initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
                   steps=self.STEPS)
         actual = ode.calculate_integrate_solution()
-        self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_GENERAL.size)
-        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_GENERAL.size))
-        for index in range(self.INITIAL_CONDITION_GENERAL.size):
-            self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_GENERAL[index], self.DECIMALS_6)
+        self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size)
+        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size))
+        for index in range(self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size):
+            self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
