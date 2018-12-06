@@ -62,10 +62,8 @@ class OdeTest(unittest.TestCase):
         actual = ode.calculate_integrate_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_GENERAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_GENERAL.size))
-        print(actual)
-        self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_GENERAL[0], self.DECIMALS_6)
-        self.assertAlmostEqual(actual[-1, 1], self.EXPECTED_RESULT_GENERAL[1], self.DECIMALS_6)
-        self.assertAlmostEqual(actual[-1, 2], self.EXPECTED_RESULT_GENERAL[2], self.DECIMALS_6)
+        for index in range(self.INITIAL_CONDITION_GENERAL.size):
+            self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_GENERAL[index], self.DECIMALS_6)
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
