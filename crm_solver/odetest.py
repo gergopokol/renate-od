@@ -16,11 +16,11 @@ class OdeTest(unittest.TestCase):
     INITIAL_CONDITION = numpy.array([1., 2.])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
                                       [0., -1.]])
-    INITIAL_CONDITION_GENERAL = [17, -103, 84]
-    COEFFICIENT_MATRIX_GENERAL = numpy.array([[1, -1, -1],
-                                              [3, 1, -3],
-                                              [-4, -2, 1]])
-    EXPECTED_RESULT_GENERAL = numpy.array([21.2430633727, -138.170872548, 109.979067124])
+    INITIAL_CONDITION_GENERAL = numpy.array([3, -11, 11])
+    COEFFICIENT_MATRIX_GENERAL = numpy.array([[1, 3, -4],
+                                              [-1, 1, -2],
+                                              [-1, -3, 1]])
+    EXPECTED_RESULT_GENERAL = numpy.array([3.38999231881, -14.9942067896, 13.5292786755])
     COEFFICIENT_MATRIX_CHANGING = numpy.tensordot(COEFFICIENT_MATRIX, STEPS, axes=0)
 
     INITIAL_CONDITION_1D = [numpy.array([0.]), numpy.array([1.])]
@@ -62,6 +62,7 @@ class OdeTest(unittest.TestCase):
         actual = ode.calculate_integrate_solution()
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_GENERAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_GENERAL.size))
+        print(actual)
         self.assertAlmostEqual(actual[-1, 0], self.EXPECTED_RESULT_GENERAL[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[-1, 1], self.EXPECTED_RESULT_GENERAL[1], self.DECIMALS_6)
         self.assertAlmostEqual(actual[-1, 2], self.EXPECTED_RESULT_GENERAL[2], self.DECIMALS_6)
