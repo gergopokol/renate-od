@@ -14,6 +14,7 @@ class OdeTest(unittest.TestCase):
     STEPS = numpy.linspace(START_INTERVAL, END_INTERVAL, STEP_NUMBER)
     START_POSITION = (STEPS[0] + STEPS[1]) / 2.
     INITIAL_CONDITION = numpy.array([1., 2.])
+    COEFFICIENT_MATRIX_DIM_ERROR = numpy.array([15, 12])
     COEFFICIENT_MATRIX = numpy.array([[-0.2, 0.],
                                       [0., -1.]])
 
@@ -57,7 +58,17 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_calculate_integrate_solution_constant_nondiagonal(self):
+    def test_setup_derivative_vector_for_dimension_error(self):
+        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
+                  initial_condition=self.INITIAL_CONDITION,
+                  steps=self.STEPS)
+        with self.assertRaises(ValueError):
+            actual = ode.setup_derivative_vector(variable_vector=self.INITIAL_CONDITION,
+                                                 actual_position=self.START_POSITION,
+                                                 coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
+                                                 steps=self.STEPS)
+
+    def test_calculate_integrate_solution_for_constant_nondiagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_NONDIAGONAL,
                   initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
                   steps=self.STEPS)
