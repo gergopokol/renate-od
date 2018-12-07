@@ -37,7 +37,7 @@ class OdeTest(unittest.TestCase):
     EXPECTED_RESULT_CONSTANT_NONDIAGONAL = numpy.array([3.38999231881, -14.9942067896, 13.5292786755])
     EXPECTED_RESULT_VARYING_NONDIAGONAL = numpy.array([[2, -1],
                                                        [2.5108421, -0.20367017],
-                                                       [3.0526073,  0.0849155],
+                                                       [3.0526073, 0.0849155],
                                                        [3.3920525, -1.1205913]])
     EXPECTED_SIZE_2 = 2
     EXPECTED_SIZE_100 = 100
@@ -119,8 +119,10 @@ class OdeTest(unittest.TestCase):
                   steps=self.STEPS_VARYING_NONDIAGONAL)
         actual = ode.calculate_integrate_solution()
         self.assertEqual(type(actual), numpy.ndarray)
-        self.assertEqual(actual.size, self.STEPS_VARYING_NONDIAGONAL.size * self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size)
-        self.assertEqual(actual.shape, (self.STEPS_VARYING_NONDIAGONAL.size, self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size))
+        self.assertEqual(actual.size,
+                         self.STEPS_VARYING_NONDIAGONAL.size * self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size)
+        self.assertEqual(actual.shape,
+                         (self.STEPS_VARYING_NONDIAGONAL.size, self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size))
         for i in range(self.STEPS_VARYING_NONDIAGONAL.size):
             for j in range(self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size):
                 self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
