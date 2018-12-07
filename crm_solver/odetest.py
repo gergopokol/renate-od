@@ -34,7 +34,7 @@ class OdeTest(unittest.TestCase):
     EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
-    def test_setup_derivative_vector_with_coefficient_matrix(self):
+    def test_setup_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
