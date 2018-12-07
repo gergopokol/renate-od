@@ -44,6 +44,8 @@ class OdeTest(unittest.TestCase):
     EXPECTED_SIZE_200 = 200
     EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
+    ACCEPTED_TYPES = [numpy.int, numpy.int8, numpy.int16, numpy.int32, numpy.int64,
+                      numpy.float, numpy.float16, numpy.float32, numpy.float64]
 
     def test_setup_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
@@ -53,8 +55,10 @@ class OdeTest(unittest.TestCase):
                                              actual_position=self.START_POSITION,
                                              coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                                              steps=self.STEPS)
+        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
         for index in range(actual.size):
+            self.assertIn(type(actual[index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[index], self.EXPECTED_DERIVATIVE_VECTOR_1[index], self.DECIMALS_6)
 
     def test_setup_derivative_vector_for_constant_nondiagonal_case(self):
@@ -87,12 +91,14 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         actual = ode.calculate_integrate_solution()
+        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
                                                      self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL[j, j],
                                                      self.STEPS[i])
+                self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_calculate_integrate_solution_for_constant_nondiagonal_case(self):
@@ -100,9 +106,11 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
                   steps=self.STEPS)
         actual = ode.calculate_integrate_solution()
+        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size))
         for index in range(self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size):
+            self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
     def test_calculate_integrate_solution_for_varying_nondiagonal_case(self):
@@ -110,15 +118,23 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION_VARYING_NONDIAGONAL,
                   steps=self.STEPS_VARYING_NONDIAGONAL)
         actual = ode.calculate_integrate_solution()
+        self.assertEqual(type(actual), numpy.ndarray)
+        self.assertEqual(actual.size, self.STEPS_VARYING_NONDIAGONAL.size * self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size)
+        self.assertEqual(actual.shape, (self.STEPS_VARYING_NONDIAGONAL.size, self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size))
+        for i in range(self.STEPS_VARYING_NONDIAGONAL.size):
+            for j in range(self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size):
+                self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
             for coefficient in self.COEFFICIENT_MATRIX_1D:
                 ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
                 actual = ode.calculate_analytical_solution()
+                self.assertEqual(type(actual), numpy.ndarray)
                 self.assertEqual(actual.size, self.EXPECTED_SIZE_100)
                 for index, variable in enumerate(self.STEPS):
                     expected = ode.calculate_1d_solution(init, coefficient, variable)
+                    self.assertIn(type(actual[index]), self.ACCEPTED_TYPES)
                     self.assertEqual(actual[index], expected)
 
     def test_calculate_analytical_solution_for_constant_diagonal_case(self):
@@ -126,12 +142,14 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         actual = ode.calculate_analytical_solution()
+        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INITIAL_CONDITION.size):
                 expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
                                                      self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL[j, j],
                                                      self.STEPS[i])
+                self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_calculate_analytical_solution_for_constant_nondiagnoal_case(self):
@@ -139,7 +157,7 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
                   steps=self.STEPS)
         actual = ode.calculate_analytical_solution()
-        pass
+        self.assertEqual(type(actual), numpy.ndarray)
 
     def test_calculate_analytical_solution_for_varying_nondiagonal_case(self):
         pass
