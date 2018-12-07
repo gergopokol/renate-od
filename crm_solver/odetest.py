@@ -43,8 +43,8 @@ class OdeTest(unittest.TestCase):
                                              coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                                              steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
-        self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_1[0], self.DECIMALS_6)
-        self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_1[1], self.DECIMALS_6)
+        for index in range(actual.size):
+            self.assertAlmostEqual(actual[index], self.EXPECTED_DERIVATIVE_VECTOR_1[index], self.DECIMALS_6)
 
     def test_setup_derivative_vector_with_coefficient_matrix_changing(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CHANGING,
