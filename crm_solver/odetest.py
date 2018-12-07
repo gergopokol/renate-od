@@ -101,7 +101,7 @@ class OdeTest(unittest.TestCase):
                     expected = ode.calculate_1d_solution(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
 
-    def test_calculate_analytical_solution_diagonal(self):
+    def test_calculate_analytical_solution_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
