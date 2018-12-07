@@ -114,7 +114,7 @@ class OdeTest(unittest.TestCase):
                                                      self.STEPS[i])
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
-    def test_two_solutions_with_each_other(self):
+    def test_benchmark_solvers_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
