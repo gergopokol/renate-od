@@ -68,6 +68,19 @@ class OdeTest(unittest.TestCase):
                                                  coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
                                                  steps=self.STEPS)
 
+    def test_calculate_integrate_solution_for_constant_diagonal_case(self):
+        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
+                  initial_condition=self.INITIAL_CONDITION,
+                  steps=self.STEPS)
+        actual = ode.calculate_integrate_solution()
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
+        for i in range(self.STEP_NUMBER):
+            for j in range(self.INITIAL_CONDITION.size):
+                expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
+                                                     self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL[j, j],
+                                                     self.STEPS[i])
+                self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
+
     def test_calculate_integrate_solution_for_constant_nondiagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_NONDIAGONAL,
                   initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
@@ -87,19 +100,6 @@ class OdeTest(unittest.TestCase):
                 for index, variable in enumerate(self.STEPS):
                     expected = ode.calculate_1d_solution(init, coefficient, variable)
                     self.assertEqual(actual[index], expected)
-
-    def test_calculate_integrate_solution_diagonal(self):
-        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
-                  initial_condition=self.INITIAL_CONDITION,
-                  steps=self.STEPS)
-        actual = ode.calculate_integrate_solution()
-        self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
-        for i in range(self.STEP_NUMBER):
-            for j in range(self.INITIAL_CONDITION.size):
-                expected = ode.calculate_1d_solution(self.INITIAL_CONDITION[j],
-                                                     self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL[j, j],
-                                                     self.STEPS[i])
-                self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
 
     def test_calculate_analytical_solution_diagonal(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
