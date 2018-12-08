@@ -162,6 +162,7 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(type(actual), numpy.ndarray)
 
     def test_calculate_analytical_solution_for_varying_nondiagonal_case(self):
+        # TODO relevant function is missing, should write it
         pass
 
     def test_benchmark_solvers_for_constant_diagonal_case(self):
@@ -177,9 +178,11 @@ class OdeTest(unittest.TestCase):
                 self.assertAlmostEqual(integrate[i, j], analytical[i, j], self.DECIMALS_6)
 
     def test_benchmark_solvers_for_constant_nondiagonal_case(self):
+        # TODO relevant function is missing, should write it
         pass
 
     def test_benchmark_solvers_for_varying_nondiagonal_case(self):
+        # TODO relevant function is missing, should write it
         pass
 
     def test_almost_equal(self):
