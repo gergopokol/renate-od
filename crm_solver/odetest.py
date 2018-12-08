@@ -47,6 +47,24 @@ class OdeTest(unittest.TestCase):
     ACCEPTED_TYPES = [numpy.int, numpy.int8, numpy.int16, numpy.int32, numpy.int64,
                       numpy.float, numpy.float16, numpy.float32, numpy.float64]
 
+    @classmethod
+    def setUpClass(cls):
+        # TODO add class level variables or constants
+        pass
+
+    def setUp(self):
+        # TODO add local variables or constants that should initialize before all functions
+        pass
+
+    def tearDown(self):
+        # TODO if need to destruct a class level variable
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        # TODO if need to destruct a local variable after its run
+        pass
+
     def test_setup_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                   initial_condition=self.INITIAL_CONDITION,
