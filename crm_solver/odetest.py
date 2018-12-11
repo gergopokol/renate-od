@@ -179,6 +179,11 @@ class OdeTest(unittest.TestCase):
                   steps=self.STEPS)
         actual = ode.calculate_analytical_solution()
         self.assertEqual(type(actual), numpy.ndarray)
+        self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size)
+        self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size))
+        for index in range(self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size):
+            self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
+            # TODO missing assert. Test currently fails. Should write it
 
     def test_calculate_analytical_solution_for_varying_nondiagonal_case(self):
         # TODO relevant function is missing, should write it
