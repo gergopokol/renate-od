@@ -95,14 +95,13 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
     def test_setup_derivative_vector_for_dimension_error(self):
-        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
-                  initial_condition=self.INITIAL_CONDITION,
+        ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR, initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         with self.assertRaises(ValueError):
-            actual = ode.setup_derivative_vector(variable_vector=self.INITIAL_CONDITION,
-                                                 actual_position=self.START_POSITION,
-                                                 coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
-                                                 steps=self.STEPS)
+            ode.setup_derivative_vector(variable_vector=self.INITIAL_CONDITION,
+                                        actual_position=self.START_POSITION,
+                                        coefficient_matrix=self.COEFFICIENT_MATRIX_DIM_ERROR,
+                                        steps=self.STEPS)
 
     def test_calculate_integrate_solution_for_constant_diagonal_case(self):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
