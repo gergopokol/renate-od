@@ -144,6 +144,7 @@ class OdeTest(unittest.TestCase):
         for i in range(self.STEPS_VARYING_NONDIAGONAL.size):
             for j in range(self.INITIAL_CONDITION_VARYING_NONDIAGONAL.size):
                 self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
+                # TODO missing assert. Test currently fails. Should write it
 
     def test_calculate_analytical_solution_1d(self):
         for init in self.INITIAL_CONDITION_1D:
