@@ -12,31 +12,36 @@ class Ode:
         self.initial_condition = initial_condition
         self.steps = steps
 
-    def calculate_solution(self):
-        solution = odeint(func=self.set_up_equation, y0=self.initial_condition, t=self.steps,
-                          args=(self.coefficient_matrix, self.steps))
-        return solution
+    def calculate_integrate_solution(self):
+        return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=self.steps,
+                      args=(self.coefficient_matrix, self.steps))
 
-    def analytical_solution(self):
+    def calculate_analytical_solution(self):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coefficient_matrix)
         if self.initial_condition.size == 1:
             analytical_solution = numpy.zeros(self.steps.size)
             for step in range(self.steps.size):
                 analytical_solution[step] = 1 / eigenvectors * self.initial_condition * eigenvectors \
-                                         * numpy.exp(eigenvalues * self.steps[step])
+                                            * numpy.exp(eigenvalues * self.steps[step])
         else:
             analytical_solution = numpy.zeros((self.steps.size, self.initial_condition.size))
             for step in range(self.steps.size):
                 analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
-                                                                   self.initial_condition), eigenvectors)\
+                                                                   self.initial_condition), eigenvectors) \
                                                * numpy.exp(eigenvalues * self.steps[step])
         return analytical_solution
 
     @staticmethod
-    def set_up_equation(variable_vector, actual_position, coefficient_matrix, steps):
+    def setup_derivative_vector(variable_vector, actual_position, coefficient_matrix, steps):
         if coefficient_matrix.ndim == 3:
             interp_coefficient_matrix = interp1d(steps, coefficient_matrix, axis=2, fill_value='extrapolate')
             derivative_vector = numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
+        else:
+            raise ValueError('Rate Coefficient Matrix of dimensions: '+str(coefficient_matrix.ndim)+' is not supported')
         return derivative_vector
+
+    @staticmethod
+    def calculate_1d_solution(init, coefficient, variable):
+        return init * numpy.exp(coefficient * variable)
