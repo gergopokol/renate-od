@@ -9,11 +9,11 @@ class WriteData:
 
     def write_beamlet_profiles(self, param, profiles, subdir = 'beamlet/'):
         output_path = param.getroot().find('head').find('id').text
-        h5_output_path = self.root_path + subdir + output_path + ".h5"
-        xml_output_path = self.root_path + subdir +output_path + ".xml"
+        h5_output_path = subdir + output_path + ".h5"
+        xml_output_path = subdir +output_path + ".xml"
         GetData.ensure_dir(h5_output_path)
         try:
-            profiles.to_hdf(path_or_buf=h5_output_path, key="profiles")
+            profiles.to_hdf(path_or_buf=self.root_path + h5_output_path, key="profiles")
             if not isinstance(param.getroot().find('body').find('beamlet_profiles'), etree._Element):
                 new_element = etree.Element('beamlet_profiles')
                 new_element.text = h5_output_path
