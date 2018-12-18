@@ -4,10 +4,10 @@ from lxml import etree
 
 
 class WriteData:
-    def __init__(self, root_path="data/output/"):
+    def __init__(self, root_path="data/"):
         self.root_path = root_path
 
-    def write_beamlet_profiles(self, param, profiles, subdir = 'beamlet/'):
+    def write_beamlet_profiles(self, param, profiles, subdir = 'output/beamlet/'):
         output_path = param.getroot().find('head').find('id').text
         h5_output_path = subdir + output_path + ".h5"
         xml_output_path = subdir +output_path + ".xml"
@@ -19,7 +19,7 @@ class WriteData:
                 new_element.text = h5_output_path
                 new_element.set('unit', '-')
                 param.getroot().find('body').append(new_element)
-            param.write(xml_output_path)
+            param.write(self.root_path + xml_output_path)
             print('Beamlet profile data written to file: ' + output_path)
         except:
             print('Beamlet profile data could NOT be written to file: ' + output_path)
