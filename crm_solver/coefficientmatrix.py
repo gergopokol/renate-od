@@ -15,6 +15,9 @@ class CoefficientMatrix:
             (self.number_of_levels, self.number_of_levels, self.number_of_steps))
         self.ion_terms = numpy.zeros(
             (self.number_of_levels, self.number_of_levels, self.number_of_steps))
+        imp_terms = numpy.zeros(
+            (self.number_of_levels, self.number_of_levels, self.number_of_steps))
+        self.imp_terms = numpy.concatenate([[imp_terms]*self.rates.number_of_impurities])
         self.photon_terms = numpy.zeros(
             (self.number_of_levels, self.number_of_levels, self.number_of_steps))
         # Fill matrices
@@ -36,6 +39,12 @@ class CoefficientMatrix:
                             - sum(self.rates.ion_neutral_collisions[0][from_level, (to_level+1):self.number_of_levels,
                                   step]) \
                             - self.rates.electron_loss_ion_collisions[0][from_level, step]
+                        for imp in range(self.rates.number_of_impurities):
+                            self.imp_terms[imp][from_level, to_level, step] = \
+                                - sum(self.rates.imp_neutral_collisions[imp][from_level, :to_level, step]) \
+                                - sum(self.rates.imp_neutral_collisions[imp][from_level,
+                                      (to_level+1):self.number_of_levels, step]) \
+                                - self.rates.electron_loss_imp_collisions[imp][from_level, step]
                         self.photon_terms[from_level, to_level, step] = \
                             - sum(self.rates.einstein_coeffs[:, from_level]) / self.rates.velocity
                     else:
@@ -50,5 +59,7 @@ class CoefficientMatrix:
         for step in range(self.number_of_steps):
             self.matrix[:, :, step] = self.beamlet_profiles['electron']['density'][step] * self.electron_terms[:, :, step] \
                                       + self.beamlet_profiles['ion1']['density'][step] * self.ion_terms[:, :, step] \
+                                      + self.beamlet_profiles['imp1']['density'][step] * self.imp_terms[0][:, :, step] \
+                                      + self.beamlet_profiles['imp2']['density'][step] * self.imp_terms[1][:, :, step] \
                                       + self.photon_terms[:, :, step]
 
