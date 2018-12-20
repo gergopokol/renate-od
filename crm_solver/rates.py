@@ -21,25 +21,31 @@ class Rates:
         self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
         self.rate_type = rate_type
 
-        self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
-                    self.beamlet_species + '.h5'
+        self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + self.beamlet_species + '.h5'
+        self.number_of_levels = 9
+        self.number_of_charges = 12
         self.data_path_name = getdata.locate_h5_dir(self.beamlet_species, rate_type) + self.file_name
         self.temperature_array = getdata.GetData(data_path_name=self.data_path_name,
                                     data_key=['Temperature axis'],
                                     data_format='array').data
-        self.number_of_levels = 9
+        self.einstein_coeffs_array = getdata.GetData(data_path_name=self.data_path_name,
+                                                     data_key=['Einstein Coeffs'],
+                                                     data_format="array").data
         if isinstance(plasma_components, pandas.DataFrame):
             neutral_collisions_zeros = numpy.zeros((self.number_of_levels, self.number_of_levels, self.number_of_steps))
+            loss_collisions_zeros = numpy.zeros((self.number_of_levels, self.number_of_steps))
             self.electron_neutral_collisions = neutral_collisions_zeros
+            self.electron_loss_collisions = loss_collisions_zeros
             self.plasma_components=plasma_components
             self.number_of_ions = int(self.plasma_components['Z'][self.plasma_components['Z'] == 1].count())
             self.ion_neutral_collisions = numpy.concatenate([[neutral_collisions_zeros]*self.number_of_ions])
+            self.electron_loss_ion_collisions = numpy.concatenate([[loss_collisions_zeros]*self.number_of_ions])
             self.number_of_impurities = int(self.plasma_components['Z'][self.plasma_components['Z'] > 1].count())
             self.imp_neutral_collisions = numpy.concatenate([[neutral_collisions_zeros]*self.number_of_impurities])
+            self.electron_loss_imp_collisions = numpy.concatenate([[loss_collisions_zeros]*self.number_of_impurities])
             self.interpolate_rate_coeffs()
         else:
             self.interpolate_rate_coeffs_old()
-
 
     def interpolate_rate_coeffs(self):
         # Interpolate rate coeffs to new grid:
@@ -47,12 +53,15 @@ class Rates:
             ('imp' + str(i+3) + '_collisions_array')
 
         electron_neutral_collisions_array=getdata.GetData(data_path_name=self.data_path_name,
-                                     data_key=['Collisional Coeffs/Electron Neutral Collisions'],
-                                     data_format="array").data
+                                                          data_key=['Collisional Coeffs/Electron Neutral Collisions'],
+                                                          data_format="array").data
+        electron_loss_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
+                                                         data_key=['Collisional Coeffs/Electron Neutral Collisions'],
+                                                         data_format="array").data
+        ion_array = getdata.GetData(data_path_name=self.data_path_name,
+                                    data_key=['Collisional Coeffs/Proton Neutral Collisions'],
+                                    data_format="array").data
         for ion in range(self.number_of_ions):
-            ion_array = getdata.GetData(data_path_name=self.data_path_name,
-                                        data_key=['Collisional Coeffs/Proton Neutral Collisions'],
-                                        data_format="array").data
             if ion == 0:
                 ion_neutral_collisions_array = [ion_array]
             else:
@@ -61,11 +70,17 @@ class Rates:
                                    data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
                                    data_format="array").data
         for imp in range(self.number_of_impurities):
-            imp_array = imp_data[int(self.plasma_components['q']['imp' + str(imp+1)])]
+            imp_charge = int(self.plasma_components['q']['imp' + str(imp+1)])
+            if imp_charge == 1:
+                imp_array = ion_array
+            elif imp_charge > 1:
+                imp_array = imp_data[imp_charge]
+            else:
+                print('Data is only available for positively charged impurities.')
             if imp == 0:
                 imp_neutral_collisions_array = [imp_array]
             else:
-                imp_neutral_collisions_array = numpy.concatenate([imp_neutral_collisions_array,[imp_array]])
+                imp_neutral_collisions_array = numpy.concatenate([imp_neutral_collisions_array, [imp_array]])
         for from_level in range(self.number_of_levels):
             for to_level in range(self.number_of_levels):
                 for step in range(self.number_of_steps):
@@ -90,6 +105,24 @@ class Rates:
                     else:
                         continue
         for from_level in range(self.number_of_levels):
+            for step in range(self.number_of_steps):
+                x = self.temperature_array
+                y = electron_loss_collisions_array[0, from_level, :]
+                f = interp1d(x, y)
+                self.electron_loss_collisions[from_level, step] = \
+                    f(self.beamlet_profiles['electron']['temperature'][step])
+            for ion in range(self.number_of_ions):
+                x = self.temperature_array
+                y = electron_loss_collisions_array[1, from_level, :]
+                f = interp1d(x, y)
+                self.electron_loss_ion_collisions[ion][from_level, step] = \
+                    f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature'][step])
+            for imp in range(self.number_of_impurities):
+                x = self.temperature_array
+                y = electron_loss_collisions_array[int(self.plasma_components['q']['imp' + str(imp+1)]), from_level, :]
+                f = interp1d(x, y)
+                self.electron_loss_imp_collisions[imp][from_level, step] = \
+                    f(self.beamlet_profiles['imp' + str(imp + 1)]['temperature'][step])
             continue
 
 
