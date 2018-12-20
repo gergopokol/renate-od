@@ -83,5 +83,5 @@ class Beamlet:
         numerical = ode.calculate_integrate_solution()
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
-            self.profiles[label] = numerical[:, level]
+            self.imp_profiles[label] = numerical[:, level]
         return
