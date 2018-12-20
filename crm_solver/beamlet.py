@@ -14,6 +14,9 @@ class Beamlet:
             self.read_beamlet_param(data_path)
         self.profiles = profiles
         if not isinstance(self.profiles, pandas.DataFrame):
+            self.read_beamlet_imp_profiles()
+        if not (isinstance(self.profiles, pandas.DataFrame) or (isinstance(self.imp_components, pandas.DataFrame) and
+                                                                    isinstance(self.imp_profiles, pandas.DataFrame))):
             self.read_beamlet_profiles()
         if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
             self.get_mass()
@@ -32,6 +35,15 @@ class Beamlet:
         self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.profiles read from file: ' + hdf5_path)
+
+    def read_beamlet_imp_profiles(self):
+        hdf5_path = 'output/test_impurity.h5'
+        self.imp_components = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['components']).data
+        assert isinstance(self.imp_components, pandas.DataFrame)
+        print('Beamlet.imp_components read from file: ' + hdf5_path)
+        self.imp_profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
+        assert isinstance(self.imp_profiles, pandas.DataFrame)
+        print('Beamlet.imp_profiles read from file: ' + hdf5_path)
 
     def get_mass(self):
         data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \

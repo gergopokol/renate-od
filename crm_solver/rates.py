@@ -8,26 +8,77 @@ from scipy.interpolate import interp1d
 
 class Rates:
     # Get rate coefficients from hdf5 files:
-    def __init__(self, beamlet_param, beamlet_profiles, rate_type='default'):
+    def __init__(self, beamlet_param, beamlet_profiles, plasma_components, rate_type='default'):
 
         assert isinstance(beamlet_param, etree._ElementTree)
         self.beamlet_energy = beamlet_param.getroot().find('body').find('beamlet_energy').text
         self.beamlet_species = beamlet_param.getroot().find('body').find('beamlet_species').text
+        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
+        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
 
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
         self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
         self.rate_type = rate_type
 
-        rate_coefficients = getdata.setup_rate_coeff_arrays(self.beamlet_energy, self.beamlet_species, self.rate_type)
-        temperature_array = rate_coefficients[0]
-        electron_neutral_collisions_array = rate_coefficients[1]
-        proton_neutral_collisions_array = rate_coefficients[2]
-        electron_loss_collisions_array = rate_coefficients[4]
-        einstein_coeffs_array = rate_coefficients[5]
+        self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + \
+                    self.beamlet_species + '.h5'
+        self.data_path_name = getdata.locate_h5_dir(self.beamlet_species, rate_type) + self.file_name
+        self.temperature_array = getdata.GetData(data_path_name=self.data_path_name,
+                                    data_key=['Temperature axis'],
+                                    data_format='array').data
+
+
+        if isinstance(plasma_components, pandas.DataFrame):
+            self.plasma_components=plasma_components
+            self.interpolate_rate_coeffs()
+        else:
+            self.interpolate_rate_coeffs_old()
+
+       # self.rate_coefficients = getdata.setup_rate_coeff_arrays(self.beamlet_energy, self.beamlet_species, self.rate_type)
+
+
+    def interpolate_rate_coeffs(self):
+        # Interpolate rate coeffs to new grid:
+        for i in range(2):
+            ('imp' + str(i+3) + '_collisions_array')
+
+        self.number_of_levels = 7
+        electron_neutral_collisions_array=getdata.GetData(data_path_name=self.data_path_name,
+                                     data_key=['Collisional Coeffs/Electron Neutral Collisions'],
+                                     data_format="array").data
+        self.electron_neutral_collisions = numpy.zeros((self.number_of_levels,
+                                                             self.number_of_levels,
+                                                             self.number_of_steps))
+
+        for from_level in range(self.number_of_levels):
+            for to_level in range(self.number_of_levels):
+                for step in range(self.number_of_steps):
+                    if to_level != from_level:
+                        x = self.temperature_array
+                        y = electron_neutral_collisions_array[from_level, to_level, :]
+                        f = interp1d(x, y)
+                        self.electron_neutral_collisions[from_level, to_level, step] = \
+                            f(self.beamlet_profiles['electron']['temperature'][step])
+                        for ion in range(len(self.plasma_components.where(self.plasma_components['Z']==1))):
+                            continue
+                        for imp in range(len(self.plasma_components.where(self.plasma_components['Z']!=1))):
+                            continue
+                    else:
+                        continue
+        for from_level in range(self.number_of_levels):
+            continue
+
+
+    def interpolate_rate_coeffs_old(self):
+        # Interpolate rate coeffs to new grid:
+        temperature_array = self.rate_coefficients[0]
+        electron_neutral_collisions_array = self.rate_coefficients[1]
+        proton_neutral_collisions_array = self.rate_coefficients[2]
+        electron_loss_collisions_array = self.rate_coefficients[4]
+        einstein_coeffs_array = self.rate_coefficients[5]
         self.number_of_levels = int(einstein_coeffs_array.size ** 0.5)
 
-        # Interpolate rate coeffs to new grid:
         electron_neutral_collisions_array_new = numpy.zeros((self.number_of_levels,
                                                              self.number_of_levels,
                                                              self.number_of_steps))
@@ -64,8 +115,7 @@ class Rates:
         self.proton_neutral_collisions = proton_neutral_collisions_array_new
         self.electron_loss_collisions = electron_loss_collisions_array_new
         self.einstein_coeffs = einstein_coeffs_array
-        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
-        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
+
         
 
 
