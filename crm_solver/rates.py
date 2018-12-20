@@ -21,17 +21,15 @@ class Rates:
         self.beamlet_profiles = beamlet_profiles
         self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
         self.rate_type = rate_type
-
         self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + self.beamlet_species + '.h5'
-        self.number_of_levels = 9
+        self.einstein_coeffs = getdata.GetData(data_path_name=self.data_path_name,
+                                               data_key=['Einstein Coeffs'], data_format="array").data
+        self.number_of_levels = int(self.einstein_coeffs.size ** 0.5)
         self.number_of_charges = 12
         self.data_path_name = getdata.locate_h5_dir(self.beamlet_species, rate_type) + self.file_name
         self.temperature_array = getdata.GetData(data_path_name=self.data_path_name,
-                                    data_key=['Temperature axis'],
-                                    data_format='array').data
-        self.einstein_coeffs_array = getdata.GetData(data_path_name=self.data_path_name,
-                                                     data_key=['Einstein Coeffs'],
-                                                     data_format="array").data
+                                                 data_key=['Temperature axis'], data_format='array').data
+
         if isinstance(plasma_components, pandas.DataFrame):
             neutral_collisions_zeros = numpy.zeros((self.number_of_levels, self.number_of_levels, self.number_of_steps))
             loss_collisions_zeros = numpy.zeros((self.number_of_levels, self.number_of_steps))
