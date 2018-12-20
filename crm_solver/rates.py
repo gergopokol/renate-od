@@ -65,7 +65,7 @@ class Rates:
             if imp == 0:
                 imp_neutral_collisions_array = [imp_array]
             else:
-                imp_neutral_collisions_array = imp_neutral_collisions_array.append([imp_array])
+                imp_neutral_collisions_array = numpy.concatenate([imp_neutral_collisions_array,[imp_array]])
         for from_level in range(self.number_of_levels):
             for to_level in range(self.number_of_levels):
                 for step in range(self.number_of_steps):
