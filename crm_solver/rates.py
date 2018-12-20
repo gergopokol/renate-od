@@ -4,6 +4,7 @@ from utility import getdata
 import pandas
 from lxml import etree
 from scipy.interpolate import interp1d
+from utility import convert
 
 
 class Rates:
@@ -44,6 +45,7 @@ class Rates:
             self.imp_neutral_collisions = numpy.concatenate([[neutral_collisions_zeros]*self.number_of_impurities])
             self.electron_loss_imp_collisions = numpy.concatenate([[loss_collisions_zeros]*self.number_of_impurities])
             self.interpolate_rate_coeffs()
+            self.convert_rate_coefficients()
         else:
             self.interpolate_rate_coeffs_old()
 
@@ -123,8 +125,15 @@ class Rates:
                 f = interp1d(x, y)
                 self.electron_loss_imp_collisions[imp][from_level, step] = \
                     f(self.beamlet_profiles['imp' + str(imp + 1)]['temperature'][step])
-            continue
+            return
 
+    def convert_rate_coefficients(self):
+        self.electron_neutral_collisions = convert.convert_from_cm2_to_m2(self.electron_neutral_collisions)
+        self.ion_neutral_collisions = convert.convert_from_cm2_to_m2(self.ion_neutral_collisions)
+        self.imp_neutral_collisions = convert.convert_from_cm2_to_m2(self.imp_neutral_collisions)
+        self.electron_loss_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_collisions)
+        self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
+        self.electron_loss_imp_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_imp_collisions)
 
     def interpolate_rate_coeffs_old(self):
         self.rate_coefficients = getdata.setup_rate_coeff_arrays(self.beamlet_energy, self.beamlet_species,
