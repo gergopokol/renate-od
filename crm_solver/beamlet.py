@@ -8,15 +8,13 @@ from crm_solver.ode import Ode
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, data_path="beamlet/test0001.xml"):
+    def __init__(self, param=None, profiles=None, components=None, data_path="beamlet/test0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
         self.profiles = profiles
-        if not isinstance(self.profiles, pandas.DataFrame):
-            self.read_beamlet_imp_profiles()
-        if not (isinstance(self.profiles, pandas.DataFrame) or (isinstance(self.imp_components, pandas.DataFrame) and
-                                                                    isinstance(self.imp_profiles, pandas.DataFrame))):
+        self.components = components
+        if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.read_beamlet_profiles()
         if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
             self.get_mass()
@@ -31,18 +29,12 @@ class Beamlet:
         print('Beamlet.param read from file: ' + data_path)
 
     def read_beamlet_profiles(self):
-        hdf5_path = self.param.getroot().find('body').find('beamlet_source').text
+        hdf5_path = 'output/test_impurity.h5'
+        self.components = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['components']).data
+        assert isinstance(self.components, pandas.DataFrame)
+        print('Beamlet.imp_components read from file: ' + hdf5_path)
         self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
         assert isinstance(self.profiles, pandas.DataFrame)
-        print('Beamlet.profiles read from file: ' + hdf5_path)
-
-    def read_beamlet_imp_profiles(self):
-        hdf5_path = 'output/test_impurity.h5'
-        self.imp_components = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['components']).data
-        assert isinstance(self.imp_components, pandas.DataFrame)
-        print('Beamlet.imp_components read from file: ' + hdf5_path)
-        self.imp_profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
-        assert isinstance(self.imp_profiles, pandas.DataFrame)
         print('Beamlet.imp_profiles read from file: ' + hdf5_path)
 
     def get_mass(self):
@@ -72,16 +64,16 @@ class Beamlet:
         return
 
     def initialize_ode(self):
-        self.coefficient_matrix = CoefficientMatrix(self.param, self.imp_profiles, self.imp_components)
+        self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components)
         self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
 
     def solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
             self.initialize_ode()
         ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
-                  steps=self.imp_profiles['beamlet_grid'])
+                  steps=self.profiles['beamlet_grid'])
         numerical = ode.calculate_integrate_solution()
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
-            self.imp_profiles[label] = numerical[:, level]
+            self.profiles[label] = numerical[:, level]
         return

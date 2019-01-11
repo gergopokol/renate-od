@@ -45,14 +45,14 @@ class Rates:
             self.interpolate_rate_coeffs()
             self.convert_rate_coefficients()
         else:
-            self.interpolate_rate_coeffs_old()
+            print('Plasma component data is missing.')
 
     def interpolate_rate_coeffs(self):
         # Interpolate rate coeffs to new grid:
         for i in range(2):
             ('imp' + str(i+3) + '_collisions_array')
 
-        electron_neutral_collisions_array=getdata.GetData(data_path_name=self.data_path_name,
+        electron_neutral_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
                                                           data_key=['Collisional Coeffs/Electron Neutral Collisions'],
                                                           data_format="array").data
         electron_loss_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
@@ -61,14 +61,14 @@ class Rates:
         ion_array = getdata.GetData(data_path_name=self.data_path_name,
                                     data_key=['Collisional Coeffs/Proton Neutral Collisions'],
                                     data_format="array").data
+        imp_data = getdata.GetData(data_path_name=self.data_path_name,
+                                   data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
+                                   data_format="array").data
         for ion in range(self.number_of_ions):
             if ion == 0:
                 ion_neutral_collisions_array = [ion_array]
             else:
                 ion_neutral_collisions_array = ion_neutral_collisions_array.append([ion_array])
-        imp_data = getdata.GetData(data_path_name=self.data_path_name,
-                                   data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
-                                   data_format="array").data
         for imp in range(self.number_of_impurities):
             imp_charge = int(self.plasma_components['q']['imp' + str(imp+1)])
             if imp_charge == 1:
@@ -133,53 +133,7 @@ class Rates:
         self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
         self.electron_loss_imp_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_imp_collisions)
 
-    def interpolate_rate_coeffs_old(self):
-        self.rate_coefficients = getdata.setup_rate_coeff_arrays(self.beamlet_energy, self.beamlet_species,
-                                                                 self.rate_type)
-        # Interpolate rate coeffs to new grid:
-        temperature_array = self.rate_coefficients[0]
-        electron_neutral_collisions_array = self.rate_coefficients[1]
-        proton_neutral_collisions_array = self.rate_coefficients[2]
-        electron_loss_collisions_array = self.rate_coefficients[4]
-        einstein_coeffs_array = self.rate_coefficients[5]
-        self.number_of_levels = int(einstein_coeffs_array.size ** 0.5)
 
-        electron_neutral_collisions_array_new = numpy.zeros((self.number_of_levels,
-                                                             self.number_of_levels,
-                                                             self.number_of_steps))
-        proton_neutral_collisions_array_new = numpy.zeros((self.number_of_levels,
-                                                           self.number_of_levels,
-                                                           self.number_of_steps))
-        electron_loss_collisions_array_new = numpy.zeros((2, self.number_of_levels,
-                                                          self.number_of_steps))
-        for from_level in range(self.number_of_levels):
-            for to_level in range(self.number_of_levels):
-                for step in range(self.number_of_steps):
-                    if to_level != from_level:
-                        x = temperature_array
-                        y = electron_neutral_collisions_array[from_level, to_level, :], \
-                            proton_neutral_collisions_array[from_level, to_level, :]
-                        f = interp1d(x, y)
-                        electron_neutral_collisions_array_new[from_level, to_level, step] =\
-                            f(self.beamlet_profiles['beamlet_electron_temp'][step])[0]
-                        proton_neutral_collisions_array_new[from_level, to_level, step]\
-                            = f(self.beamlet_profiles['beamlet_ion_temp'][step])[1]
-                    else:
-                        continue
-        for from_level in range(self.number_of_levels):
-            for step in range(self.number_of_steps):
-                x = temperature_array
-                y = electron_loss_collisions_array[0, from_level, :], electron_loss_collisions_array[1, from_level, :]
-                f = interp1d(x, y)
-                electron_loss_collisions_array_new[0, from_level, step] = \
-                    f(self.beamlet_profiles['beamlet_electron_temp'][step])[0]
-                electron_loss_collisions_array_new[1, from_level, step] = \
-                    f(self.beamlet_profiles['beamlet_ion_temp'][step])[1]
-
-        self.electron_neutral_collisions = electron_neutral_collisions_array_new
-        self.proton_neutral_collisions = proton_neutral_collisions_array_new
-        self.electron_loss_collisions = electron_loss_collisions_array_new
-        self.einstein_coeffs = einstein_coeffs_array
 
         
 

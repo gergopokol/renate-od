@@ -57,9 +57,10 @@ class CoefficientMatrix:
 
     def apply_density(self):
         for step in range(self.number_of_steps):
-            self.matrix[:, :, step] = self.beamlet_profiles['electron']['density'][step] * self.electron_terms[:, :, step] \
-                                      + self.beamlet_profiles['ion1']['density'][step] * self.ion_terms[:, :, step] \
-                                      + self.beamlet_profiles['imp1']['density'][step] * self.imp_terms[0][:, :, step] \
-                                      + self.beamlet_profiles['imp2']['density'][step] * self.imp_terms[1][:, :, step] \
-                                      + self.photon_terms[:, :, step]
-
+            self.matrix[:, :, step] = self.beamlet_profiles['electron']['density'][step] * self.electron_terms[:, :, step]
+            for ion in range(self.rates.number_of_ions):
+                self.matrix[:, :, step] = self.matrix[:, :, step] + self.beamlet_profiles['ion' + str(ion+1)]['density'][step] * self.ion_terms[:, :, step]
+            for imp in range(self.rates.number_of_impurities):
+                self.matrix[:, :, step] = self.matrix[:, :, step] + self.beamlet_profiles['imp' + str(imp+1)]['density'][step] \
+                                                                    * self.imp_terms[imp][:, :, step]
+            self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
