@@ -67,10 +67,8 @@ class OdeTest(unittest.TestCase):
 
     def test_setup_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
-        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION,
-                                           actual_position=self.START_POSITION,
-                                           coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
-                                           steps=self.STEPS)
+        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
+                                           coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
         for index in range(actual.size):
@@ -82,10 +80,8 @@ class OdeTest(unittest.TestCase):
 
     def test_setup_derivative_vector_with_coefficient_matrix_changing(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CHANGING, init_condition=self.INIT_CONDITION)
-        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION,
-                                           actual_position=self.START_POSITION,
-                                           coeff_matrix=self.COEFF_MATRIX_CHANGING,
-                                           steps=self.STEPS)
+        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
+                                           coeff_matrix=self.COEFF_MATRIX_CHANGING, steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
@@ -93,10 +89,8 @@ class OdeTest(unittest.TestCase):
     def test_setup_derivative_vector_for_dimension_error(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, init_condition=self.INIT_CONDITION)
         with self.assertRaises(ValueError):
-            ode.set_derivative_vector(variable_vector=self.INIT_CONDITION,
-                                      actual_position=self.START_POSITION,
-                                      coeff_matrix=self.COEFF_MATRIX_DIM_ERROR,
-                                      steps=self.STEPS)
+            ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
+                                      coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, steps=self.STEPS)
 
     def test_calculate_numerical_solution_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
@@ -105,8 +99,7 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INIT_CONDITION.size):
-                expected = ode.calculate_1d_solution(self.INIT_CONDITION[j],
-                                                     self.COEFF_MATRIX_CONSTANT_DIAGONAL[j, j],
+                expected = ode.calculate_1d_solution(self.INIT_CONDITION[j], self.COEFF_MATRIX_CONSTANT_DIAGONAL[j, j],
                                                      self.STEPS[i])
                 self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
@@ -155,8 +148,7 @@ class OdeTest(unittest.TestCase):
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INIT_CONDITION.size):
-                expected = ode.calculate_1d_solution(self.INIT_CONDITION[j],
-                                                     self.COEFF_MATRIX_CONSTANT_DIAGONAL[j, j],
+                expected = ode.calculate_1d_solution(self.INIT_CONDITION[j], self.COEFF_MATRIX_CONSTANT_DIAGONAL[j, j],
                                                      self.STEPS[i])
                 self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
                 self.assertAlmostEqual(actual[i, j], expected, self.DECIMALS_6)
