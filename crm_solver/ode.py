@@ -7,6 +7,16 @@ class Ode:
     def __init__(self, coeff_matrix, init_condition):
         self.coeff_matrix = coeff_matrix
         self.init_condition = init_condition
+        self.__validate_parameters()
+
+    def __validate_parameters(self):
+        self.__validate(self.coeff_matrix)
+        self.__validate(self.init_condition)
+
+    @staticmethod
+    def __validate(parameter):
+        if parameter is None:
+            raise ValueError('Try to define Ode class with null matrix.')
 
     def calculate_numerical_solution(self, steps):
         return odeint(func=self.set_derivative_vector, y0=self.init_condition, t=steps, args=(self.coeff_matrix, steps))
@@ -39,8 +49,7 @@ class Ode:
         elif coeff_matrix.ndim == 2:
             return numpy.dot(variable_vector, coeff_matrix)
         else:
-            raise ValueError(
-                'Rate Coefficient Matrix of dimensions: ' + str(coeff_matrix.ndim) + ' is not supported')
+            raise ValueError('Rate Coefficient Matrix of dimensions: ' + str(coeff_matrix.ndim) + ' is not supported')
 
     @staticmethod
     def calculate_1d_solution(init, coefficient, variable):
