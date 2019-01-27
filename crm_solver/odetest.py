@@ -149,7 +149,7 @@ class OdeTest(unittest.TestCase):
         for init in self.INITIAL_CONDITION_1D:
             for coefficient in self.COEFFICIENT_MATRIX_1D:
                 ode = Ode(coefficient_matrix=coefficient, initial_condition=init, steps=self.STEPS)
-                actual = ode.calculate_analytical_solution()
+                actual = ode.calculate_analytical_solution(self.STEPS)
                 self.assertEqual(type(actual), numpy.ndarray)
                 self.assertEqual(actual.size, self.EXPECTED_SIZE_100)
                 for index, variable in enumerate(self.STEPS):
@@ -161,7 +161,7 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_DIAGONAL,
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
-        actual = ode.calculate_analytical_solution()
+        actual = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
@@ -176,7 +176,7 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coefficient_matrix=self.COEFFICIENT_MATRIX_CONSTANT_NONDIAGONAL,
                   initial_condition=self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL,
                   steps=self.STEPS)
-        actual = ode.calculate_analytical_solution()
+        actual = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INITIAL_CONDITION_CONSTANT_NONDIAGONAL.size))
@@ -193,7 +193,7 @@ class OdeTest(unittest.TestCase):
                   initial_condition=self.INITIAL_CONDITION,
                   steps=self.STEPS)
         integrate = ode.calculate_numerical_solution(self.STEPS)
-        analytical = ode.calculate_analytical_solution()
+        analytical = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(integrate.size, self.EXPECTED_SIZE_200)
         self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):

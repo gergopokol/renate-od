@@ -13,19 +13,19 @@ class Ode:
         return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=steps,
                       args=(self.coefficient_matrix, steps))
 
-    def calculate_analytical_solution(self):
+    def calculate_analytical_solution(self, steps):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coefficient_matrix)
         if self.initial_condition.size == 1:
-            analytical_solution = numpy.zeros(self.steps.size)
-            for step in range(self.steps.size):
+            analytical_solution = numpy.zeros(steps.size)
+            for step in range(steps.size):
                 analytical_solution[step] = 1 / eigenvectors * self.initial_condition * eigenvectors \
-                                            * numpy.exp(eigenvalues * self.steps[step])
+                                            * numpy.exp(eigenvalues * steps[step])
         else:
-            analytical_solution = numpy.zeros((self.steps.size, self.initial_condition.size))
-            for step in range(self.steps.size):
+            analytical_solution = numpy.zeros((steps.size, self.initial_condition.size))
+            for step in range(steps.size):
                 analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
                                                                    self.initial_condition), eigenvectors) \
-                                               * numpy.exp(eigenvalues * self.steps[step])
+                                               * numpy.exp(eigenvalues * steps[step])
         return analytical_solution
 
     @staticmethod
