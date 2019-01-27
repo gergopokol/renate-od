@@ -4,26 +4,26 @@ from scipy.interpolate import interp1d
 
 
 class Ode:
-    def __init__(self, coefficient_matrix, initial_condition):
-        self.coefficient_matrix = coefficient_matrix
-        self.initial_condition = initial_condition
+    def __init__(self, coeff_matrix, init_condition):
+        self.coeff_matrix = coeff_matrix
+        self.init_condition = init_condition
 
     def calculate_numerical_solution(self, steps):
-        return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=steps,
-                      args=(self.coefficient_matrix, steps))
+        return odeint(func=self.setup_derivative_vector, y0=self.init_condition, t=steps,
+                      args=(self.coeff_matrix, steps))
 
     def calculate_analytical_solution(self, steps):
-        eigenvalues, eigenvectors = numpy.linalg.eig(self.coefficient_matrix)
-        if self.initial_condition.size == 1:
+        eigenvalues, eigenvectors = numpy.linalg.eig(self.coeff_matrix)
+        if self.init_condition.size == 1:
             analytical_solution = numpy.zeros(steps.size)
             for step in range(steps.size):
-                analytical_solution[step] = 1 / eigenvectors * self.initial_condition * eigenvectors \
+                analytical_solution[step] = 1 / eigenvectors * self.init_condition * eigenvectors \
                                             * numpy.exp(eigenvalues * steps[step])
         else:
-            analytical_solution = numpy.zeros((steps.size, self.initial_condition.size))
+            analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
             for step in range(steps.size):
                 analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
-                                                                   self.initial_condition), eigenvectors) \
+                                                                   self.init_condition), eigenvectors) \
                                                * numpy.exp(eigenvalues * steps[step])
         return analytical_solution
 
@@ -35,7 +35,8 @@ class Ode:
         elif coefficient_matrix.ndim == 2:
             derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
         else:
-            raise ValueError('Rate Coefficient Matrix of dimensions: '+str(coefficient_matrix.ndim)+' is not supported')
+            raise ValueError(
+                'Rate Coefficient Matrix of dimensions: ' + str(coefficient_matrix.ndim) + ' is not supported')
         return derivative_vector
 
     @staticmethod
