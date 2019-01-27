@@ -36,13 +36,12 @@ class Ode:
     def setup_derivative_vector(variable_vector, actual_position, coefficient_matrix, steps):
         if coefficient_matrix.ndim == 3:
             interp_coefficient_matrix = interp1d(steps, coefficient_matrix, axis=2, fill_value='extrapolate')
-            derivative_vector = numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
+            return numpy.dot(variable_vector, interp_coefficient_matrix(actual_position))
         elif coefficient_matrix.ndim == 2:
-            derivative_vector = numpy.dot(variable_vector, coefficient_matrix)
+            return numpy.dot(variable_vector, coefficient_matrix)
         else:
             raise ValueError(
                 'Rate Coefficient Matrix of dimensions: ' + str(coefficient_matrix.ndim) + ' is not supported')
-        return derivative_vector
 
     @staticmethod
     def calculate_1d_solution(init, coefficient, variable):
