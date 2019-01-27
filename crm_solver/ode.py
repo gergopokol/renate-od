@@ -22,18 +22,14 @@ class Ode:
         analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
         temporal_constant = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors), self.init_condition), eigenvectors)
         for step in range(steps.size):
-            analytical_solution[step, :] = self.__calculate_solution_step(temporal_constant, eigenvalues, steps[step])
+            analytical_solution[step, :] = self.calculate_1d_solution(temporal_constant, eigenvalues, steps[step])
         return analytical_solution
 
     def __calculate_analytical_solution_1d(self, steps, eigenvalues):
         analytical_solution = numpy.zeros(steps.size)
         for step in range(steps.size):
-            analytical_solution[step] = self.__calculate_solution_step(self.init_condition, eigenvalues, steps[step])
+            analytical_solution[step] = self.calculate_1d_solution(self.init_condition, eigenvalues, steps[step])
         return analytical_solution
-
-    @staticmethod
-    def __calculate_solution_step(coeff, eigenvalues, step_item):
-        return coeff * numpy.exp(eigenvalues * step_item)
 
     @staticmethod
     def set_derivative_vector(variable_vector, actual_position, coeff_matrix, steps):
