@@ -17,9 +17,12 @@ class Ode:
         if self.init_condition.size == 1:
             return self.__calculate_analytical_solution_1d(steps, eigenvalues)
         else:
-            analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
-            for step in range(steps.size):
-                analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
+            return self.__calculate_analytical_solution_else(steps, eigenvalues, eigenvectors)
+
+    def __calculate_analytical_solution_else(self, steps, eigenvalues, eigenvectors):
+        analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
+        for step in range(steps.size):
+            analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
                                                                    self.init_condition), eigenvectors) \
                                                * numpy.exp(eigenvalues * steps[step])
         return analytical_solution
