@@ -1,6 +1,7 @@
 import unittest
 
 import numpy
+import numpy.testing as npt
 
 from crm_solver.ode import Ode
 
@@ -174,9 +175,7 @@ class OdeTest(unittest.TestCase):
         analytical = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(numerical.size, self.EXPECTED_SIZE_200)
         self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
-        for i in range(self.STEP_NUMBER):
-            for j in range(self.INIT_CONDITION.size):
-                self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
+        npt.assert_almost_equal(numerical, analytical, self.DECIMALS_6)
 
     def test_benchmark_solvers_for_constant_nondiagonal_case(self):
         # TODO relevant function is missing, should write it
