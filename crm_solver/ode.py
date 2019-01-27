@@ -12,7 +12,7 @@ class Ode:
         self.initial_condition = initial_condition
         self.steps = steps
 
-    def calculate_integrate_solution(self):
+    def calculate_numerical_solution(self):
         return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=self.steps,
                       args=(self.coefficient_matrix, self.steps))
 
