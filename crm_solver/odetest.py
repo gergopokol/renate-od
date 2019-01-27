@@ -65,7 +65,7 @@ class OdeTest(unittest.TestCase):
         # TODO if need to destruct a local variable after its run
         pass
 
-    def test_setup_derivative_vector_for_constant_diagonal_case(self):
+    def test_set_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                            coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
@@ -75,10 +75,10 @@ class OdeTest(unittest.TestCase):
             self.assertIn(type(actual[index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[index], self.EXPECTED_DERIVATIVE_VECTOR_1[index], self.DECIMALS_6)
 
-    def test_setup_derivative_vector_for_constant_nondiagonal_case(self):
+    def test_set_derivative_vector_for_constant_nondiagonal_case(self):
         pass
 
-    def test_setup_derivative_vector_with_coefficient_matrix_changing(self):
+    def test_set_derivative_vector_with_coefficient_matrix_changing(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CHANGING, init_condition=self.INIT_CONDITION)
         actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                            coeff_matrix=self.COEFF_MATRIX_CHANGING, steps=self.STEPS)
@@ -86,7 +86,7 @@ class OdeTest(unittest.TestCase):
         self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
         self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
 
-    def test_setup_derivative_vector_for_dimension_error(self):
+    def test_set_derivative_vector_for_dimension_error(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, init_condition=self.INIT_CONDITION)
         with self.assertRaises(ValueError):
             ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
