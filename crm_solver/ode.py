@@ -15,15 +15,19 @@ class Ode:
     def calculate_analytical_solution(self, steps):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coeff_matrix)
         if self.init_condition.size == 1:
-            analytical_solution = numpy.zeros(steps.size)
-            for step in range(steps.size):
-                analytical_solution[step] = self.init_condition * numpy.exp(eigenvalues * steps[step])
+            return self.__calculate_analytical_solution_1d(steps, eigenvalues)
         else:
             analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
             for step in range(steps.size):
                 analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
                                                                    self.init_condition), eigenvectors) \
                                                * numpy.exp(eigenvalues * steps[step])
+        return analytical_solution
+
+    def __calculate_analytical_solution_1d(self, steps, eigenvalues):
+        analytical_solution = numpy.zeros(steps.size)
+        for step in range(steps.size):
+            analytical_solution[step] = self.init_condition * numpy.exp(eigenvalues * steps[step])
         return analytical_solution
 
     @staticmethod
