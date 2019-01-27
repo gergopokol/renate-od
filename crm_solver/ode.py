@@ -21,10 +21,9 @@ class Ode:
 
     def __calculate_analytical_solution_else(self, steps, eigenvalues, eigenvectors):
         analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
+        temporal_constant = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors), self.init_condition), eigenvectors)
         for step in range(steps.size):
-            analytical_solution[step, :] = numpy.dot(numpy.dot(numpy.linalg.inv(eigenvectors),
-                                                                   self.init_condition), eigenvectors) \
-                                               * numpy.exp(eigenvalues * steps[step])
+            analytical_solution[step, :] = temporal_constant * numpy.exp(eigenvalues * steps[step])
         return analytical_solution
 
     def __calculate_analytical_solution_1d(self, steps, eigenvalues):
