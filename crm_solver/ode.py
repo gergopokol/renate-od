@@ -4,10 +4,7 @@ from scipy.interpolate import interp1d
 
 
 class Ode:
-    def __init__(self,
-                 coefficient_matrix=numpy.array([0.]),
-                 initial_condition=numpy.array([0.]),
-                 steps=numpy.array([0.])):
+    def __init__(self, coefficient_matrix, initial_condition, steps):
         self.coefficient_matrix = coefficient_matrix
         self.initial_condition = initial_condition
         self.steps = steps
