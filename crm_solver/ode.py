@@ -9,8 +9,7 @@ class Ode:
         self.init_condition = init_condition
 
     def calculate_numerical_solution(self, steps):
-        return odeint(func=self.set_derivative_vector, y0=self.init_condition, t=steps,
-                      args=(self.coeff_matrix, steps))
+        return odeint(func=self.set_derivative_vector, y0=self.init_condition, t=steps, args=(self.coeff_matrix, steps))
 
     def calculate_analytical_solution(self, steps):
         eigenvalues, eigenvectors = numpy.linalg.eig(self.coeff_matrix)
