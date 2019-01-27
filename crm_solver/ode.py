@@ -17,8 +17,7 @@ class Ode:
         if self.init_condition.size == 1:
             analytical_solution = numpy.zeros(steps.size)
             for step in range(steps.size):
-                analytical_solution[step] = 1 / eigenvectors * self.init_condition * eigenvectors \
-                                            * numpy.exp(eigenvalues * steps[step])
+                analytical_solution[step] = self.init_condition * numpy.exp(eigenvalues * steps[step])
         else:
             analytical_solution = numpy.zeros((steps.size, self.init_condition.size))
             for step in range(steps.size):
