@@ -70,7 +70,6 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                            coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
-        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
         npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_1, self.DECIMALS_6)
 
@@ -106,7 +105,6 @@ class OdeTest(unittest.TestCase):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
                   init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
         actual = ode.calculate_numerical_solution(self.STEPS)
-        self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.STEP_NUMBER * self.INIT_CONDITION_CONSTANT_NONDIAGONAL.size)
         self.assertEqual(actual.shape, (self.STEP_NUMBER, self.INIT_CONDITION_CONSTANT_NONDIAGONAL.size))
         for index in range(self.INIT_CONDITION_CONSTANT_NONDIAGONAL.size):
