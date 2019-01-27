@@ -4,10 +4,9 @@ from scipy.interpolate import interp1d
 
 
 class Ode:
-    def __init__(self, coefficient_matrix, initial_condition, steps):
+    def __init__(self, coefficient_matrix, initial_condition):
         self.coefficient_matrix = coefficient_matrix
         self.initial_condition = initial_condition
-        self.steps = steps
 
     def calculate_numerical_solution(self, steps):
         return odeint(func=self.setup_derivative_vector, y0=self.initial_condition, t=steps,
