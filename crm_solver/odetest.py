@@ -178,13 +178,13 @@ class OdeTest(unittest.TestCase):
 
     def test_benchmark_solvers_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
-        integrate = ode.calculate_numerical_solution(self.STEPS)
+        numerical = ode.calculate_numerical_solution(self.STEPS)
         analytical = ode.calculate_analytical_solution(self.STEPS)
-        self.assertEqual(integrate.size, self.EXPECTED_SIZE_200)
+        self.assertEqual(numerical.size, self.EXPECTED_SIZE_200)
         self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
         for i in range(self.STEP_NUMBER):
             for j in range(self.INIT_CONDITION.size):
-                self.assertAlmostEqual(integrate[i, j], analytical[i, j], self.DECIMALS_6)
+                self.assertAlmostEqual(numerical[i, j], analytical[i, j], self.DECIMALS_6)
 
     def test_benchmark_solvers_for_constant_nondiagonal_case(self):
         # TODO relevant function is missing, should write it
