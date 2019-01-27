@@ -22,10 +22,10 @@ class OdeTest(unittest.TestCase):
 
     COEFF_MATRIX_DIM_ERROR = numpy.array([15, 12])
     COEFF_MATRIX_CONSTANT_DIAGONAL = numpy.array([[-0.2, 0.],
-                                                        [0., -1.]])
+                                                  [0., -1.]])
     COEFF_MATRIX_CONSTANT_NONDIAGONAL = numpy.array([[1, 3, -4],
-                                                           [-1, 1, -2],
-                                                           [-1, -3, 1]])
+                                                     [-1, 1, -2],
+                                                     [-1, -3, 1]])
     COEFF_MATRIX_CHANGING = numpy.tensordot(COEFF_MATRIX_CONSTANT_DIAGONAL, STEPS, axes=0)
     COEFF_MATRIX_1D = [numpy.array([[2.]]), numpy.array([[2.]])]
     COEFF_MATRIX_VARYING_NONDIAGONAL = numpy.zeros((2, 2, STEPS_VARYING_NONDIAGONAL.size))
@@ -66,8 +66,7 @@ class OdeTest(unittest.TestCase):
         pass
 
     def test_setup_derivative_vector_for_constant_diagonal_case(self):
-        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
-                  init_condition=self.INIT_CONDITION)
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.setup_derivative_vector(variable_vector=self.INIT_CONDITION,
                                              actual_position=self.START_POSITION,
                                              coefficient_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
@@ -100,8 +99,7 @@ class OdeTest(unittest.TestCase):
                                         steps=self.STEPS)
 
     def test_calculate_numerical_solution_for_constant_diagonal_case(self):
-        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
-                  init_condition=self.INIT_CONDITION)
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.calculate_numerical_solution(self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
@@ -151,8 +149,7 @@ class OdeTest(unittest.TestCase):
                     self.assertEqual(actual[index], expected)
 
     def test_calculate_analytical_solution_for_constant_diagonal_case(self):
-        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
-                  init_condition=self.INIT_CONDITION)
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_200)
@@ -180,8 +177,7 @@ class OdeTest(unittest.TestCase):
         pass
 
     def test_benchmark_solvers_for_constant_diagonal_case(self):
-        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL,
-                  init_condition=self.INIT_CONDITION)
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         integrate = ode.calculate_numerical_solution(self.STEPS)
         analytical = ode.calculate_analytical_solution(self.STEPS)
         self.assertEqual(integrate.size, self.EXPECTED_SIZE_200)
