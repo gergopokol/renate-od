@@ -72,9 +72,7 @@ class OdeTest(unittest.TestCase):
                                            coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
         self.assertEqual(type(actual), numpy.ndarray)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
-        for index in range(actual.size):
-            self.assertIn(type(actual[index]), self.ACCEPTED_TYPES)
-            self.assertAlmostEqual(actual[index], self.EXPECTED_DERIVATIVE_VECTOR_1[index], self.DECIMALS_6)
+        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_1, self.DECIMALS_6)
 
     def test_set_derivative_vector_for_constant_nondiagonal_case(self):
         pass
@@ -84,8 +82,7 @@ class OdeTest(unittest.TestCase):
         actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                            coeff_matrix=self.COEFF_MATRIX_CHANGING, steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
-        self.assertAlmostEqual(actual[0], self.EXPECTED_DERIVATIVE_VECTOR_2[0], self.DECIMALS_6)
-        self.assertAlmostEqual(actual[1], self.EXPECTED_DERIVATIVE_VECTOR_2[1], self.DECIMALS_6)
+        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_2, self.DECIMALS_6)
 
     def test_set_derivative_vector_for_dimension_error(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, init_condition=self.INIT_CONDITION)
