@@ -66,9 +66,8 @@ class Beamlet:
     def solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
             self.initialize_ode()
-        ode = Ode(coefficient_matrix=self.coefficient_matrix.matrix, initial_condition=self.initial_condition,
-                  steps=self.profiles['beamlet_grid'])
-        numerical = ode.calculate_integrate_solution()
+        ode = Ode(coeff_matrix=self.coefficient_matrix.matrix, init_condition=self.initial_condition)
+        numerical = ode.calculate_numerical_solution(self.profiles['beamlet_grid'])
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
