@@ -84,8 +84,8 @@ class OdeTest(unittest.TestCase):
         npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_2, self.DECIMALS_6)
 
     def test_set_derivative_vector_for_dimension_error(self):
-        ode = Ode(coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, init_condition=self.INIT_CONDITION)
         with self.assertRaises(ValueError):
+            ode = Ode(coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, init_condition=self.INIT_CONDITION)
             ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                       coeff_matrix=self.COEFF_MATRIX_DIM_ERROR, steps=self.STEPS)
 

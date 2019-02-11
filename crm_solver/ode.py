@@ -12,11 +12,25 @@ class Ode:
     def __validate_parameters(self):
         self.__validate(self.coeff_matrix)
         self.__validate(self.init_condition)
+        self.__validate_matrix(self.coeff_matrix)
 
     @staticmethod
     def __validate(parameter):
         if parameter is None:
             raise ValueError('Try to define Ode class with null matrix.')
+
+    def __validate_matrix(self, parameter):
+        if self.__is_not_square(parameter):
+            raise ValueError("The matrix must be squared")
+
+    @staticmethod
+    def __is_not_square(matrix):
+        matrix_temp1 = matrix.shape[0]
+        if matrix.ndim > 1:
+            matrix_temp2 = matrix.shape[1]
+        else:
+            matrix_temp2 = 0
+        return matrix_temp1 != matrix_temp2
 
     def calculate_numerical_solution(self, steps):
         return odeint(func=self.set_derivative_vector, y0=self.init_condition, t=steps, args=(self.coeff_matrix, steps))
