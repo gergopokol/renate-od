@@ -91,13 +91,13 @@ class Rates:
                         self.electron_neutral_collisions[from_level, to_level, step] = \
                             f(self.beamlet_profiles['electron']['temperature'][step])
                         for ion in range(self.number_of_ions):
-                            x = self.temperature_array
+                            x = self.atomic_mass_correction(self.plasma_components['A']['ion' + str(ion + 1)])
                             y = ion_neutral_collisions_array[ion][from_level, to_level, :]
                             f = interp1d(x, y)
                             self.ion_neutral_collisions[ion][from_level, to_level, step] = \
                                 f(self.beamlet_profiles['ion' + str(ion+1)]['temperature'][step])
                         for imp in range(self.number_of_impurities):
-                            x = self.temperature_array
+                            x = self.atomic_mass_correction(int(self.plasma_components['A']['imp' + str(imp+1)]))
                             y = imp_neutral_collisions_array[imp][from_level, to_level, :]
                             f = interp1d(x, y)
                             self.imp_neutral_collisions[imp][from_level, to_level, step] = \
@@ -112,13 +112,13 @@ class Rates:
                 self.electron_loss_collisions[from_level, step] = \
                     f(self.beamlet_profiles['electron']['temperature'][step])
             for ion in range(self.number_of_ions):
-                x = self.temperature_array
+                x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion + 1)]))
                 y = electron_loss_collisions_array[1, from_level, :]
                 f = interp1d(x, y)
                 self.electron_loss_ion_collisions[ion][from_level, step] = \
                     f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature'][step])
             for imp in range(self.number_of_impurities):
-                x = self.temperature_array
+                x = self.atomic_mass_correction(int(self.plasma_components['A']['imp' + str(imp+1)]))
                 y = electron_loss_collisions_array[int(self.plasma_components['q']['imp' + str(imp+1)]), from_level, :]
                 f = interp1d(x, y)
                 self.electron_loss_imp_collisions[imp][from_level, step] = \
@@ -133,8 +133,5 @@ class Rates:
         self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
         self.electron_loss_imp_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_imp_collisions)
 
-
-
-        
-
-
+    def atomic_mass_correction(self, scale):
+        return self.temperature_array*scale
