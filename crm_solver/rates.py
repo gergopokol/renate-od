@@ -36,12 +36,9 @@ class Rates:
             self.electron_neutral_collisions = neutral_collisions_zeros
             self.electron_loss_collisions = loss_collisions_zeros
             self.plasma_components=plasma_components
-            self.number_of_ions = int(self.plasma_components['Z'][self.plasma_components['Z'] == 1].count())
+            self.number_of_ions = int(self.plasma_components['Z'][self.plasma_components['Z'] > 0].count())
             self.ion_neutral_collisions = numpy.concatenate([[neutral_collisions_zeros]*self.number_of_ions])
             self.electron_loss_ion_collisions = numpy.concatenate([[loss_collisions_zeros]*self.number_of_ions])
-            self.number_of_impurities = int(self.plasma_components['Z'][self.plasma_components['Z'] > 1].count())
-            self.imp_neutral_collisions = numpy.concatenate([[neutral_collisions_zeros]*self.number_of_impurities])
-            self.electron_loss_imp_collisions = numpy.concatenate([[loss_collisions_zeros]*self.number_of_impurities])
             self.interpolate_rate_coeffs()
             self.convert_rate_coefficients()
         else:
@@ -49,38 +46,30 @@ class Rates:
 
     def interpolate_rate_coeffs(self):
         # Interpolate rate coeffs to new grid:
-        for i in range(2):
-            ('imp' + str(i+3) + '_collisions_array')
-
         electron_neutral_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
                                                           data_key=['Collisional Coeffs/Electron Neutral Collisions'],
                                                           data_format="array").data
         electron_loss_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
                                                          data_key=['Collisional Coeffs/Electron Neutral Collisions'],
                                                          data_format="array").data
-        ion_array = getdata.GetData(data_path_name=self.data_path_name,
+        proton_array = getdata.GetData(data_path_name=self.data_path_name,
                                     data_key=['Collisional Coeffs/Proton Neutral Collisions'],
                                     data_format="array").data
         imp_data = getdata.GetData(data_path_name=self.data_path_name,
                                    data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
                                    data_format="array").data
         for ion in range(self.number_of_ions):
+            ion_charge = int(self.plasma_components['q']['ion' + str(ion+1)])
+            if ion_charge == 1:
+                ion_array = proton_array
+            elif ion_charge > 1:
+                ion_array = imp_data[ion_charge]
+            else:
+                print('Data is only available for positively charged ions.')
             if ion == 0:
                 ion_neutral_collisions_array = [ion_array]
             else:
-                ion_neutral_collisions_array = ion_neutral_collisions_array.append([ion_array])
-        for imp in range(self.number_of_impurities):
-            imp_charge = int(self.plasma_components['q']['imp' + str(imp+1)])
-            if imp_charge == 1:
-                imp_array = ion_array
-            elif imp_charge > 1:
-                imp_array = imp_data[imp_charge]
-            else:
-                print('Data is only available for positively charged impurities.')
-            if imp == 0:
-                imp_neutral_collisions_array = [imp_array]
-            else:
-                imp_neutral_collisions_array = numpy.concatenate([imp_neutral_collisions_array, [imp_array]])
+                ion_neutral_collisions_array = numpy.concatenate([ion_neutral_collisions_array, [ion_array]])
         for from_level in range(self.number_of_levels):
             for to_level in range(self.number_of_levels):
                 for step in range(self.number_of_steps):
@@ -89,19 +78,13 @@ class Rates:
                         y = electron_neutral_collisions_array[from_level, to_level, :]
                         f = interp1d(x, y)
                         self.electron_neutral_collisions[from_level, to_level, step] = \
-                            f(self.beamlet_profiles['electron']['temperature'][step])
+                            f(self.beamlet_profiles['electron']['temperature']['eV'][step])
                         for ion in range(self.number_of_ions):
                             x = self.atomic_mass_correction(self.plasma_components['A']['ion' + str(ion + 1)])
                             y = ion_neutral_collisions_array[ion][from_level, to_level, :]
                             f = interp1d(x, y)
                             self.ion_neutral_collisions[ion][from_level, to_level, step] = \
-                                f(self.beamlet_profiles['ion' + str(ion+1)]['temperature'][step])
-                        for imp in range(self.number_of_impurities):
-                            x = self.atomic_mass_correction(int(self.plasma_components['A']['imp' + str(imp+1)]))
-                            y = imp_neutral_collisions_array[imp][from_level, to_level, :]
-                            f = interp1d(x, y)
-                            self.imp_neutral_collisions[imp][from_level, to_level, step] = \
-                                f(self.beamlet_profiles['imp' + str(imp+1)]['temperature'][step])
+                                f(self.beamlet_profiles['ion' + str(ion+1)]['temperature']['eV'][step])
                     else:
                         continue
         for from_level in range(self.number_of_levels):
@@ -110,28 +93,20 @@ class Rates:
                 y = electron_loss_collisions_array[0, from_level, :]
                 f = interp1d(x, y)
                 self.electron_loss_collisions[from_level, step] = \
-                    f(self.beamlet_profiles['electron']['temperature'][step])
+                    f(self.beamlet_profiles['electron']['temperature']['eV'][step])
             for ion in range(self.number_of_ions):
-                x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion + 1)]))
-                y = electron_loss_collisions_array[1, from_level, :]
+                x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
+                y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
                 f = interp1d(x, y)
                 self.electron_loss_ion_collisions[ion][from_level, step] = \
-                    f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature'][step])
-            for imp in range(self.number_of_impurities):
-                x = self.atomic_mass_correction(int(self.plasma_components['A']['imp' + str(imp+1)]))
-                y = electron_loss_collisions_array[int(self.plasma_components['q']['imp' + str(imp+1)]), from_level, :]
-                f = interp1d(x, y)
-                self.electron_loss_imp_collisions[imp][from_level, step] = \
-                    f(self.beamlet_profiles['imp' + str(imp + 1)]['temperature'][step])
+                    f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][step])
             return
 
     def convert_rate_coefficients(self):
         self.electron_neutral_collisions = convert.convert_from_cm2_to_m2(self.electron_neutral_collisions)
         self.ion_neutral_collisions = convert.convert_from_cm2_to_m2(self.ion_neutral_collisions)
-        self.imp_neutral_collisions = convert.convert_from_cm2_to_m2(self.imp_neutral_collisions)
         self.electron_loss_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_collisions)
         self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
-        self.electron_loss_imp_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_imp_collisions)
 
     def atomic_mass_correction(self, scale):
         return self.temperature_array*scale
