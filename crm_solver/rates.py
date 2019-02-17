@@ -19,7 +19,7 @@ class Rates:
 
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
-        self.number_of_steps = self.beamlet_profiles['beamlet_grid'].size
+        self.number_of_steps = self.beamlet_profiles['beamlet grid'].size
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + self.beamlet_species + '.h5'
         self.data_path_name = getdata.locate_h5_dir(self.beamlet_species, rate_type) + self.file_name
