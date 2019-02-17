@@ -29,7 +29,7 @@ class Beamlet:
         print('Beamlet.param read from file: ' + data_path)
 
     def read_beamlet_profiles(self):
-        hdf5_path = 'output/test_impurity.h5'
+        hdf5_path = self.param.getroot().find('body').find('beamlet_source').text
         self.components = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['components']).data
         assert isinstance(self.components, pandas.DataFrame)
         print('Beamlet.imp_components read from file: ' + hdf5_path)
