@@ -6,6 +6,7 @@ class CoefficientMatrix:
     def __init__(self, beamlet_param, beamlet_profiles, plasma_components):
         self.beamlet_profiles = beamlet_profiles
         self.rates = Rates(beamlet_param, beamlet_profiles, plasma_components)
+        print(self.rates.ion_neutral_collisions[0])
         self.number_of_steps = self.rates.number_of_steps
         self.number_of_levels = self.rates.number_of_levels
         # Initialize matrices
@@ -44,7 +45,7 @@ class CoefficientMatrix:
                         self.electron_terms[from_level, to_level, step] = \
                             self.rates.electron_neutral_collisions[from_level, to_level, step]
                         for ion in range(self.rates.number_of_ions):
-                            self.ion_terms[from_level, to_level, step] =\
+                            self.ion_terms[ion][from_level, to_level, step] =\
                                 self.rates.ion_neutral_collisions[ion][from_level, to_level, step]
                         self.photon_terms[from_level, to_level, step] = \
                             self.rates.einstein_coeffs[to_level, from_level] / self.rates.velocity
