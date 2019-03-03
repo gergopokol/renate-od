@@ -4,7 +4,7 @@ python:
 install:
   - pip install
 script:
-  - python -m unittest sample_test.Testing
+  - python -m unittest odetest.OdeTest
 branches:
   only:
   - clean-coding-1st
