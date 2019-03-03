@@ -184,3 +184,7 @@ class OdeTest(unittest.TestCase):
         actual = 1.004
         expected = 1
         self.assertAlmostEqual(actual, expected, self.DECIMALS_2)
+
+
+if __name__ == '__main__':
+    unittest.main()
