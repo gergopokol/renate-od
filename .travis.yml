@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.7-dev"
+install:
+  - pip install
+script:
+  - python -m unittest sample_test.Testing
+branches:
+  only:
+  - master
