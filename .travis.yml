@@ -7,4 +7,4 @@ script:
   - python -m unittest sample_test.Testing
 branches:
   only:
-  - master
+  - clean-coding-1st
