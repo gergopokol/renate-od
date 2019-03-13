@@ -57,7 +57,7 @@ class Profiles:
         return number_of_levels
 
     def setup_density_axis(self, axis):
-        axis.plot(self.profiles['beamlet_grid'], self.profiles['beamlet_density'], label='Density', color='b')
+        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['density']['m-3'], label='Density', color='b')
         axis.set_ylabel('Density [1/m3]')
         axis.yaxis.label.set_color('b')
         axis.legend(loc='upper left')
@@ -65,9 +65,9 @@ class Profiles:
         return axis
 
     def setup_temperature_axis(self, axis):
-        axis.plot(self.profiles['beamlet_grid'], self.profiles['beamlet_electron_temp'], color='r',
+        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['temperature']['eV'], color='r',
                   label='Electron_temperature')
-        axis.plot(self.profiles['beamlet_grid'], self.profiles['beamlet_ion_temp'], '--', label='Ion_temperature',
+        axis.plot(self.profiles['beamlet grid'], self.profiles['ion1']['temperature']['eV'], '--', label='Ion_temperature',
                   color='m')
         axis.set_ylabel('Temperature [eV]')
         axis.yaxis.label.set_color('r')
@@ -79,7 +79,7 @@ class Profiles:
         number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
             label = 'level ' + str(level)
-            axis.plot(self.profiles['beamlet_grid'], self.profiles[label], label=label)
+            axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
         axis.set_ylim([1e-5, 1])
         axis.set_xlabel('Distance [m]')
@@ -95,7 +95,7 @@ class Profiles:
         number_of_levels = self.get_number_of_levels(benchmark_profiles)
         for level in range(number_of_levels):
             label = 'level ' + str(level)
-            axis.plot(benchmark_profiles['beamlet_grid'], benchmark_profiles[label], '--', label=label+' ref.')
+            axis.plot(benchmark_profiles['beamlet grid'], benchmark_profiles[label], '--', label=label+' ref.')
         return axis
 
     @staticmethod
