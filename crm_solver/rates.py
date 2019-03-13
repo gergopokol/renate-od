@@ -50,7 +50,7 @@ class Rates:
                                                           data_key=['Collisional Coeffs/Electron Neutral Collisions'],
                                                           data_format="array").data
         electron_loss_collisions_array = getdata.GetData(data_path_name=self.data_path_name,
-                                                         data_key=['Collisional Coeffs/Electron Neutral Collisions'],
+                                                         data_key=['Collisional Coeffs/Electron Loss Collisions'],
                                                          data_format="array").data
         proton_array = getdata.GetData(data_path_name=self.data_path_name,
                                     data_key=['Collisional Coeffs/Proton Neutral Collisions'],
@@ -94,12 +94,12 @@ class Rates:
                 f = interp1d(x, y)
                 self.electron_loss_collisions[from_level, step] = \
                     f(self.beamlet_profiles['electron']['temperature']['eV'][step])
-            for ion in range(self.number_of_ions):
-                x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
-                y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
-                f = interp1d(x, y)
-                self.electron_loss_ion_collisions[ion][from_level, step] = \
-                    f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][step])
+                for ion in range(self.number_of_ions):
+                    x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
+                    y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
+                    f = interp1d(x, y)
+                    self.electron_loss_ion_collisions[ion][from_level, step] = \
+                        f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][step])
             return
 
     def convert_rate_coefficients(self):
