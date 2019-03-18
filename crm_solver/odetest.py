@@ -1,4 +1,5 @@
 import unittest
+import logging
 
 import numpy
 import numpy.testing as npt
@@ -67,6 +68,7 @@ class OdeTest(unittest.TestCase):
         pass
 
     def test_set_derivative_vector_for_constant_diagonal_case(self):
+        logging.info('test_set_derivative_vector_for_constant_diagonal_case')
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION)
         actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION, actual_position=self.START_POSITION,
                                            coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
