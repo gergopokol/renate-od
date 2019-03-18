@@ -6,7 +6,6 @@ class CoefficientMatrix:
     def __init__(self, beamlet_param, beamlet_profiles, plasma_components):
         self.beamlet_profiles = beamlet_profiles
         self.rates = Rates(beamlet_param, beamlet_profiles, plasma_components)
-        print(self.rates.ion_neutral_collisions[0])
         self.number_of_steps = self.rates.number_of_steps
         self.number_of_levels = self.rates.number_of_levels
         # Initialize matrices

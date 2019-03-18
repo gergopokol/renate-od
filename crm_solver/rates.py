@@ -63,7 +63,7 @@ class Rates:
             if ion_charge == 1:
                 ion_array = proton_array
             elif ion_charge > 1:
-                ion_array = imp_data[ion_charge]
+                ion_array = imp_data[ion_charge-2]
             else:
                 print('Data is only available for positively charged ions.')
             if ion == 0:
@@ -72,35 +72,35 @@ class Rates:
                 ion_neutral_collisions_array = numpy.concatenate([ion_neutral_collisions_array, [ion_array]])
         for from_level in range(self.number_of_levels):
             for to_level in range(self.number_of_levels):
-                for step in range(self.number_of_steps):
-                    if to_level != from_level:
-                        x = self.temperature_array
-                        y = electron_neutral_collisions_array[from_level, to_level, :]
-                        f = interp1d(x, y)
-                        self.electron_neutral_collisions[from_level, to_level, step] = \
-                            f(self.beamlet_profiles['electron']['temperature']['eV'][step])
-                        for ion in range(self.number_of_ions):
-                            x = self.atomic_mass_correction(self.plasma_components['A']['ion' + str(ion + 1)])
-                            y = ion_neutral_collisions_array[ion][from_level, to_level, :]
-                            f = interp1d(x, y)
-                            self.ion_neutral_collisions[ion][from_level, to_level, step] = \
-                                f(self.beamlet_profiles['ion' + str(ion+1)]['temperature']['eV'][step])
-                    else:
-                        continue
-        for from_level in range(self.number_of_levels):
-            for step in range(self.number_of_steps):
-                x = self.temperature_array
-                y = electron_loss_collisions_array[0, from_level, :]
-                f = interp1d(x, y)
-                self.electron_loss_collisions[from_level, step] = \
-                    f(self.beamlet_profiles['electron']['temperature']['eV'][step])
-                for ion in range(self.number_of_ions):
-                    x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
-                    y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
+                if to_level != from_level:
+#                    for step in range(self.number_of_steps):
+                    x = self.temperature_array
+                    y = electron_neutral_collisions_array[from_level, to_level, :]
                     f = interp1d(x, y)
-                    self.electron_loss_ion_collisions[ion][from_level, step] = \
-                        f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][step])
-            return
+                    self.electron_neutral_collisions[from_level, to_level, :] = \
+                        f(self.beamlet_profiles['electron']['temperature']['eV'][:])
+                    for ion in range(self.number_of_ions):
+                        x = self.atomic_mass_correction(self.plasma_components['A']['ion' + str(ion + 1)])
+                        y = ion_neutral_collisions_array[ion][from_level, to_level, :]
+                        f = interp1d(x, y)
+                        self.ion_neutral_collisions[ion][from_level, to_level, :] = \
+                            f(self.beamlet_profiles['ion' + str(ion+1)]['temperature']['eV'][:])
+                else:
+                    continue
+        for from_level in range(self.number_of_levels):
+ #           for step in range(self.number_of_steps):
+            x = self.temperature_array
+            y = electron_loss_collisions_array[0, from_level, :]
+            f = interp1d(x, y)
+            self.electron_loss_collisions[from_level, :] = \
+                f(self.beamlet_profiles['electron']['temperature']['eV'][:])
+            for ion in range(self.number_of_ions):
+                x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
+                y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
+                f = interp1d(x, y)
+                self.electron_loss_ion_collisions[ion][from_level, :] = \
+                    f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
+        return
 
     def convert_rate_coefficients(self):
         self.electron_neutral_collisions = convert.convert_from_cm2_to_m2(self.electron_neutral_collisions)
