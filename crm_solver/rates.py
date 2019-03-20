@@ -73,7 +73,6 @@ class Rates:
         for from_level in range(self.number_of_levels):
             for to_level in range(self.number_of_levels):
                 if to_level != from_level:
-#                    for step in range(self.number_of_steps):
                     x = self.temperature_array
                     y = electron_neutral_collisions_array[from_level, to_level, :]
                     f = interp1d(x, y)
@@ -87,8 +86,6 @@ class Rates:
                             f(self.beamlet_profiles['ion' + str(ion+1)]['temperature']['eV'][:])
                 else:
                     continue
-        for from_level in range(self.number_of_levels):
- #           for step in range(self.number_of_steps):
             x = self.temperature_array
             y = electron_loss_collisions_array[0, from_level, :]
             f = interp1d(x, y)
