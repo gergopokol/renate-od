@@ -52,6 +52,7 @@ class OdeTest(unittest.TestCase):
                                                        [2.42465202, -0.4280517],
                                                        [2.82871194, -0.36454059],
                                                        [3.0456828, -0.85070421]])
+    EXPECTED_DERIVATIVE_VARYING_NONDIAGONAL = numpy.array([2, 4])
 
     COEFF_MATRIX_CHANGING = numpy.tensordot(COEFF_MATRIX_CONSTANT_DIAGONAL, STEPS, axes=0)
 
@@ -61,7 +62,6 @@ class OdeTest(unittest.TestCase):
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 2] = numpy.array([[2, -1], [5, -2]])
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 3] = numpy.array([[2, -3], [8, -2]])
 
-    EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
     @classmethod
     def setUpClass(cls):
@@ -164,7 +164,7 @@ class OdeTest(unittest.TestCase):
             self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
-    @unittest.skip
+    @unittest.skip('Analytical solver for constant non-diagonal case.')
     def test_calculate_analytical_solution_for_constant_nondiagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
                   init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
@@ -176,7 +176,7 @@ class OdeTest(unittest.TestCase):
             self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
-    @unittest.skip
+    @unittest.skip('Constant Non-diagonal Solvers Benchmark.')
     def test_benchmark_solvers_for_constant_nondiagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
                   init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
@@ -187,7 +187,6 @@ class OdeTest(unittest.TestCase):
         npt.assert_almost_equal(numerical, analytical, self.DECIMALS_6)
 
     #VARYING NONDIAGONAL TESTS:
-    @unittest.skip
     def test_set_derivative_vector_for_varying_nondiagonal(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_VARYING_NONDIAGONAL,
                   init_condition=self.INIT_CONDITION_VARYING_NONDIAGONAL)
@@ -196,7 +195,8 @@ class OdeTest(unittest.TestCase):
                                            coeff_matrix=self.COEFF_MATRIX_VARYING_NONDIAGONAL,
                                            steps=self.STEPS_VARYING_NONDIAGONAL)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
-        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_2, self.DECIMALS_6)
+        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VARYING_NONDIAGONAL, self.DECIMALS_6)
+        #TODO: A more general form is required
 
     def test_calculate_numerical_solution_for_varying_nondiagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_VARYING_NONDIAGONAL,
@@ -212,13 +212,28 @@ class OdeTest(unittest.TestCase):
             for j in range(self.INIT_CONDITION_VARYING_NONDIAGONAL.size):
                 self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
 
+    @unittest.skip('Analytical solver for varying non-diagonal case.')
     def test_calculate_analytical_solution_for_varying_nondiagonal_case(self):
-        # TODO relevant function is missing, should write it
-        pass
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_VARYING_NONDIAGONAL,
+                  init_condition=self.INIT_CONDITION_VARYING_NONDIAGONAL)
+        actual = ode.calculate_analytical_solution(self.STEPS_VARYING_NONDIAGONAL)
+        self.assertEqual(type(actual), numpy.ndarray)
+        self.assertEqual(actual.size,
+                         self.STEPS_VARYING_NONDIAGONAL.size * self.INIT_CONDITION_VARYING_NONDIAGONAL.size)
+        self.assertEqual(actual.shape,
+                         (self.STEPS_VARYING_NONDIAGONAL.size, self.INIT_CONDITION_VARYING_NONDIAGONAL.size))
+        npt.assert_almost_equal(actual, self.EXPECTED_RESULT_VARYING_NONDIAGONAL, self.DECIMALS_6)
+        for i in range(self.STEPS_VARYING_NONDIAGONAL.size):
+            for j in range(self.INIT_CONDITION_VARYING_NONDIAGONAL.size):
+                self.assertIn(type(actual[i, j]), self.ACCEPTED_TYPES)
 
+    @unittest.skip('Varying, non-diagonal solvers Benchmark.')
     def test_benchmark_solvers_for_varying_nondiagonal_case(self):
-        # TODO relevant function is missing, should write it
-        pass
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_VARYING_NONDIAGONAL,
+                  init_condition=self.INIT_CONDITION_VARYING_NONDIAGONAL)
+        numerical = ode.calculate_numerical_solution(self.STEPS_VARYING_NONDIAGONAL)
+        analytical = ode.calculate_numerical_solution(self.STEPS_VARYING_NONDIAGONAL)
+        npt.assert_almost_equal(numerical, analytical, self.DECIMALS_6)
 
 
 if __name__ == '__main__':
