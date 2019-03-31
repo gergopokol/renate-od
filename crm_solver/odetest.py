@@ -63,7 +63,6 @@ class OdeTest(unittest.TestCase):
 
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
-    #GENERAL TESTS:
     @classmethod
     def setUpClass(cls):
         # TODO add class level variables or constants
@@ -82,6 +81,7 @@ class OdeTest(unittest.TestCase):
         # TODO if need to destruct a local variable after its run
         pass
 
+    #GENERAL TESTS
     def test_calculate_analytical_solution_1d(self):
         for init in self.INIT_CONDITION_1D:
             for coefficient in self.COEFF_MATRIX_1D:
@@ -176,9 +176,14 @@ class OdeTest(unittest.TestCase):
             self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
+    @unittest.skip
     def test_benchmark_solvers_for_constant_nondiagonal_case(self):
-        # TODO relevant function is missing, should write it
-        pass
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL, init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
+        numerical = ode.calculate_numerical_solution(self.STEPS)
+        analytical = ode.calculate_analytical_solution(self.STEPS)
+        self.assertEqual(numerical.size, self.EXPECTED_SIZE_200)
+        self.assertEqual(analytical.size, self.EXPECTED_SIZE_200)
+        npt.assert_almost_equal(numerical, analytical, self.DECIMALS_6)
 
     # VARYING NONDIAGONAL TESTS:
     def test_set_derivative_vector_with_coefficient_matrix_changing(self):
