@@ -50,8 +50,6 @@ class OdeTest(unittest.TestCase):
                                                        [3.0526073, 0.0849155],
                                                        [3.3920525, -1.1205913]])
 
-
-
     COEFF_MATRIX_CHANGING = numpy.tensordot(COEFF_MATRIX_CONSTANT_DIAGONAL, STEPS, axes=0)
 
     COEFF_MATRIX_VARYING_NONDIAGONAL = numpy.zeros((2, 2, STEPS_VARYING_NONDIAGONAL.size))
@@ -60,10 +58,7 @@ class OdeTest(unittest.TestCase):
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 2] = numpy.array([[2, -1], [5, -2]])
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 3] = numpy.array([[2, -3], [8, -2]])
 
-
-
-
-    EXPECTED_DERIVATIVE_VECTOR_1 = numpy.array([-0.2, -2.])
+    EXPECTED_DERIVATIVE_CONSTANT_DIAGONAL = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
     #GENERAL TESTS:
@@ -111,10 +106,10 @@ class OdeTest(unittest.TestCase):
     # CONSTANT DIAGONAL TESTS:
     def test_set_derivative_vector_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION_GENERAL)
-        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION_GENERAL, actual_position=self.START_POSITION,
+        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION_GENERAL, actual_position=0,
                                            coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, steps=self.STEPS)
         self.assertEqual(actual.size, self.EXPECTED_SIZE_2)
-        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_VECTOR_1, self.DECIMALS_6)
+        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_CONSTANT_DIAGONAL, self.DECIMALS_6)
 
     def test_calculate_numerical_solution_for_constant_diagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL, init_condition=self.INIT_CONDITION_GENERAL)
