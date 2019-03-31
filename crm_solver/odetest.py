@@ -21,6 +21,7 @@ class OdeTest(unittest.TestCase):
     COEFF_MATRIX_DIM_ERROR = numpy.array([15, 12])
 
     EXPECTED_SIZE_2 = 2
+    EXPECTED_SIZE_3 = 3
     EXPECTED_SIZE_100 = 100
     EXPECTED_SIZE_200 = 200
 
@@ -32,12 +33,14 @@ class OdeTest(unittest.TestCase):
     # Setup CONSTANT DIAGONAL CASE
     COEFF_MATRIX_CONSTANT_DIAGONAL = numpy.array([[-0.2, 0.],
                                                   [0., -1.]])
+    EXPECTED_DERIVATIVE_CONSTANT_DIAGONAL = numpy.array([-0.2, -2.])
 
     # Setup CONSTANT NONDIAGONAL CASE
     INIT_CONDITION_CONSTANT_NONDIAGONAL = numpy.array([3, -11, 11])
     COEFF_MATRIX_CONSTANT_NONDIAGONAL = numpy.array([[1, 3, -4],
                                                      [-1, 1, -2],
                                                      [-1, -3, 1]])
+    EXPECTED_DERIVATIVE_CONSTANT_NONDIAGONAL = numpy.array([3, -35, 21])
     EXPECTED_RESULT_CONSTANT_NONDIAGONAL = numpy.array([3.38999231881, -14.9942067896, 13.5292786755])
 
     # Setup VARYING NONDIAGONAL CASE
@@ -58,7 +61,6 @@ class OdeTest(unittest.TestCase):
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 2] = numpy.array([[2, -1], [5, -2]])
     COEFF_MATRIX_VARYING_NONDIAGONAL[:, :, 3] = numpy.array([[2, -3], [8, -2]])
 
-    EXPECTED_DERIVATIVE_CONSTANT_DIAGONAL = numpy.array([-0.2, -2.])
     EXPECTED_DERIVATIVE_VECTOR_2 = numpy.array([-0.000101, -0.001010])
 
     #GENERAL TESTS:
@@ -144,10 +146,13 @@ class OdeTest(unittest.TestCase):
         npt.assert_almost_equal(numerical, analytical, self.DECIMALS_6)
 
     # CONSTANT NONDIAGONAL TESTS:
-    #@unittest.skip
     def test_set_derivative_vector_for_constant_nondiagonal_case(self):
-        #ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_DIAGONAL)
-        pass
+        ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
+                  init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
+        actual = ode.set_derivative_vector(variable_vector=self.INIT_CONDITION_CONSTANT_NONDIAGONAL, actual_position=0,
+                                           coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL, steps=self.STEPS)
+        self.assertEqual(actual.size, self.EXPECTED_SIZE_3)
+        npt.assert_almost_equal(actual, self.EXPECTED_DERIVATIVE_CONSTANT_NONDIAGONAL, self.DECIMALS_6)
 
     def test_calculate_numerical_solution_for_constant_nondiagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
@@ -159,7 +164,7 @@ class OdeTest(unittest.TestCase):
             self.assertIn(type(actual[-1, index]), self.ACCEPTED_TYPES)
             self.assertAlmostEqual(actual[-1, index], self.EXPECTED_RESULT_CONSTANT_NONDIAGONAL[index], self.DECIMALS_6)
 
-    def test_calculate_analytical_solution_for_constant_nondiagnoal_case(self):
+    def test_calculate_analytical_solution_for_constant_nondiagonal_case(self):
         ode = Ode(coeff_matrix=self.COEFF_MATRIX_CONSTANT_NONDIAGONAL,
                   init_condition=self.INIT_CONDITION_CONSTANT_NONDIAGONAL)
         actual = ode.calculate_analytical_solution(self.STEPS)
