@@ -8,12 +8,13 @@ from crm_solver.ode import Ode
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, data_path="beamlet/test0001.xml"):
+    def __init__(self, param=None, profiles=None, components=None, data_path="beamlet/testimp0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
         self.profiles = profiles
-        if not isinstance(self.profiles, pandas.DataFrame):
+        self.components = components
+        if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.read_beamlet_profiles()
         if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
             self.get_mass()
@@ -29,9 +30,12 @@ class Beamlet:
 
     def read_beamlet_profiles(self):
         hdf5_path = self.param.getroot().find('body').find('beamlet_source').text
+        self.components = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['components']).data
+        assert isinstance(self.components, pandas.DataFrame)
+        print('Beamlet.imp_components read from file: ' + hdf5_path)
         self.profiles = utility.getdata.GetData(data_path_name=hdf5_path, data_key=['profiles']).data
         assert isinstance(self.profiles, pandas.DataFrame)
-        print('Beamlet.profiles read from file: ' + hdf5_path)
+        print('Beamlet.imp_profiles read from file: ' + hdf5_path)
 
     def get_mass(self):
         data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
@@ -60,14 +64,16 @@ class Beamlet:
         return
 
     def initialize_ode(self):
-        self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles)
+        self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components)
         self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
 
     def solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
             self.initialize_ode()
+
         ode = Ode(coeff_matrix=self.coefficient_matrix.matrix, init_condition=self.initial_condition)
-        numerical = ode.calculate_numerical_solution(self.profiles['beamlet_grid'])
+        numerical = ode.calculate_numerical_solution(self.profiles['beamlet grid']['distance']['m'])
+
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
