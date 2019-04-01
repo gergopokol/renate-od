@@ -1,4 +1,6 @@
+### PyCharm specific ###
 .idea/
+venv/
 
 ### Linux ###
 *~
