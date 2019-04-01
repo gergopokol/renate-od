@@ -5,6 +5,3 @@ install:
   - pip install -r requirements.txt
 script:
   - python -m unittest -v crm_solver.odetest.OdeTest
-branches:
-  only:
-  - development
