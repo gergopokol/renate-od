@@ -8,7 +8,7 @@ from crm_solver.ode import Ode
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, components=None, data_path="beamlet/test0001.xml"):
+    def __init__(self, param=None, profiles=None, components=None, data_path="beamlet/testimp0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
@@ -72,7 +72,7 @@ class Beamlet:
             self.initialize_ode()
 
         ode = Ode(coeff_matrix=self.coefficient_matrix.matrix, init_condition=self.initial_condition)
-        numerical = ode.calculate_numerical_solution(self.profiles['beamlet_grid'])
+        numerical = ode.calculate_numerical_solution(self.profiles['beamlet grid']['distance']['m'])
 
         for level in range(self.coefficient_matrix.number_of_levels):
             label = 'level ' + str(level)
