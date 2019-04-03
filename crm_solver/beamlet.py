@@ -80,7 +80,12 @@ class Beamlet:
         return
 
     def calculate_emission(self, solver='numerical'):
-        # TODO: Calculate beam emission profile
-        pass
-
+        assert isinstance(solver, str)
+        if solver is 'numerical':
+            self.solve_numerically()
+        elif solver is 'analytical':
+            # TODO: Implement analytical solver
+            pass
+        else:
+            raise Exception('The numerical solver: '+ solver + ' is not supported.')
 
