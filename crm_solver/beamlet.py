@@ -97,8 +97,22 @@ class Beamlet:
             raise Exception('The numerical solver: ' + solver + ' is not supported.')
 
     def get_beamlet_emission(self):
-        # TODO: Calculate the photon emission along beamlet for specified transition
+        atom = self.param.getroot().find('body').find('beamlet_species').text
+        if self.beamevolution_perfoirmed():
+            emission = self.profiles[self.observed_level(atom)]
+
+    def beamevolution_perfoirmed(self):
+        # TODO: Check content of profiles pandas object. Return True if beamevolution was performed. False If not.
         pass
+
+    @staticmethod
+    def observed_level(atom):
+        if atom is 'H' or atom is 'D' or atom is 'T':
+            return 'level 2'
+        elif atom is 'Li' or atom is 'Na':
+            return 'level 1'
+        else:
+            raise ValueError('The atomic species: ' + ' is not supported')
 
     def get_beamlet_attenuation(self):
         # TODO: Calculate the total attenuation of the beamlet
