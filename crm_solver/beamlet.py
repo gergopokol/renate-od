@@ -96,3 +96,14 @@ class Beamlet:
         else:
             raise Exception('The numerical solver: ' + solver + ' is not supported.')
 
+    def get_beamlet_emission(self):
+        # TODO: Calculate the photon emission along beamlet for specified transition
+        pass
+
+    def get_beamlet_attenuation(self):
+        # TODO: Calculate the total attenuation of the beamlet
+        pass
+
+    def get_relative_electron_populations(self):
+        # TODO: Calculate the relative electron distribution on atomic levels
+        pass
