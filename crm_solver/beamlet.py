@@ -67,11 +67,11 @@ class Beamlet:
 
     def initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components)
-        self.initial_condition = ([1] + [0] * (self.coefficient_matrix.number_of_levels - 1)) * self.get_linear_density()
+        self.initial_condition = [self.get_linear_density()] + [0] * (self.coefficient_matrix.number_of_levels - 1)
 
     def get_linear_density(self):
-        velocity = float(self.param.getroot().find('body').find('beamlet_velocity'))
-        current = float(self.param.getroo().find('body').find('beamlet_current'))
+        current = float(self.param.getroot().find('body').find('beamlet_current').text)
+        velocity = float(self.param.getroot().find('body').find('beamlet_velocity').text)
         return current / (velocity * self.const.charge_electron)
 
     def solve_numerically(self):
