@@ -1,6 +1,7 @@
 import utility
 from utility.getdata import GetData
 from utility.convert import calculate_velocity_from_energy
+from utility.constants import Constants
 import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
@@ -20,6 +21,7 @@ class Beamlet:
             self.get_mass()
         if not isinstance(self.param.getroot().find('body').find('beamlet_velocity'), etree._Element):
             self.get_velocity()
+        self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
 
@@ -65,7 +67,12 @@ class Beamlet:
 
     def initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components)
-        self.initial_condition = [1] + [0] * (self.coefficient_matrix.number_of_levels - 1)
+        self.initial_condition = ([1] + [0] * (self.coefficient_matrix.number_of_levels - 1)) * self.get_linear_density()
+
+    def get_linear_density(self):
+        velocity = float(self.param.getroot().find('body').find('beamlet_velocity'))
+        current = float(self.param.getroo().find('body').find('beamlet_current'))
+        return current / (velocity * self.const.charge_electron)
 
     def solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
@@ -79,7 +86,7 @@ class Beamlet:
             self.profiles[label] = numerical[:, level]
         return
 
-    def calculate_emission(self, solver='numerical'):
+    def calculate_beamevolution(self, solver='numerical'):
         assert isinstance(solver, str)
         if solver is 'numerical':
             self.solve_numerically()
@@ -87,5 +94,5 @@ class Beamlet:
             # TODO: Implement analytical solver
             pass
         else:
-            raise Exception('The numerical solver: '+ solver + ' is not supported.')
+            raise Exception('The numerical solver: ' + solver + ' is not supported.')
 
