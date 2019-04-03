@@ -52,7 +52,7 @@ class Profiles:
     def get_number_of_levels(self, profiles):
         levels=profiles.filter(like='level', axis=1)
         number_of_levels = len(levels.keys())
-        if number_of_levels ==0:
+        if number_of_levels == 0:
             number_of_levels = 9
         return number_of_levels
 
@@ -81,9 +81,9 @@ class Profiles:
             label = 'level ' + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
-        axis.set_ylim([1e-5, 1])
+        axis.set_ylim([1e4, self.profiles.filter(like='level', axis=1).max().max()])
         axis.set_xlabel('Distance [m]')
-        axis.set_ylabel('Relative population [-]')
+        axis.set_ylabel('Linear density [1/m]')
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
         axis.set_title(self.title)
