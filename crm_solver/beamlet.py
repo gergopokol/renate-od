@@ -78,3 +78,9 @@ class Beamlet:
             label = 'level ' + str(level)
             self.profiles[label] = numerical[:, level]
         return
+
+    def calculate_emission(self, solver='numerical'):
+        # TODO: Calculate beam emission profile
+        pass
+
+
