@@ -9,7 +9,8 @@ from crm_solver.ode import Ode
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, components=None, data_path="beamlet/testimp0001.xml"):
+    def __init__(self, param=None, profiles=None, components=None,
+                 solver='numerical', data_path="beamlet/testimp0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
@@ -24,6 +25,7 @@ class Beamlet:
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
+        self.calculate_beamevolution(self, solver=solver)
 
     def read_beamlet_param(self, data_path):
         self.param = utility.getdata.GetData(data_path_name=data_path).data
@@ -96,9 +98,9 @@ class Beamlet:
         else:
             raise Exception('The numerical solver: ' + solver + ' is not supported.')
 
-    def get_beamlet_emission(self):
+    def get_beamlet_emission(self, store):
         atom = self.param.getroot().find('body').find('beamlet_species').text
-        if self.beamevolution_perfoirmed():
+        if self.beamevolution_performed():
             emission = self.profiles[self.observed_level(atom)]
 
     def beamevolution_perfoirmed(self):
