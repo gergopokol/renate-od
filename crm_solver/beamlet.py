@@ -130,7 +130,9 @@ class Beamlet:
 
     def compute_attenuation(self):
         if self.beamevolution_performed():
-            pass
+            self.profiles['attenuation'] = self.profiles['level 0']
+            for level in range(1, self.coefficient_matrix.number_of_levels):
+                self.profiles['attenuation'] += self.profiles['level ' + str(level)]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
