@@ -119,12 +119,12 @@ class Beamlet:
         else:
             raise ValueError('The atomic species: ' + atom + ' is not supported')
 
-    def compute_emission(self):
+    def compute_linear_emission_density(self):
         atom = self.param.getroot().find('body').find('beamlet_species').text
         if self.beamevolution_performed():
             label, to_level, from_level = self.observed_level(atom)
-            emission = self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
-            self.profiles['emission'] = emission
+            self.profiles['linear_emission_density'] = \
+                self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
