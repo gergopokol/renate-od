@@ -25,7 +25,7 @@ class Beamlet:
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
-        self.calculate_beamevolution(self, solver=solver)
+        self.calculate_beamevolution(solver)
 
     def read_beamlet_param(self, data_path):
         self.param = utility.getdata.GetData(data_path_name=data_path).data
@@ -88,15 +88,19 @@ class Beamlet:
             self.profiles[label] = numerical[:, level]
         return
 
-    def calculate_beamevolution(self, solver='numerical'):
+    def calculate_beamevolution(self, solver):
         assert isinstance(solver, str)
         if solver is 'numerical':
             self.solve_numerically()
         elif solver is 'analytical':
             # TODO: Implement analytical solver
             pass
+        elif solver is 'disregard':
+            print('Beam evolution not calculated.')
+            return
         else:
-            raise Exception('The numerical solver: ' + solver + ' is not supported.')
+            raise Exception('The numerical solver: ' + solver + ' is not supported. '
+                            'Supported solvers are: numerical, analytical, disregard.')
 
     def get_beamlet_emission(self, store):
         atom = self.param.getroot().find('body').find('beamlet_species').text
