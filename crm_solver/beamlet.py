@@ -102,11 +102,6 @@ class Beamlet:
             raise Exception('The numerical solver: ' + solver + ' is not supported. '
                             'Supported solvers are: numerical, analytical, disregard.')
 
-    def compute_beamlet_emission(self):
-        atom = self.param.getroot().find('body').find('beamlet_species').text
-        if self.beamevolution_performed():
-            emission = self.profiles[self.observed_level(atom)]
-
     def beamevolution_performed(self):
         try:
             dummy = self.profiles['level 0']
@@ -124,10 +119,15 @@ class Beamlet:
         else:
             raise ValueError('The atomic species: ' + atom + ' is not supported')
 
-    def get_beamlet_attenuation(self):
+    def compute_emission(self):
+        atom = self.param.getroot().find('body').find('beamlet_species').text
+        if self.beamevolution_performed():
+            emission = self.profiles[self.observed_level(atom)]
+
+    def compute_attenuation(self):
         # TODO: Calculate the total attenuation of the beamlet
         pass
 
-    def get_relative_electron_populations(self):
+    def compute_relative_populations(self):
         # TODO: Calculate the relative electron distribution on atomic levels
         pass
