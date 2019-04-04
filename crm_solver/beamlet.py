@@ -102,12 +102,12 @@ class Beamlet:
             raise Exception('The numerical solver: ' + solver + ' is not supported. '
                             'Supported solvers are: numerical, analytical, disregard.')
 
-    def get_beamlet_emission(self, store):
+    def get_beamlet_emission(self):
         atom = self.param.getroot().find('body').find('beamlet_species').text
         if self.beamevolution_performed():
             emission = self.profiles[self.observed_level(atom)]
 
-    def beamevolution_perfoirmed(self):
+    def beamevolution_performed(self):
         # TODO: Check content of profiles pandas object. Return True if beamevolution was performed. False If not.
         pass
 
