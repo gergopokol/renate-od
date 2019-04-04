@@ -136,8 +136,10 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
-    def compute_relative_populations(self):
+    def compute_relative_populations(self, reference_level='level 0'):
         if self.beamevolution_performed():
-            pass
+            for level in range(0, self.coefficient_matrix.number_of_levels):
+                self.profiles['rel.pop level ' + str(level)] = \
+                    self.profiles['level ' + str(level)] / self.profiles[reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
