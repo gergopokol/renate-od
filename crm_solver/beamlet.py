@@ -122,7 +122,12 @@ class Beamlet:
     def compute_emission(self):
         atom = self.param.getroot().find('body').find('beamlet_species').text
         if self.beamevolution_performed():
-            emission = self.profiles[self.observed_level(atom)]
+            label, to_level, from_level = self.observed_level(atom)
+            emission = self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
+            self.profiles['emission'] = emission
+            return emission
+        else:
+            print('Beam evolution calculations were not performed. Execute solver first.')
 
     def compute_attenuation(self):
         # TODO: Calculate the total attenuation of the beamlet
