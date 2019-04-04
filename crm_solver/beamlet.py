@@ -128,11 +128,11 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
-    def compute_attenuation(self):
+    def compute_linear_density_attenuation(self):
         if self.beamevolution_performed():
-            self.profiles['attenuation'] = self.profiles['level 0']
+            self.profiles['linear_density_attenuation'] = self.profiles['level 0']
             for level in range(1, self.coefficient_matrix.number_of_levels):
-                self.profiles['attenuation'] += self.profiles['level ' + str(level)]
+                self.profiles['linear_density_attenuation'] += self.profiles['level ' + str(level)]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
