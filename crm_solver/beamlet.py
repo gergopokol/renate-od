@@ -108,8 +108,11 @@ class Beamlet:
             emission = self.profiles[self.observed_level(atom)]
 
     def beamevolution_performed(self):
-        # TODO: Check content of profiles pandas object. Return True if beamevolution was performed. False If not.
-        pass
+        try:
+            dummy = self.profiles['level 0']
+            return True
+        except KeyError:
+            return False
 
     @staticmethod
     def observed_level(atom):
