@@ -102,7 +102,7 @@ class Beamlet:
             raise Exception('The numerical solver: ' + solver + ' is not supported. '
                             'Supported solvers are: numerical, analytical, disregard.')
 
-    def get_beamlet_emission(self):
+    def compute_beamlet_emission(self):
         atom = self.param.getroot().find('body').find('beamlet_species').text
         if self.beamevolution_performed():
             emission = self.profiles[self.observed_level(atom)]
@@ -116,12 +116,13 @@ class Beamlet:
 
     @staticmethod
     def observed_level(atom):
+        assert isinstance(atom, str)
         if atom is 'H' or atom is 'D' or atom is 'T':
             return 'level 2'
         elif atom is 'Li' or atom is 'Na':
             return 'level 1'
         else:
-            raise ValueError('The atomic species: ' + ' is not supported')
+            raise ValueError('The atomic species: ' + atom + ' is not supported')
 
     def get_beamlet_attenuation(self):
         # TODO: Calculate the total attenuation of the beamlet
