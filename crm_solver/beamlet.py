@@ -129,9 +129,13 @@ class Beamlet:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
     def compute_attenuation(self):
-        # TODO: Calculate the total attenuation of the beamlet
-        pass
+        if self.beamevolution_performed():
+            pass
+        else:
+            print('Beam evolution calculations were not performed. Execute solver first.')
 
     def compute_relative_populations(self):
-        # TODO: Calculate the relative electron distribution on atomic levels
-        pass
+        if self.beamevolution_performed():
+            pass
+        else:
+            print('Beam evolution calculations were not performed. Execute solver first.')
