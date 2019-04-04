@@ -112,10 +112,10 @@ class Beamlet:
     @staticmethod
     def observed_level(atom):
         assert isinstance(atom, str)
-        if atom is 'H' or atom is 'D' or atom is 'T':
-            return 'level 2'
-        elif atom is 'Li' or atom is 'Na':
-            return 'level 1'
+        if atom == 'H' or atom == 'D' or atom == 'T':
+            return 'level 2', 1, 2
+        elif atom == 'Li' or atom == 'Na':
+            return 'level 1', 0, 1
         else:
             raise ValueError('The atomic species: ' + atom + ' is not supported')
 
@@ -125,7 +125,6 @@ class Beamlet:
             label, to_level, from_level = self.observed_level(atom)
             emission = self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
             self.profiles['emission'] = emission
-            return emission
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
