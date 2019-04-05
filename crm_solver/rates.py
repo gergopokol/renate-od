@@ -75,26 +75,26 @@ class Rates:
                 if to_level != from_level:
                     x = self.temperature_array
                     y = electron_neutral_collisions_array[from_level, to_level, :]
-                    f = interp1d(x, y)
+                    f = interp1d(x, y, bounds_error=False, fill_value=(0, numpy.nan))
                     self.electron_neutral_collisions[from_level, to_level, :] = \
                         f(self.beamlet_profiles['electron']['temperature']['eV'][:])
                     for ion in range(self.number_of_ions):
                         x = self.atomic_mass_correction(self.plasma_components['A']['ion' + str(ion + 1)])
                         y = ion_neutral_collisions_array[ion][from_level, to_level, :]
-                        f = interp1d(x, y)
+                        f = interp1d(x, y, bounds_error=False, fill_value=(0, numpy.nan))
                         self.ion_neutral_collisions[ion][from_level, to_level, :] = \
                             f(self.beamlet_profiles['ion' + str(ion+1)]['temperature']['eV'][:])
                 else:
                     continue
             x = self.temperature_array
             y = electron_loss_collisions_array[0, from_level, :]
-            f = interp1d(x, y)
+            f = interp1d(x, y, bounds_error=False, fill_value=(0, numpy.nan))
             self.electron_loss_collisions[from_level, :] = \
                 f(self.beamlet_profiles['electron']['temperature']['eV'][:])
             for ion in range(self.number_of_ions):
                 x = self.atomic_mass_correction(int(self.plasma_components['A']['ion' + str(ion+1)]))
                 y = electron_loss_collisions_array[int(self.plasma_components['q']['ion' + str(ion+1)]), from_level, :]
-                f = interp1d(x, y)
+                f = interp1d(x, y, bounds_error=False, fill_value=(0, numpy.nan))
                 self.electron_loss_ion_collisions[ion][from_level, :] = \
                     f(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
         return
