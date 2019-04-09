@@ -6,6 +6,9 @@ from lxml import etree
 from utility import convert
 
 
+DEFAULT_SETUP = 'getdata_setup.xml'
+
+
 class GetData:
     """
     This class is to access and load data from files. It looks for data in the following order:
@@ -41,7 +44,11 @@ class GetData:
         self.data = ''
         self.read_data()
 
-    def read_setup(self, setup_path_name='utility/getdata_setup.xml'):
+    def read_setup(self, setup_path_name=None):
+
+        if not setup_path_name:
+            setup_path_name = os.path.join(os.path.split(__file__)[0], DEFAULT_SETUP)
+
         tree = etree.parse(setup_path_name)
         body = tree.getroot().find('body')
         self.dummy_directory = body.find('dummy_directory').text
