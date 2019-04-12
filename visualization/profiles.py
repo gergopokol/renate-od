@@ -15,6 +15,19 @@ class Profiles:
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
+    def plot_emission(self):
+        # TODO: Create routine that plots the emission and plasma density in function of distance along beam.
+        pass
+
+    def plot_attenuation(self):
+        # TODO: Create routine that plots the total beam attenuation and plasma density in
+        # function of distance along the beam.
+        pass
+
+    def plot_relative_populations(self):
+        # TODO: Create plotting routine for relative population output and beam density
+        pass
+
     def plot_populations(self):
         axis = matplotlib.pyplot.subplot()
         self.setup_population_axis(axis)
