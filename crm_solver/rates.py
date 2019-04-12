@@ -22,7 +22,7 @@ class Rates:
         self.number_of_steps = self.beamlet_profiles['beamlet grid'].size
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.beamlet_energy) + '_' + self.beamlet_species + '.h5'
-        self.data_path_name = getdata.locate_h5_dir(self.beamlet_species, rate_type) + self.file_name
+        self.data_path_name = getdata.locate_rates_dir(self.beamlet_species, rate_type) + self.file_name
         self.einstein_coeffs = getdata.GetData(data_path_name=self.data_path_name,
                                                data_key=['Einstein Coeffs'], data_format="array").data
         self.number_of_levels = int(self.einstein_coeffs.size ** 0.5)

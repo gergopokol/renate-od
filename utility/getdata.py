@@ -160,10 +160,10 @@ class GetData:
             return True
         else:
             print('Error: No data source available!')
-            self.contact_with_us()
+            self.contact_us()
             return False
 
-    def contact_with_us(self):
+    def contact_us(self):
         print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
 
     def check_common_local_data_path(self):
@@ -238,7 +238,7 @@ class GetData:
 def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
     file_name = 'rate_coeffs_' + str(beamlet_energy) + '_' + \
                 beamlet_species + '.h5'
-    data_path_name = locate_h5_dir(beamlet_species,rate_type) + file_name
+    data_path_name = locate_rates_dir(beamlet_species, rate_type) + file_name
     temperature_array = GetData(data_path_name=data_path_name,
                                                 data_key=['Temperature axis'],
                                                 data_format='array').data
@@ -277,5 +277,5 @@ def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
     return rate_coeff_arrays
 
 
-def locate_h5_dir(beamlet_species, rate_type):
+def locate_rates_dir(beamlet_species, rate_type):
     return 'atomic_data/' + beamlet_species + '/rates/' + rate_type + '/'
