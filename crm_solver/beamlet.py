@@ -102,7 +102,7 @@ class Beamlet:
             raise Exception('The numerical solver: ' + solver + ' is not supported. '
                             'Supported solvers are: numerical, analytical, disregard.')
 
-    def beamevolution_performed(self):
+    def was_beamevolution_performed(self):
         try:
             dummy = self.profiles['level 0']
             return True
@@ -121,7 +121,7 @@ class Beamlet:
 
     def compute_linear_emission_density(self):
         atom = self.param.getroot().find('body').find('beamlet_species').text
-        if self.beamevolution_performed():
+        if self.was_beamevolution_performed():
             label, to_level, from_level = self.observed_level(atom)
             self.profiles['linear_emission_density'] = \
                 self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
@@ -129,7 +129,7 @@ class Beamlet:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
     def compute_linear_density_attenuation(self):
-        if self.beamevolution_performed():
+        if self.was_beamevolution_performed():
             self.profiles['linear_density_attenuation'] = self.profiles['level 0']
             for level in range(1, self.coefficient_matrix.number_of_levels):
                 self.profiles['linear_density_attenuation'] += self.profiles['level ' + str(level)]
@@ -137,7 +137,7 @@ class Beamlet:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
     def compute_relative_populations(self, reference_level='level 0'):
-        if self.beamevolution_performed():
+        if self.was_beamevolution_performed():
             for level in range(0, self.coefficient_matrix.number_of_levels):
                 self.profiles['rel.pop ' + str(level)] = \
                     self.profiles['level ' + str(level)] / self.profiles[reference_level]
