@@ -47,22 +47,24 @@ class GetData:
     def read_setup(self, setup_path_name=None):
 
         if not setup_path_name:
-            setup_path_name = os.path.join(os.path.split(__file__)[0], DEFAULT_SETUP)
+            setup_path_name = os.path.join(os.path.dirname(__file__), DEFAULT_SETUP)
 
         tree = etree.parse(setup_path_name)
         body = tree.getroot().find('body')
         self.dummy_directory = body.find('dummy_directory').text
-        self.common_local_data_directory = body.find('common_local_data_directory').text
-        self.user_local_data_directory = body.find('user_local_data_directory').text
+        self.common_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
+                                                        body.find('common_local_data_directory').text)
+        self.user_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
+                                                      body.find('user_local_data_directory').text)
         self.server_private_address = body.find('server_private_address').text
         self.private_key = body.find('private_key').text
         self.server_public_address = body.find('server_public_address').text
         self.contact_address = body.find('contact_address').text
 
     def path_setup(self):
-        self.common_local_data_path = self.common_local_data_directory + '/' + self.data_path_name
-        self.user_local_data_path = self.user_local_data_directory + '/' + self.data_path_name
-        self.user_local_dummy_path = self.user_local_data_directory + '/' + self.dummy_directory + '/' + self.data_path_name
+        self.common_local_data_path = os.path.join(self.common_local_data_directory, self.data_path_name)
+        self.user_local_data_path = os.path.join(self.user_local_data_directory, self.data_path_name)
+        self.user_local_dummy_path = os.path.join(self.user_local_data_directory, self.dummy_directory, self.data_path_name)
 
     def read_data(self):
         """
@@ -71,15 +73,14 @@ class GetData:
         """
 
         if self.get_data():
-            extension = os.path.splitext(self.data_path_name)[1]
-            if extension == '.h5':
+            if '.h5' in self.data_path_name:
                 if self.data_format == "pandas":
                     self.read_h5_to_pandas()
                 else:
                     self.read_h5_to_array()
-            elif extension == '.txt':
+            elif '.txt' in self.data_path_name:
                 self.read_txt()
-            elif extension == '.xml':
+            elif '.xml' in self.data_path_name:
                 self.read_xml()
             else:
                 print('NO data read from file: ' + self.access_path)
@@ -184,7 +185,7 @@ class GetData:
             return False
 
     def get_private_data(self):
-        server_private_path = self.server_private_address + "/" + self.data_path_name
+        server_private_path = os.path.join(self.server_private_address, self.data_path_name)
         self.ensure_dir(self.user_local_data_path)
         print('Attempting to download from server: ' + server_private_path)
         try:
@@ -215,7 +216,7 @@ class GetData:
             return False
 
     def get_public_data(self):
-        server_public_path = self.server_public_address + "/" + self.data_path_name
+        server_public_path = os.path.join(self.server_public_address, self.data_path_name)
         print('Attempting to download dummy data from public server: ' + server_public_path)
         try:
             self.ensure_dir(self.user_local_dummy_path)
