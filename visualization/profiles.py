@@ -15,9 +15,21 @@ class Profiles:
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
-    def plot_emission(self):
-        # TODO: Create routine that plots the emission and plasma density in function of distance along beam.
-        pass
+    def plot_linear_emission_density(self):
+        axis_dens = matplotlib.pyplot.subplot()
+        self.setup_density_axis(axis_dens)
+        axis_dens.set_xlabel('Distance [m]')
+        axis_em = axis_dens.twinx()
+        self.setup_linear_emission_density_axis(axis_em)
+        matplotlib.pyplot.show()
+
+    def setup_linear_emission_density_axis(self, axis):
+        axis.plot(self.profiles['beamlet grid'], self.profiles['linear_emission_density'],
+                  label='Linear emission density', color='r')
+        axis.set_ylabel('Linear emission density [ph/sm]')
+        axis.yaxis.label.set_color('r')
+        axis.legend(loc='upper right')
+        return axis
 
     def plot_attenuation(self):
         # TODO: Create routine that plots the total beam attenuation and plasma density in
@@ -63,14 +75,15 @@ class Profiles:
         matplotlib.pyplot.show()
 
     def get_number_of_levels(self, profiles):
-        levels=profiles.filter(like='level', axis=1)
+        levels = profiles.filter(like='level', axis=1)
         number_of_levels = len(levels.keys())
         if number_of_levels == 0:
             number_of_levels = 9
         return number_of_levels
 
     def setup_density_axis(self, axis):
-        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['density']['m-3'], label='Density', color='b')
+        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
+                  ['density']['m-3'], label='Density', color='b')
         axis.set_ylabel('Density [1/m3]')
         axis.yaxis.label.set_color('b')
         axis.legend(loc='upper left')
