@@ -73,14 +73,14 @@ class GetData:
         """
 
         if self.get_data():
-            if '.h5' in self.data_path_name:
+            if self.data_path_name.endswith('.h5'):
                 if self.data_format == "pandas":
                     self.read_h5_to_pandas()
                 else:
                     self.read_h5_to_array()
-            elif '.txt' in self.data_path_name:
+            elif self.data_path_name.endswith('.txt'):
                 self.read_txt()
-            elif '.xml' in self.data_path_name:
+            elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
                 print('NO data read from file: ' + self.access_path)
