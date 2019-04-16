@@ -38,7 +38,6 @@ class Profiles:
         axis_em = axis_dens.twinx()
         self.setup_linear_density_attenuation_axis(axis_em)
         matplotlib.pyplot.show()
-        pass
 
     def setup_linear_density_attenuation_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['linear_density_attenuation'],
@@ -49,8 +48,9 @@ class Profiles:
         return axis
 
     def plot_relative_populations(self):
-        # TODO: Create plotting routine for relative population output and beam density
-        pass
+        axis = matplotlib.pyplot.subplot()
+        self.setup_population_axis(axis, kind='relative')
+        matplotlib.pyplot.show()
 
     def plot_populations(self):
         axis = matplotlib.pyplot.subplot()
@@ -113,15 +113,24 @@ class Profiles:
         axis.grid()
         return axis
 
-    def setup_population_axis(self, axis):
+    def setup_population_axis(self, axis, kind='absolute'):
+        if kind == 'absolute':
+            axis.set_ylabel('Linear density [1/m]')
+            key = 'level '
+        elif kind == 'relative':
+            axis.set_ylabel('Relative linear density [-]')
+            key = 'rel.pop '
+        else:
+            raise ValueError('Requested plotting format not accepted')
+
         number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
-            label = 'level ' + str(level)
+            label = key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
-        axis.set_ylim([1e4, self.profiles.filter(like='level', axis=1).max().max()])
+        axis.set_ylim([self.profiles.filter(like=key, axis=1).min().min(),
+                       self.profiles.filter(like=key, axis=1).max().max()])
         axis.set_xlabel('Distance [m]')
-        axis.set_ylabel('Linear density [1/m]')
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
         axis.set_title(self.title)
