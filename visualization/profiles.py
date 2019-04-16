@@ -32,9 +32,21 @@ class Profiles:
         return axis
 
     def plot_attenuation(self):
-        # TODO: Create routine that plots the total beam attenuation and plasma density in
-        # function of distance along the beam.
+        axis_dens = matplotlib.pyplot.subplot()
+        self.setup_density_axis(axis_dens)
+        axis_dens.set_xlabel('Distance [m]')
+        axis_em = axis_dens.twinx()
+        self.setup_linear_density_attenuation_axis(axis_em)
+        matplotlib.pyplot.show()
         pass
+
+    def setup_linear_density_attenuation_axis(self, axis):
+        axis.plot(self.profiles['beamlet grid'], self.profiles['linear_density_attenuation'],
+                  label='Linear density attenuation', color='r')
+        axis.set_ylabel('Linear density [1/m]')
+        axis.yaxis.label.set_color('r')
+        axis.legend(loc='upper right')
+        return axis
 
     def plot_relative_populations(self):
         # TODO: Create plotting routine for relative population output and beam density
