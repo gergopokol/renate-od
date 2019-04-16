@@ -128,8 +128,6 @@ class Profiles:
             label = key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
-        axis.set_ylim([self.profiles.filter(like=key, axis=1).min().min(),
-                       self.profiles.filter(like=key, axis=1).max().max()])
         axis.set_xlabel('Distance [m]')
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
