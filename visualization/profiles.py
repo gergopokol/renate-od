@@ -114,26 +114,29 @@ class Profiles:
         return axis
 
     def setup_population_axis(self, axis, kind='absolute'):
-        if kind == 'absolute':
-            axis.set_ylabel('Linear density [1/m]')
-            key = 'level '
-        elif kind == 'relative':
-            axis.set_ylabel('Relative linear density [-]')
-            key = 'rel.pop '
-        else:
-            raise ValueError('Requested plotting format not accepted')
-
+        pandas_key, axis_name = self.set_axis_parameters(kind)
         number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
-            label = key + str(level)
+            label = pandas_key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
         axis.set_xlabel('Distance [m]')
+        axis.set_ylabel(axis_name)
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
         axis.set_title(self.title)
         axis.grid()
         return axis
+
+    @staticmethod
+    def set_axis_parameters(kind):
+        assert isinstance(kind, str)
+        if kind == 'absolute':
+            return 'level ', 'Linear density [1/m]'
+        elif kind == 'relative':
+            return 'rel.pop ', 'Relative linear density [-]'
+        else:
+            raise ValueError('Requested plotting format not accepted')
 
     def setup_benchmark_axis(self, benchmark_profiles, axis):
         benchmark_profiles = benchmark_profiles
