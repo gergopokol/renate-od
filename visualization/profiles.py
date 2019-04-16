@@ -15,6 +15,43 @@ class Profiles:
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
+    def plot_linear_emission_density(self):
+        axis_dens = matplotlib.pyplot.subplot()
+        self.setup_density_axis(axis_dens)
+        axis_dens.set_xlabel('Distance [m]')
+        axis_em = axis_dens.twinx()
+        self.setup_linear_emission_density_axis(axis_em)
+        matplotlib.pyplot.show()
+
+    def setup_linear_emission_density_axis(self, axis):
+        axis.plot(self.profiles['beamlet grid'], self.profiles['linear_emission_density'],
+                  label='Linear emission density', color='r')
+        axis.set_ylabel('Linear emission density [ph/sm]')
+        axis.yaxis.label.set_color('r')
+        axis.legend(loc='upper right')
+        return axis
+
+    def plot_attenuation(self):
+        axis_dens = matplotlib.pyplot.subplot()
+        self.setup_density_axis(axis_dens)
+        axis_dens.set_xlabel('Distance [m]')
+        axis_em = axis_dens.twinx()
+        self.setup_linear_density_attenuation_axis(axis_em)
+        matplotlib.pyplot.show()
+
+    def setup_linear_density_attenuation_axis(self, axis):
+        axis.plot(self.profiles['beamlet grid'], self.profiles['linear_density_attenuation'],
+                  label='Linear density attenuation', color='r')
+        axis.set_ylabel('Linear density [1/m]')
+        axis.yaxis.label.set_color('r')
+        axis.legend(loc='upper right')
+        return axis
+
+    def plot_relative_populations(self):
+        axis = matplotlib.pyplot.subplot()
+        self.setup_population_axis(axis, kind='relative')
+        matplotlib.pyplot.show()
+
     def plot_populations(self):
         axis = matplotlib.pyplot.subplot()
         self.setup_population_axis(axis)
@@ -50,14 +87,15 @@ class Profiles:
         matplotlib.pyplot.show()
 
     def get_number_of_levels(self, profiles):
-        levels=profiles.filter(like='level', axis=1)
+        levels = profiles.filter(like='level', axis=1)
         number_of_levels = len(levels.keys())
-        if number_of_levels ==0:
+        if number_of_levels == 0:
             number_of_levels = 9
         return number_of_levels
 
     def setup_density_axis(self, axis):
-        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['density']['m-3'], label='Density', color='b')
+        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
+                  ['density']['m-3'], label='Density', color='b')
         axis.set_ylabel('Density [1/m3]')
         axis.yaxis.label.set_color('b')
         axis.legend(loc='upper left')
@@ -75,20 +113,30 @@ class Profiles:
         axis.grid()
         return axis
 
-    def setup_population_axis(self, axis):
+    def setup_population_axis(self, axis, kind='absolute'):
+        pandas_key, axis_name = self.set_axis_parameters(kind)
         number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
-            label = 'level ' + str(level)
+            label = pandas_key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
-        axis.set_ylim([1e-5, 1])
         axis.set_xlabel('Distance [m]')
-        axis.set_ylabel('Relative population [-]')
+        axis.set_ylabel(axis_name)
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
         axis.set_title(self.title)
         axis.grid()
         return axis
+
+    @staticmethod
+    def set_axis_parameters(kind):
+        assert isinstance(kind, str)
+        if kind == 'absolute':
+            return 'level ', 'Linear density [1/m]'
+        elif kind == 'relative':
+            return 'rel.pop ', 'Relative linear density [-]'
+        else:
+            raise ValueError('Requested plotting format not accepted')
 
     def setup_benchmark_axis(self, benchmark_profiles, axis):
         benchmark_profiles = benchmark_profiles
