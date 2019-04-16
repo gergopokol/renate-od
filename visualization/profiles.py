@@ -15,6 +15,30 @@ class Profiles:
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
+    def plot_benchmark_populations(self):
+        axis = matplotlib.pyplot.subplot()
+        self.setup_RENATE_benchmark(axis)
+        matplotlib.pyplot.show()
+
+    def setup_RENATE_benchmark(self, axis):
+        number_of_levels = self.get_number_of_levels(self.profiles)
+        keys=self.profiles.keys()
+        level_keys=[]
+        for i in range(len(keys)):
+            if 'level' in keys[i]:
+                level_keys.append(keys[i])
+        for level in range(number_of_levels):
+            label = level_keys[level]
+            axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
+        axis.set_yscale('log', nonposy='clip')
+        axis.set_xlabel('Distance [m]')
+        axis.set_ylabel(axis_name)
+        axis.legend(loc='best', ncol=1)
+        self.title = 'Beamlet profiles'
+        axis.set_title(self.title)
+        axis.grid()
+        return axis
+
     def plot_linear_emission_density(self):
         axis_dens = matplotlib.pyplot.subplot()
         self.setup_density_axis(axis_dens)
