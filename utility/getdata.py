@@ -185,7 +185,7 @@ class GetData:
             return False
 
     def get_private_data(self):
-        server_private_path = os.path.join(self.server_private_address, self.data_path_name)
+        server_private_path = self.server_private_address + '/' + self.data_path_name
         self.ensure_dir(self.user_local_data_path)
         print('Attempting to download from server: ' + server_private_path)
         try:
