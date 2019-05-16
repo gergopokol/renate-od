@@ -22,8 +22,8 @@ class Profiles:
 
     def setup_RENATE_benchmark(self, axis):
         number_of_levels = self.get_number_of_levels(self.profiles)
-        keys=self.profiles.keys()
-        level_keys=[]
+        keys = self.profiles.keys()
+        level_keys = []
         for i in range(len(keys)):
             if 'level' in keys[i]:
                 level_keys.append(keys[i])
@@ -32,7 +32,7 @@ class Profiles:
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         axis.set_yscale('log', nonposy='clip')
         axis.set_xlabel('Distance [m]')
-        axis.set_ylabel(axis_name)
+        axis.set_ylabel('Relative electron population [-]')
         axis.legend(loc='best', ncol=1)
         self.title = 'Beamlet profiles'
         axis.set_title(self.title)
