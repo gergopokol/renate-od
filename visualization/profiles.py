@@ -110,13 +110,6 @@ class Profiles:
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def get_number_of_levels(self, profiles):
-        levels = profiles.filter(like='level', axis=1)
-        number_of_levels = len(levels.keys())
-        if number_of_levels == 0:
-            number_of_levels = 9
-        return number_of_levels
-
     def setup_density_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
                   ['density']['m-3'], label='Density', color='b')
@@ -178,7 +171,6 @@ class Profiles:
             return len(profiles.filter(like='RENATE', axis=1).keys())
 
     def save_figure(self, file_path='data/output/beamlet/test_plot.pdf'):
-        #matplotlib.pyplot.savefig(filename=file_path, metadata={'Metadata': 'My metadata'})
         with PdfPages(file_path) as pdf:
             pdf.savefig()
             d = pdf.infodict()
