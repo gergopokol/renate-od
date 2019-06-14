@@ -172,11 +172,10 @@ class Profiles:
 
     @staticmethod
     def get_number_of_levels(profiles):
-        levels = profiles.filter(like='level', axis=1)
-        number_of_levels = len(levels.keys())
-        if number_of_levels == 0: #Obsolete file structure handling - to be removed later
-            number_of_levels = 9
-        return number_of_levels
+        if len(profiles.filter(like='RENATE', axis=1).keys()) == 0:
+            return len(profiles.filter(like='level', axis=1).keys())
+        else:
+            return len(profiles.filter(like='RENATE', axis=1).keys())
 
     def save_figure(self, file_path='data/output/beamlet/test_plot.pdf'):
         #matplotlib.pyplot.savefig(filename=file_path, metadata={'Metadata': 'My metadata'})
