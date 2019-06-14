@@ -6,7 +6,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 
 
-class Profiles:
+class BeamletProfiles:
     def __init__(self, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
         self.param_path = param_path
         self.param = utility.getdata.GetData(data_path_name=self.param_path).data
