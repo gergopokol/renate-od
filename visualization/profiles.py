@@ -4,6 +4,7 @@ from lxml import etree
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
+from matplotlib.colors import Colormap
 
 
 class BeamletProfiles:
@@ -18,26 +19,31 @@ class BeamletProfiles:
     def set_x_range(self, x_min=None, x_max=None):
         self.x_limits = [x_min, x_max]
 
-    def plot_benchmark_populations(self):
-        axis = matplotlib.pyplot.subplot()
-        self.setup_RENATE_benchmark(axis)
+    def plot_RENATE_bechmark(self):
+        fig1 = matplotlib.pyplot.figure()
+        grid = matplotlib.pyplot.GridSpec(3, 1)
+        ax1 = matplotlib.pyplot.subplot(grid[0, 0])
+        ax1 = self.setup_density_axis(ax1)
+        ax2 = ax1.twinx()
+        self.setup_temperature_axis(ax2)
+        self.title = 'Plasma profiles'
+        ax1.set_title(self.title)
+        self.setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
         matplotlib.pyplot.show()
 
-    def setup_RENATE_benchmark(self, axis):
+    def setup_RENATE_benchmark_axis(self, axis):
         number_of_levels = self.get_number_of_levels(self.profiles)
-        keys = self.profiles.keys()
-        level_keys = []
-        for i in range(len(keys)):
-            if 'level' in keys[i]:
-                level_keys.append(keys[i])
         for level in range(number_of_levels):
-            label = level_keys[level]
-            axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
+            axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level '+str(level)],
+                      '-', label='RENATE '+str(level))
+            axis.plot(self.profiles['beamlet grid'], self.profiles['level '+str(level)]/self.profiles['level 0'][0],
+                      '--', label='ROD '+str(level))
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
         axis.set_yscale('log', nonposy='clip')
-        axis.set_xlabel('Distance [m]')
         axis.set_ylabel('Relative electron population [-]')
         axis.legend(loc='best', ncol=1)
-        self.title = 'Beamlet profiles'
+        self.title = 'Benchmark: RENATE - ROD'
         axis.set_title(self.title)
         axis.grid()
         return axis
