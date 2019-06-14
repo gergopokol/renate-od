@@ -15,6 +15,9 @@ class Profiles:
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
+    def set_x_range(self, x_min=None, x_max=None):
+        self.x_limits = [x_min, x_max]
+
     def plot_benchmark_populations(self):
         axis = matplotlib.pyplot.subplot()
         self.setup_RENATE_benchmark(axis)
