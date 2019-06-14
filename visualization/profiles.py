@@ -116,6 +116,8 @@ class BeamletProfiles:
     def setup_density_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
                   ['density']['m-3'], label='Density', color='b')
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
         axis.set_ylabel('Density [1/m3]')
         axis.yaxis.label.set_color('b')
         axis.legend(loc='upper left')
@@ -139,6 +141,8 @@ class BeamletProfiles:
         for level in range(number_of_levels):
             label = pandas_key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
         axis.set_yscale('log', nonposy='clip')
         axis.set_xlabel('Distance [m]')
         axis.set_ylabel(axis_name)
