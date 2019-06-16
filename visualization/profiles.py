@@ -4,9 +4,10 @@ from lxml import etree
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
+from matplotlib.colors import Colormap
 
 
-class Profiles:
+class BeamletProfiles:
     def __init__(self, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
         self.param_path = param_path
         self.param = utility.getdata.GetData(data_path_name=self.param_path).data
@@ -14,6 +15,38 @@ class Profiles:
         self.key = key
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
+
+    def set_x_range(self, x_min=None, x_max=None):
+        self.x_limits = [x_min, x_max]
+
+    def plot_RENATE_bechmark(self):
+        fig1 = matplotlib.pyplot.figure()
+        grid = matplotlib.pyplot.GridSpec(3, 1)
+        ax1 = matplotlib.pyplot.subplot(grid[0, 0])
+        ax1 = self.setup_density_axis(ax1)
+        ax2 = ax1.twinx()
+        self.setup_temperature_axis(ax2)
+        self.title = 'Plasma profiles'
+        ax1.set_title(self.title)
+        self.setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
+        matplotlib.pyplot.show()
+
+    def setup_RENATE_benchmark_axis(self, axis):
+        number_of_levels = self.get_number_of_levels(self.profiles)
+        for level in range(number_of_levels):
+            axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level '+str(level)],
+                      '-', label='RENATE '+str(level))
+            axis.plot(self.profiles['beamlet grid'], self.profiles['level '+str(level)]/self.profiles['level 0'][0],
+                      '--', label='ROD '+str(level))
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
+        axis.set_yscale('log', nonposy='clip')
+        axis.set_ylabel('Relative electron population [-]')
+        axis.legend(loc='best', ncol=1)
+        self.title = 'Benchmark: RENATE - ROD'
+        axis.set_title(self.title)
+        axis.grid()
+        return axis
 
     def plot_linear_emission_density(self):
         axis_dens = matplotlib.pyplot.subplot()
@@ -86,16 +119,11 @@ class Profiles:
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def get_number_of_levels(self, profiles):
-        levels = profiles.filter(like='level', axis=1)
-        number_of_levels = len(levels.keys())
-        if number_of_levels == 0:
-            number_of_levels = 9
-        return number_of_levels
-
     def setup_density_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
                   ['density']['m-3'], label='Density', color='b')
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
         axis.set_ylabel('Density [1/m3]')
         axis.yaxis.label.set_color('b')
         axis.legend(loc='upper left')
@@ -119,6 +147,8 @@ class Profiles:
         for level in range(number_of_levels):
             label = pandas_key + str(level)
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
+        if hasattr(self, 'x_limits'):
+            axis.set_xlim(self.x_limits)
         axis.set_yscale('log', nonposy='clip')
         axis.set_xlabel('Distance [m]')
         axis.set_ylabel(axis_name)
@@ -148,14 +178,12 @@ class Profiles:
 
     @staticmethod
     def get_number_of_levels(profiles):
-        levels = profiles.filter(like='level', axis=1)
-        number_of_levels = len(levels.keys())
-        if number_of_levels == 0: #Obsolete file structure handling - to be removed later
-            number_of_levels = 9
-        return number_of_levels
+        if len(profiles.filter(like='RENATE', axis=1).keys()) == 0:
+            return len(profiles.filter(like='level', axis=1).keys())
+        else:
+            return len(profiles.filter(like='RENATE', axis=1).keys())
 
     def save_figure(self, file_path='data/output/beamlet/test_plot.pdf'):
-        #matplotlib.pyplot.savefig(filename=file_path, metadata={'Metadata': 'My metadata'})
         with PdfPages(file_path) as pdf:
             pdf.savefig()
             d = pdf.infodict()
