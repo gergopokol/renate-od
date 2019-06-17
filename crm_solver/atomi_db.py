@@ -18,6 +18,11 @@ class AtomicDB:
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
 
+    def __set_einstein_coefficient_db(self):
+        raw_einstein_coefficient = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        if self.atomic_levels != int(raw_einstein_coefficient.size ** 0.5):
+            raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
+
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
         if self.species not in ['H', 'D', 'T', 'Li', 'Na']:
