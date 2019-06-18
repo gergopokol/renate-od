@@ -151,9 +151,8 @@ class BeamletProfiles:
 
     def __setup_population_axis(self, axis, kind='absolute'):
         pandas_key, axis_name = self.set_axis_parameters(kind)
-        number_of_levels = self.get_number_of_levels(self.profiles)
-        for level in range(number_of_levels):
-            label = pandas_key + str(level)
+        for level in range(self.atomic_db.atomic_levels):
+            label = pandas_key + self.atomic_db.inv_atomic_dict[level]
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
@@ -178,18 +177,10 @@ class BeamletProfiles:
 
     def setup_benchmark_axis(self, benchmark_profiles, axis):
         benchmark_profiles = benchmark_profiles
-        number_of_levels = self.get_number_of_levels(benchmark_profiles)
-        for level in range(number_of_levels):
+        for level in range(self.atomic_db.atomic_levels):
             label = 'level ' + str(level)
             axis.plot(benchmark_profiles['beamlet grid'], benchmark_profiles[label], '--', label=label+' ref.')
         return axis
-
-    @staticmethod
-    def get_number_of_levels(profiles):
-        if len(profiles.filter(like='RENATE', axis=1).keys()) == 0:
-            return len(profiles.filter(like='level', axis=1).keys())
-        else:
-            return len(profiles.filter(like='RENATE', axis=1).keys())
 
     def save_figure(self, file_path='data/output/beamlet/test_plot.pdf'):
         with PdfPages(file_path) as pdf:
