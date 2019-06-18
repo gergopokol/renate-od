@@ -1,58 +1,128 @@
 import numpy
-from crm_solver.rates import Rates
+from lxml import etree
+import pandas
+from utility import convert
+#from scipy.interpolate import interp1d
 
 
 class CoefficientMatrix:
-    def __init__(self, beamlet_param, beamlet_profiles, plasma_components):
+    def __init__(self, beamlet_param, beamlet_profiles, plasma_components, atomic_db):
+        assert isinstance(beamlet_param, etree._ElementTree)
+        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
+        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
+        assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
-        self.rates = Rates(beamlet_param, beamlet_profiles, plasma_components)
-        self.number_of_steps = self.rates.number_of_steps
-        self.number_of_levels = self.rates.number_of_levels
-        # Initialize matrices
+        # Initialize interpolation matrices
+        self.electron_neutral_collisions = numpy.zeros((atomic_db.atomic_levels, atomic_db.atomic_levels,
+                                                        self.beamlet_profiles['beamlet_grid'].size))
+        self.electron_loss_collisions = numpy.zeros((atomic_db.atomic_levels,
+                                                     self.beamlet_profiles['beamlet_grid'].size))
+        self.ion_neutral_collisions = numpy.concatenate([[self.electron_neutral_collisions] *
+                                                         int(plasma_components['Z'], [plasma_components['Z'] > 0].count())])
+        self.electron_loss_ion_collisions = numpy.concatenate([[self.electron_loss_collisions] *
+                                                               int(plasma_components['Z'], [plasma_components['Z'] > 0].count())])
+        self.einstein_coeffs = atomic_db.spontaneous_trans
+        # Initialize assembly matrices
         self.matrix = numpy.zeros(
-            (self.number_of_levels, self.number_of_levels, self.number_of_steps))
+            (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet_grid'].size))
         self.electron_terms = numpy.zeros(
-            (self.number_of_levels, self.number_of_levels, self.number_of_steps))
+            (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet_grid'].size))
         ion_terms = numpy.zeros(
-            (self.number_of_levels, self.number_of_levels, self.number_of_steps))
-        self.ion_terms = numpy.concatenate([[ion_terms] * self.rates.number_of_ions])
+            (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet_grid'].size))
+        self.ion_terms = numpy.concatenate([[ion_terms] * int(plasma_components['Z'],
+                                                              [plasma_components['Z'] > 0].count())])
         self.photon_terms = numpy.zeros(
-            (self.number_of_levels, self.number_of_levels, self.number_of_steps))
-        # Fill matrices
-        self.assemble_terms()
-        self.apply_density()
+            (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet_grid'].size))
+        self.assemble_matrix(atomic_db, plasma_components)
 
-    def assemble_terms(self):
-        for from_level in range(self.number_of_levels):
-            for to_level in range(self.number_of_levels):
-                for step in range(self.number_of_steps):
+    def assemble_matrix(self, atomic_db, plasma_components):
+        for from_level in range(atomic_db.atomic_levels):
+            self.interpolate_electron_impact_loss(from_level, atomic_db)
+            for to_level in range(atomic_db.atomic_levels):
+                if to_level == from_level:
+                    self.assemble_electron_impact_population_loss_terms(from_level, to_level, atomic_db)
+                else:
+                    self.interpolate_electron_impact_trans(from_level, to_level, atomic_db)
+                    self.assemble_electron_impact_population_gain_terms(from_level, to_level)
+                for step in range(self.beamlet_profiles['beamlet_grid'].size):
+                    self.apply_electron_density(step)
+        for ion in range(int(plasma_components['Z'], [plasma_components['Z'] > 0].count())):
+            for from_level in range(atomic_db.atomic_levels):
+                self.interpolate_ion_impact_loss(ion, from_level, atomic_db)
+                for to_level in range(atomic_db.atomic_levels):
                     if to_level == from_level:
-                        self.electron_terms[from_level, to_level, step] = \
-                            - sum(self.rates.electron_neutral_collisions[from_level, :to_level, step]) \
-                            - sum(self.rates.electron_neutral_collisions[from_level, (to_level+1):self.number_of_levels,
-                                  step]) \
-                            - self.rates.electron_loss_collisions[from_level, step]
-                        for ion in range(self.rates.number_of_ions):
-                            self.ion_terms[ion][from_level, to_level, step] = \
-                                - sum(self.rates.ion_neutral_collisions[ion][from_level, :to_level, step]) \
-                                - sum(self.rates.ion_neutral_collisions[ion][from_level,
-                                      (to_level+1):self.number_of_levels, step]) \
-                                - self.rates.electron_loss_ion_collisions[ion][from_level, step]
-                        self.photon_terms[from_level, to_level, step] = \
-                            - sum(self.rates.einstein_coeffs[:, from_level]) / self.rates.velocity
+                        self.assemble_ion_impact_population_loss_terms(ion, from_level, to_level, atomic_db)
                     else:
-                        self.electron_terms[from_level, to_level, step] = \
-                            self.rates.electron_neutral_collisions[from_level, to_level, step]
-                        for ion in range(self.rates.number_of_ions):
-                            self.ion_terms[ion][from_level, to_level, step] =\
-                                self.rates.ion_neutral_collisions[ion][from_level, to_level, step]
-                        self.photon_terms[from_level, to_level, step] = \
-                            self.rates.einstein_coeffs[to_level, from_level] / self.rates.velocity
+                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db)
+                        self.assemble_ion_impact_population_gain_terms(ion, from_level, to_level)
+                    for step in range(self.beamlet_profiles['beamlet_grid'].size):
+                        self.apply_ion_density(ion, step)
+        for from_level in range(atomic_db.atomic_levels):
+            for to_level in range(atomic_db.atomic_levels):
+                if to_level == from_level:
+                    self.assemble_spontaneous_population_loss_terms(from_level, to_level)
+                else:
+                    self.assemble_spontaneous_population_gain_terms(from_level, to_level)
+                for step in range(self.beamlet_profiles['beamlet_grid'].size):
+                    self.apply_photons(step)        
 
-    def apply_density(self):
-        for step in range(self.number_of_steps):
-            self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] * self.electron_terms[:, :, step]
-            for ion in range(self.rates.number_of_ions):
-                self.matrix[:, :, step] = self.matrix[:, :, step] + self.beamlet_profiles['ion' + str(ion+1)]['density']['m-3'][step] \
-                                                                    * self.ion_terms[ion][:, :, step]
-            self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
+    def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
+        self.electron_neutral_collisions[from_level, to_level, :] \
+            = atomic_db.electron_impact_trans(self.beamlet_profiles['electron']['temperature']['eV'][:])
+        self.electron_neutral_collisions = convert.convert_from_cm2_to_m2(self.electron_neutral_collisions)
+
+    def interpolate_ion_impact_trans(self, ion, from_level, to_level, atomic_db):
+        self.ion_neutral_collisions[ion][from_level, to_level, :] = \
+            atomic_db.ion_impact_trans(self.beamlet_profiles[ion]['temperature']['eV'][:])
+        self.ion_neutral_collisions = convert.convert_from_cm2_to_m2(self.ion_neutral_collisions)
+
+    def interpolate_electron_impact_loss(self, from_level, atomic_db):
+        self.electron_loss_collisions[from_level, :] = \
+            atomic_db.electron_impact_loss(self.beamlet_profiles['electron']['temperature']['eV'][:])
+        self.electron_loss_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_collisions)
+
+    def interpolate_ion_impact_loss(self, ion, from_level, atomic_db):
+        self.electron_loss_ion_collisions[ion][from_level, :] = \
+            atomic_db.ion_impact_loss(self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
+        self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
+
+    def assemble_electron_impact_population_loss_terms(self, from_level, to_level, atomic_db):
+        self.electron_terms[from_level, to_level, :] = \
+            - sum(self.electron_neutral_collisions[from_level, :to_level, :]) \
+            - sum(self.electron_neutral_collisions[from_level, (to_level + 1):atomic_db.atomic_levels, :]) \
+            - self.electron_loss_collisions[from_level, :]
+
+    def assemble_ion_impact_population_loss_terms(self, ion, from_level, to_level, atomic_db):
+        self.ion_terms[ion][from_level, to_level, :] = \
+            - sum(self.ion_neutral_collisions[ion][from_level, :to_level, :]) \
+            - sum(self.ion_neutral_collisions[ion][from_level,
+                  (to_level + 1):atomic_db.atomic_levels, :]) \
+            - self.electron_loss_ion_collisions[ion][from_level, :]
+
+    def assemble_electron_impact_population_gain_terms(self, from_level, to_level):
+        self.electron_terms[from_level, to_level, :] = \
+            self.electron_neutral_collisions[from_level, to_level, :]
+
+    def assemble_ion_impact_population_gain_terms(self, ion, from_level, to_level):
+        self.ion_terms[ion][from_level, to_level, :] = \
+            self.ion_neutral_collisions[ion][from_level, to_level, :]
+
+    def assemble_spontaneous_population_loss_terms(self, from_level, to_level):
+        self.photon_terms[from_level, to_level, :] = \
+            - sum(self.einstein_coeffs[:, from_level]) / self.velocity
+        
+    def assemble_spontaneous_population_gain_terms(self, from_level, to_level):
+        self.photon_terms[from_level, to_level, :] = \
+            self.einstein_coeffs[to_level, from_level] / self.velocity
+        
+    def apply_electron_density(self, step):
+        self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
+                                  * self.electron_terms[:, :, step]
+        
+    def apply_ion_density(self, ion, step):
+        self.matrix[:, :, step] = self.matrix[:, :, step] + \
+                                  self.beamlet_profiles['ion' + str(ion + 1)]['density']['m-3'][step] \
+                                  * self.ion_terms[ion][:, :, step]
+        
+    def apply_photons(self, step):
+        self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
