@@ -108,24 +108,14 @@ class Beamlet:
 
     def was_beamevolution_performed(self):
         try:
-            dummy = self.profiles['level ' + self.set_default_observed_level()[2]]
+            dummy = self.profiles['level ' + self.atomic_db.set_default_atomic_levels()[2]]
             return True
         except KeyError:
             return False
 
-    def set_default_observed_level(self):
-        if self.atomic_db.species in ['H', 'D', 'T']:
-            return '3n-2n', '2n', '3n'
-        elif self.atomic_db.species == 'Li':
-            return '2p-2s', '2s', '2p'
-        elif self.atomic_db.species == 'Na':
-            return '3p-3s', '3s', '3p'
-        else:
-            raise ValueError('The atomic species: ' + self.atomic_db.species + ' is not supported')
-
     def compute_linear_emission_density(self, to_level=None, from_level=None):
         if to_level is None or from_level is None:
-            transition_label, to_level, from_level = self.set_default_observed_level()
+            from_level, to_level, ground_level, transition_label = self.atomic_db.set_default_atomic_levels()
         if isinstance(to_level, str) and isinstance(from_level, str):
             if self.atomic_db.inv_atomic_dict[to_level] >= self.atomic_db.inv_atomic_dict[from_level]:
                 raise Exception('Dude! Please stop screwing around. '
@@ -154,7 +144,7 @@ class Beamlet:
     def compute_relative_populations(self, reference_level=None):
         if self.was_beamevolution_performed():
             if reference_level is None:
-                reference_level = self.atomic_db.atomic_dict[0]
+                reference_level = self.atomic_db.set_default_atomic_levels()[2]
             assert isinstance(reference_level, str)
             for level in range(0, self.atomic_db.atomic_levels):
                 self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]] = \
