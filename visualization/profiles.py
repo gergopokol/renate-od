@@ -29,16 +29,15 @@ class BeamletProfiles:
         self.setup_temperature_axis(ax2)
         self.title = 'Plasma profiles'
         ax1.set_title(self.title)
-        self.setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
+        self.__setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
         matplotlib.pyplot.show()
 
-    def setup_RENATE_benchmark_axis(self, axis):
-        number_of_levels = self.get_number_of_levels(self.profiles)
-        for level in range(number_of_levels):
-            axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level '+str(level)],
-                      '-', label='RENATE '+str(level))
-            axis.plot(self.profiles['beamlet grid'], self.profiles['level '+str(level)]/self.profiles['level 0'][0],
-                      '--', label='ROD '+str(level))
+    def __setup_RENATE_benchmark_axis(self, axis):
+        for level in self.atomic_db.atomic_dict.keys():
+            axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level ' +
+                      self.atomic_db.inv_atomic_dict[level]], '-', label='RENATE '+level)
+            axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/self.profiles['level ' +
+                      self.atomic_db.inv_atomic_dict[0]][0], '--', label='ROD '+level)
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
         axis.set_yscale('log', nonposy='clip')
