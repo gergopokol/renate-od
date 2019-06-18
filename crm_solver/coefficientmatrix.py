@@ -32,27 +32,37 @@ class CoefficientMatrix:
         self.ion_terms = numpy.concatenate([[ion_terms] * len([comp for comp in plasma_components['Z'] if comp > 0])])
         self.photon_terms = numpy.zeros(
             (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet grid'].size))
+        self.interpolate_rates(atomic_db, plasma_components)
         self.assemble_matrix(atomic_db, plasma_components)
+
+    def interpolate_rates(self, atomic_db, plasma_components):
+        for from_level in range(atomic_db.atomic_levels):
+            self.interpolate_electron_impact_loss(from_level, atomic_db)
+            for to_level in range(atomic_db.atomic_levels):
+                if to_level != from_level:
+                    self.interpolate_electron_impact_trans(from_level, to_level, atomic_db)
+        for ion in range(len([comp for comp in plasma_components['Z'] if comp > 0])):
+            for from_level in range(atomic_db.atomic_levels):
+                self.interpolate_ion_impact_loss(ion, from_level, atomic_db, plasma_components)
+                for to_level in range(atomic_db.atomic_levels):
+                    if to_level != from_level:
+                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db, plasma_components)
 
     def assemble_matrix(self, atomic_db, plasma_components):
         for from_level in range(atomic_db.atomic_levels):
-            self.interpolate_electron_impact_loss(from_level, atomic_db)
             for to_level in range(atomic_db.atomic_levels):
                 if to_level == from_level:
                     self.assemble_electron_impact_population_loss_terms(from_level, to_level, atomic_db)
                 else:
-                    self.interpolate_electron_impact_trans(from_level, to_level, atomic_db)
                     self.assemble_electron_impact_population_gain_terms(from_level, to_level)
                 for step in range(self.beamlet_profiles['beamlet grid'].size):
                     self.apply_electron_density(step)
         for ion in range(len([comp for comp in plasma_components['Z'] if comp > 0])):
             for from_level in range(atomic_db.atomic_levels):
-                self.interpolate_ion_impact_loss(ion, from_level, atomic_db, plasma_components)
                 for to_level in range(atomic_db.atomic_levels):
                     if to_level == from_level:
                         self.assemble_ion_impact_population_loss_terms(ion, from_level, to_level, atomic_db)
                     else:
-                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db, plasma_components)
                         self.assemble_ion_impact_population_gain_terms(ion, from_level, to_level)
                     for step in range(self.beamlet_profiles['beamlet grid'].size):
                         self.apply_ion_density(ion, step)
@@ -63,7 +73,7 @@ class CoefficientMatrix:
                 else:
                     self.assemble_spontaneous_population_gain_terms(from_level, to_level, atomic_db)
                 for step in range(self.beamlet_profiles['beamlet grid'].size):
-                    self.apply_photons(step)        
+                    self.apply_photons(step)
 
     def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
         self.electron_neutral_collisions[from_level, to_level, :] \
