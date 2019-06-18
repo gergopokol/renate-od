@@ -87,8 +87,8 @@ class Beamlet:
         ode = Ode(coeff_matrix=self.coefficient_matrix.matrix, init_condition=self.initial_condition)
         numerical = ode.calculate_numerical_solution(self.profiles['beamlet grid']['distance']['m'])
 
-        for level in range(self.coefficient_matrix.number_of_levels):
-            label = 'level ' + str(level)
+        for level in range(self.atomic_db.atomic_levels):
+            label = 'level ' + self.atomic_db.inv_atomic_dict[level]
             self.profiles[label] = numerical[:, level]
         return
 
