@@ -28,11 +28,11 @@ class AtomicDB:
         raw_impact_loss_terms = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Electron Loss Collisions')
         self.__set_charge_state_lib(raw_impact_loss_terms.shape[0]-1)
-        self.electron_impact_loss = pandas.DataFrame(index=self.atomic_dict.keys())
+        self.electron_impact_loss = {}
         self.ion_impact_loss = pandas.DataFrame(index=self.charged_states, columns=self.atomic_dict.keys())
         for from_level in range(self.atomic_levels):
-            self.electron_impact_loss[self.inv_atomic_dict[from_level]] = \
-                interp1d(self.temperature_axis, raw_impact_loss_terms[0, from_level, :])
+            self.electron_impact_loss.update({self.inv_atomic_dict[from_level]:
+                                             interp1d(self.temperature_axis, raw_impact_loss_terms[0, from_level, :])})
             for charged_state in range(raw_impact_loss_terms.shape[0]-1):
                 self.ion_impact_loss[self.inv_atomic_dict[from_level]][self.charged_states[charged_state]] = \
                     interp1d(self.temperature_axis, raw_impact_loss_terms[charged_state+1, from_level, :])
@@ -47,10 +47,11 @@ class AtomicDB:
                     interp1d(self.temperature_axis, raw_electron_transition[from_level, to_level, :])
 
     def __set_ion_impact_transition_functions(self):
-        self.raw_proton_transition = self.load_rate_data(self.rates_path,
+        raw_proton_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Proton Neutral Collisions')
-        self.raw_impurity_transition = self.load_rate_data(self.rates_path,
+        raw_impurity_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Impurity Neutral Collisions')
+        self.ion_impact_trans = pandas.Panel()
 
     def __set_einstein_coefficient_db(self):
         raw_einstein_coefficient = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
