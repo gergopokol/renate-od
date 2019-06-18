@@ -69,25 +69,21 @@ class CoefficientMatrix:
         self.electron_neutral_collisions[from_level, to_level, :] \
             = atomic_db.electron_impact_trans[atomic_db.inv_atomic_dict[from_level]][atomic_db.inv_atomic_dict[to_level]](
             self.beamlet_profiles['electron']['temperature']['eV'][:])
-        self.electron_neutral_collisions = convert.convert_from_cm2_to_m2(self.electron_neutral_collisions)
 
     def interpolate_ion_impact_trans(self, ion, from_level, to_level, atomic_db, plasma_components):
         self.ion_neutral_collisions[ion][from_level, to_level, :] = \
             atomic_db.ion_impact_trans[atomic_db.inv_atomic_dict[from_level]][atomic_db.inv_atomic_dict[to_level]][
                 atomic_db.charged_states[plasma_components['q']['ion'+str(ion+1)]-1]](
                 self.beamlet_profiles['ion'+str(ion+1)]['temperature']['eV'][:])
-        self.ion_neutral_collisions = convert.convert_from_cm2_to_m2(self.ion_neutral_collisions)
 
     def interpolate_electron_impact_loss(self, from_level, atomic_db):
         self.electron_loss_collisions[from_level, :] = \
             atomic_db.electron_impact_loss[atomic_db.inv_atomic_dict[from_level]]['electron'](self.beamlet_profiles['electron']['temperature']['eV'][:])
-        self.electron_loss_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_collisions)
 
     def interpolate_ion_impact_loss(self, ion, from_level, atomic_db, plasma_components):
         self.electron_loss_ion_collisions[ion][from_level, :] = \
             atomic_db.ion_impact_loss[atomic_db.inv_atomic_dict[from_level]][atomic_db.charged_states[
                 plasma_components['q']['ion'+str(ion+1)]-1]](self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
-        self.electron_loss_ion_collisions = convert.convert_from_cm2_to_m2(self.electron_loss_ion_collisions)
 
     def assemble_electron_impact_population_loss_terms(self, from_level, to_level, atomic_db):
         self.electron_terms[from_level, to_level, :] = \
@@ -98,8 +94,7 @@ class CoefficientMatrix:
     def assemble_ion_impact_population_loss_terms(self, ion, from_level, to_level, atomic_db):
         self.ion_terms[ion][from_level, to_level, :] = \
             - sum(self.ion_neutral_collisions[ion][from_level, :to_level, :]) \
-            - sum(self.ion_neutral_collisions[ion][from_level,
-                  (to_level + 1):atomic_db.atomic_levels, :]) \
+            - sum(self.ion_neutral_collisions[ion][from_level, (to_level + 1):atomic_db.atomic_levels, :]) \
             - self.electron_loss_ion_collisions[ion][from_level, :]
 
     def assemble_electron_impact_population_gain_terms(self, from_level, to_level):
@@ -120,12 +115,12 @@ class CoefficientMatrix:
         
     def apply_electron_density(self, step):
         self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
-                                  * self.electron_terms[:, :, step]
+                                  * convert.convert_from_cm2_to_m2(self.electron_terms[:, :, step])
         
     def apply_ion_density(self, ion, step):
         self.matrix[:, :, step] = self.matrix[:, :, step] + \
                                   self.beamlet_profiles['ion' + str(ion + 1)]['density']['m-3'][step] \
-                                  * self.ion_terms[ion][:, :, step]
+                                  * convert.convert_from_cm2_to_m2(self.ion_terms[ion][:, :, step])
         
     def apply_photons(self, step):
         self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
