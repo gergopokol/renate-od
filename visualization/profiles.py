@@ -24,9 +24,9 @@ class BeamletProfiles:
         fig1 = matplotlib.pyplot.figure()
         grid = matplotlib.pyplot.GridSpec(3, 1)
         ax1 = matplotlib.pyplot.subplot(grid[0, 0])
-        ax1 = self.setup_density_axis(ax1)
+        ax1 = self.__setup_density_axis(ax1)
         ax2 = ax1.twinx()
-        self.setup_temperature_axis(ax2)
+        self.__setup_temperature_axis(ax2)
         self.title = 'Plasma profiles'
         ax1.set_title(self.title)
         self.__setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
@@ -50,13 +50,13 @@ class BeamletProfiles:
 
     def plot_linear_emission_density(self):
         axis_dens = matplotlib.pyplot.subplot()
-        self.setup_density_axis(axis_dens)
+        self.__setup_density_axis(axis_dens)
         axis_dens.set_xlabel('Distance [m]')
         axis_em = axis_dens.twinx()
-        self.setup_linear_emission_density_axis(axis_em)
+        self.__setup_linear_emission_density_axis(axis_em)
         matplotlib.pyplot.show()
 
-    def setup_linear_emission_density_axis(self, axis):
+    def __setup_linear_emission_density_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['linear_emission_density'],
                   label='Linear emission density', color='r')
         axis.set_ylabel('Linear emission density [ph/sm]')
@@ -66,13 +66,13 @@ class BeamletProfiles:
 
     def plot_attenuation(self):
         axis_dens = matplotlib.pyplot.subplot()
-        self.setup_density_axis(axis_dens)
+        self.__setup_density_axis(axis_dens)
         axis_dens.set_xlabel('Distance [m]')
         axis_em = axis_dens.twinx()
-        self.setup_linear_density_attenuation_axis(axis_em)
+        self.__setup_linear_density_attenuation_axis(axis_em)
         matplotlib.pyplot.show()
 
-    def setup_linear_density_attenuation_axis(self, axis):
+    def __setup_linear_density_attenuation_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['linear_density_attenuation'],
                   label='Linear density attenuation', color='r')
         axis.set_ylabel('Linear density [1/m]')
@@ -82,25 +82,25 @@ class BeamletProfiles:
 
     def plot_relative_populations(self):
         axis = matplotlib.pyplot.subplot()
-        self.setup_population_axis(axis, kind='relative')
+        self.__setup_population_axis(axis, kind='relative')
         matplotlib.pyplot.show()
 
     def plot_populations(self):
         axis = matplotlib.pyplot.subplot()
-        self.setup_population_axis(axis)
+        self.__setup_population_axis(axis)
         matplotlib.pyplot.show()
 
     def plot_all_profiles(self):
         fig1 = matplotlib.pyplot.figure()
         grid = matplotlib.pyplot.GridSpec(3, 1)
         ax1 = matplotlib.pyplot.subplot(grid[0, 0])
-        ax1 = self.setup_density_axis(ax1)
+        ax1 = self.__setup_density_axis(ax1)
         ax2 = ax1.twinx()
-        self.setup_temperature_axis(ax2)
+        self.__setup_temperature_axis(ax2)
         self.title = 'Plasma profiles'
         ax1.set_title(self.title)
         ax3 = matplotlib.pyplot.subplot(grid[1:, 0])
-        self.setup_population_axis(ax3)
+        self.__setup_population_axis(ax3)
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
@@ -110,7 +110,7 @@ class BeamletProfiles:
         benchmark_profiles = utility.getdata.GetData(data_path_name=benchmark_path, data_key=key).data
         fig1 = matplotlib.pyplot.figure()
         ax1 = matplotlib.pyplot.subplot()
-        ax1 = self.setup_population_axis(ax1)
+        ax1 = self.__setup_population_axis(ax1)
         ax1 = self.setup_benchmark_axis(benchmark_profiles, axis=ax1)
         ax1.legend(loc='best', ncol=2)
         self.title = 'Beamlet profiles - benchmark'
@@ -119,7 +119,7 @@ class BeamletProfiles:
         fig1.tight_layout()
         matplotlib.pyplot.show()
 
-    def setup_density_axis(self, axis):
+    def __setup_density_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
                   ['density']['m-3'], label='Density', color='b')
         if hasattr(self, 'x_limits'):
@@ -130,7 +130,7 @@ class BeamletProfiles:
         axis.grid()
         return axis
 
-    def setup_temperature_axis(self, axis):
+    def __setup_temperature_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['temperature']['eV'], color='r',
                   label='Electron_temperature')
         axis.plot(self.profiles['beamlet grid'], self.profiles['ion1']['temperature']['eV'], '--', label='Ion_temperature',
@@ -141,7 +141,7 @@ class BeamletProfiles:
         axis.grid()
         return axis
 
-    def setup_population_axis(self, axis, kind='absolute'):
+    def __setup_population_axis(self, axis, kind='absolute'):
         pandas_key, axis_name = self.set_axis_parameters(kind)
         number_of_levels = self.get_number_of_levels(self.profiles)
         for level in range(number_of_levels):
