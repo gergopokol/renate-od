@@ -108,7 +108,7 @@ class Beamlet:
 
     def was_beamevolution_performed(self):
         try:
-            dummy = self.profiles['level 0']
+            dummy = self.profiles['level ' + self.set_default_observed_level()[2]]
             return True
         except KeyError:
             return False
@@ -129,7 +129,7 @@ class Beamlet:
         if isinstance(to_level, str) and isinstance(from_level, str):
             if self.atomic_db.inv_atomic_dict[to_level] >= self.atomic_db.inv_atomic_dict[from_level]:
                 raise Exception('Dude! Please stop screwing around. '
-                                'Electron spontaneously transit from higher to lower states.')
+                                'Electrons spontaneously transit from higher to lower atomic states.')
         else:
             raise Exception('The expected input for atomic transitions are strings. '
                             'Bundled-n for H,D,T beam species ex:[1n, 2n, ... 6n]. '
@@ -138,7 +138,7 @@ class Beamlet:
             transition_label = self.atomic_db.inv_atomic_dict[from_level] + \
                                '-' + self.atomic_db.inv_atomic_dict[to_level]
             self.profiles[transition_label] = \
-                self.profiles[from_level] * self.atomic_db.spontaneous_trans[from_level][to_level]
+                self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[from_level][to_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
