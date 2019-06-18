@@ -17,6 +17,16 @@ class AtomicDB:
         self.__set_rates_path(rate_type)
         self.__generate_rate_function_db()
 
+    def set_default_atomic_levels(self):
+        if self.species in ['H', 'D', 'T']:
+            return '3n', '2n', '1n', '3n-2n'
+        elif self.species == 'Li':
+            return '2p', '2s', '2s', '2p-2s'
+        elif self.species == 'Na':
+            return '3p', '3s', '3s', '3p-3s'
+        else:
+            raise ValueError('The atomic species: ' + self.atomic_db.species + ' is not supported')
+
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
         self.__set_einstein_coefficient_db()
