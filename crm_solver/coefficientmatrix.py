@@ -55,8 +55,8 @@ class CoefficientMatrix:
                     self.assemble_electron_impact_population_loss_terms(from_level, to_level, atomic_db)
                 else:
                     self.assemble_electron_impact_population_gain_terms(from_level, to_level)
-                for step in range(self.beamlet_profiles['beamlet grid'].size):
-                    self.apply_electron_density(step)
+        for step in range(self.beamlet_profiles['beamlet grid'].size):
+            self.apply_electron_density(step)
         for ion in range(len([comp for comp in plasma_components['Z'] if comp > 0])):
             for from_level in range(atomic_db.atomic_levels):
                 for to_level in range(atomic_db.atomic_levels):
@@ -64,16 +64,16 @@ class CoefficientMatrix:
                         self.assemble_ion_impact_population_loss_terms(ion, from_level, to_level, atomic_db)
                     else:
                         self.assemble_ion_impact_population_gain_terms(ion, from_level, to_level)
-                    for step in range(self.beamlet_profiles['beamlet grid'].size):
-                        self.apply_ion_density(ion, step)
+        for step in range(self.beamlet_profiles['beamlet grid'].size):
+            self.apply_ion_density(ion, step)
         for from_level in range(atomic_db.atomic_levels):
             for to_level in range(atomic_db.atomic_levels):
                 if to_level == from_level:
                     self.assemble_spontaneous_population_loss_terms(from_level, to_level, atomic_db)
                 else:
                     self.assemble_spontaneous_population_gain_terms(from_level, to_level, atomic_db)
-                for step in range(self.beamlet_profiles['beamlet grid'].size):
-                    self.apply_photons(step)
+        for step in range(self.beamlet_profiles['beamlet grid'].size):
+            self.apply_photons(step)
 
     def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
         self.electron_neutral_collisions[from_level, to_level, :] \
