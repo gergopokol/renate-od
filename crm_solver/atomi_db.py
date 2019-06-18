@@ -28,7 +28,7 @@ class AtomicDB:
         raw_impact_loss_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Electron Loss Collisions')
         self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
-        self.electron_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys())
+        self.electron_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys(), index=['electron'])
         self.electron_impact_loss.columns.name = 'from'
         self.ion_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys(), index=self.charged_states)
         self.ion_impact_loss.columns.name = 'from'
