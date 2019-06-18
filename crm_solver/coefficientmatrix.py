@@ -64,8 +64,8 @@ class CoefficientMatrix:
                         self.assemble_ion_impact_population_loss_terms(ion, from_level, to_level, atomic_db)
                     else:
                         self.assemble_ion_impact_population_gain_terms(ion, from_level, to_level)
-        for step in range(self.beamlet_profiles['beamlet grid'].size):
-            self.apply_ion_density(ion, step)
+            for step in range(self.beamlet_profiles['beamlet grid'].size):
+                self.apply_ion_density(ion, step)
         for from_level in range(atomic_db.atomic_levels):
             for to_level in range(atomic_db.atomic_levels):
                 if to_level == from_level:
@@ -73,6 +73,8 @@ class CoefficientMatrix:
                 else:
                     self.assemble_spontaneous_population_gain_terms(from_level, to_level, atomic_db)
         for step in range(self.beamlet_profiles['beamlet grid'].size):
+            self.apply_electron_density(step)
+
             self.apply_photons(step)
 
     def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
@@ -97,14 +99,14 @@ class CoefficientMatrix:
 
     def assemble_electron_impact_population_loss_terms(self, from_level, to_level, atomic_db):
         self.electron_terms[from_level, to_level, :] = \
-            - sum(self.electron_neutral_collisions[from_level, :to_level, :]) \
-            - sum(self.electron_neutral_collisions[from_level, (to_level + 1):atomic_db.atomic_levels, :]) \
+            - numpy.sum(self.electron_neutral_collisions[from_level, :to_level, :], axis=0) \
+            - numpy.sum(self.electron_neutral_collisions[from_level, (to_level + 1):atomic_db.atomic_levels, :], axis=0) \
             - self.electron_loss_collisions[from_level, :]
 
     def assemble_ion_impact_population_loss_terms(self, ion, from_level, to_level, atomic_db):
         self.ion_terms[ion][from_level, to_level, :] = \
-            - sum(self.ion_neutral_collisions[ion][from_level, :to_level, :]) \
-            - sum(self.ion_neutral_collisions[ion][from_level, (to_level + 1):atomic_db.atomic_levels, :]) \
+            - numpy.sum(self.ion_neutral_collisions[ion][from_level, :to_level, :], axis=0) \
+            - numpy.sum(self.ion_neutral_collisions[ion][from_level, (to_level + 1):atomic_db.atomic_levels, :], axis=0) \
             - self.electron_loss_ion_collisions[ion][from_level, :]
 
     def assemble_electron_impact_population_gain_terms(self, from_level, to_level):
@@ -117,7 +119,7 @@ class CoefficientMatrix:
 
     def assemble_spontaneous_population_loss_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            - sum(self.einstein_coeffs[:][atomic_db.inv_atomic_dict[to_level]]) / self.velocity
+            - numpy.sum(self.einstein_coeffs[:][atomic_db.inv_atomic_dict[to_level]]) / self.velocity
         
     def assemble_spontaneous_population_gain_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
