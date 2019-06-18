@@ -113,22 +113,32 @@ class Beamlet:
         except KeyError:
             return False
 
-    @staticmethod
-    def observed_level(atom):
-        assert isinstance(atom, str)
-        if atom == 'H' or atom == 'D' or atom == 'T':
-            return 'level 2', 1, 2
-        elif atom == 'Li' or atom == 'Na':
-            return 'level 1', 0, 1
+    def set_default_observed_level(self):
+        if self.atomic_db.species in ['H', 'D', 'T']:
+            return '3n-2n', '2n', '3n'
+        elif self.atomic_db.species == 'Li':
+            return '2p-2s', '2s', '2p'
+        elif self.atomic_db.species == 'Na':
+            return '3p-3s', '3s', '3p'
         else:
-            raise ValueError('The atomic species: ' + atom + ' is not supported')
+            raise ValueError('The atomic species: ' + self.atomic_db.species + ' is not supported')
 
-    def compute_linear_emission_density(self):
-        atom = self.param.getroot().find('body').find('beamlet_species').text
+    def compute_linear_emission_density(self, to_level=None, from_level=None):
+        if to_level is None or from_level is None:
+            transition_label, to_level, from_level = self.set_default_observed_level()
+        if isinstance(to_level, str) and isinstance(from_level, str):
+            if self.atomic_db.inv_atomic_dict[to_level] >= self.atomic_db.inv_atomic_dict[from_level]:
+                raise Exception('Dude! Please stop screwing around. '
+                                'Electron spontaneously transit from higher to lower states.')
+        else:
+            raise Exception('The expected input for atomic transitions are strings. '
+                            'Bundled-n for H,D,T beam species ex:[1n, 2n, ... 6n]. '
+                            'l-n resolved labels for Li ex: [2s, 2p, ... 4f] and Na ex: [3s, 3p, ... 5s]')
         if self.was_beamevolution_performed():
-            label, to_level, from_level = self.observed_level(atom)
-            self.profiles['linear_emission_density'] = \
-                self.profiles[label] * self.coefficient_matrix.rates.einstein_coeffs[to_level, from_level]
+            transition_label = self.atomic_db.inv_atomic_dict[from_level] + \
+                               '-' + self.atomic_db.inv_atomic_dict[to_level]
+            self.profiles[transition_label] = \
+                self.profiles[from_level] * self.atomic_db.spontaneous_trans[from_level][to_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
