@@ -4,7 +4,7 @@ from lxml import etree
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
-from matplotlib.colors import Colormap
+from crm_solver.atomi_db import AtomicDB
 
 
 class BeamletProfiles:
@@ -13,6 +13,7 @@ class BeamletProfiles:
         self.param = utility.getdata.GetData(data_path_name=self.param_path).data
         self.access_path = self.param.getroot().find('body').find('beamlet_profiles').text
         self.key = key
+        self.atomic_db = AtomicDB(param=self.param)
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
         self.title = None
 
