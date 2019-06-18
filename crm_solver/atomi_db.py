@@ -25,17 +25,20 @@ class AtomicDB:
         self.__set_ion_impact_transition_functions()
 
     def __set_impact_loss_functions(self):
-        raw_impact_loss_terms = self.load_rate_data(self.rates_path,
+        raw_impact_loss_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Electron Loss Collisions')
-        self.__set_charge_state_lib(raw_impact_loss_terms.shape[0]-1)
-        self.electron_impact_loss = {}
-        self.ion_impact_loss = pandas.DataFrame(index=self.charged_states, columns=self.atomic_dict.keys())
+        self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
+        self.electron_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys())
+        self.electron_impact_loss.columns.name = 'from'
+        self.ion_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys(), index=self.charged_states)
+        self.ion_impact_loss.columns.name = 'from'
+        self.ion_impact_loss.index.name = 'q'
         for from_level in range(self.atomic_levels):
-            self.electron_impact_loss.update({self.inv_atomic_dict[from_level]:
-                                             interp1d(self.temperature_axis, raw_impact_loss_terms[0, from_level, :])})
-            for charged_state in range(raw_impact_loss_terms.shape[0]-1):
+            self.electron_impact_loss[self.inv_atomic_dict[from_level]] = \
+                interp1d(self.temperature_axis, raw_impact_loss_transition[0, from_level, :])
+            for charged_state in range(raw_impact_loss_transition.shape[0]-1):
                 self.ion_impact_loss[self.inv_atomic_dict[from_level]][self.charged_states[charged_state]] = \
-                    interp1d(self.temperature_axis, raw_impact_loss_terms[charged_state+1, from_level, :])
+                    interp1d(self.temperature_axis, raw_impact_loss_transition[charged_state+1, from_level, :])
 
     def __set_electron_impact_transition_functions(self):
         raw_electron_transition = self.load_rate_data(self.rates_path,
@@ -51,14 +54,27 @@ class AtomicDB:
                                                          'Collisional Coeffs/Proton Neutral Collisions')
         raw_impurity_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Impurity Neutral Collisions')
-        self.ion_impact_trans = pandas.Panel()
+
+        multiindex = pandas.MultiIndex.from_product([self.atomic_dict.keys(), self.charged_states], names=['to', 'q'])
+        self.ion_impact_trans = pandas.DataFrame(columns=self.atomic_dict.keys(), index=multiindex)
+        self.ion_impact_trans.columns.name = 'from'
+        for from_level in range(self.atomic_levels):
+            for to_level in range(self.atomic_levels):
+                self.ion_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level], self.charged_states[0]] = \
+                    interp1d(self.temperature_axis, raw_proton_transition[from_level, to_level, :])
+                for charged_state in range(raw_impurity_transition.shape[0]-1):
+                    self.ion_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level],
+                                                                            self.charged_states[charged_state+1]] =\
+                        interp1d(self.temperature_axis, raw_impurity_transition[charged_state, from_level, to_level, :])
 
     def __set_einstein_coefficient_db(self):
         raw_einstein_coefficient = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
         if self.atomic_levels != int(raw_einstein_coefficient.size ** 0.5):
             raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
         self.spontaneous_trans = pandas.DataFrame(raw_einstein_coefficient,
-                                                  index=self.atomic_dict.keys(), columns=self.atomic_dict.keys())
+                                                  columns=self.atomic_dict.keys(), index=self.atomic_dict.keys())
+        self.spontaneous_trans.columns.name = 'from'
+        self.spontaneous_trans.index.name = 'to'
 
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
