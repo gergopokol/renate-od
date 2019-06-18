@@ -151,10 +151,13 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
-    def compute_relative_populations(self, reference_level='level 0'):
+    def compute_relative_populations(self, reference_level=None):
         if self.was_beamevolution_performed():
-            for level in range(0, self.coefficient_matrix.number_of_levels):
-                self.profiles['rel.pop ' + str(level)] = \
-                    self.profiles['level ' + str(level)] / self.profiles[reference_level]
+            if reference_level is None:
+                reference_level = self.atomic_db.atomic_dict[0]
+            assert isinstance(reference_level, str)
+            for level in range(0, self.atomic_db.atomic_levels):
+                self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]] = \
+                    self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / self.profiles[reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
