@@ -53,12 +53,20 @@ class BeamletProfiles:
         self.__setup_density_axis(axis_dens)
         axis_dens.set_xlabel('Distance [m]')
         axis_em = axis_dens.twinx()
-        self.__setup_linear_emission_density_axis(axis_em)
+        if from_level is None or to_level is None or not isinstance(from_level, str) or not isinstance(to_level, str):
+            from_level, to_level, ground_level, transition = self.atomic_db.set_default_atomic_levels()
+        else:
+            transition = from_level + '-' + to_level
+        self.__setup_linear_emission_density_axis(axis_em, transition)
         matplotlib.pyplot.show()
 
-    def __setup_linear_emission_density_axis(self, axis):
-        axis.plot(self.profiles['beamlet grid'], self.profiles['linear_emission_density'],
-                  label='Linear emission density', color='r')
+    def __setup_linear_emission_density_axis(self, axis, transition):
+        try:
+            axis.plot(self.profiles['beamlet grid'], self.profiles[transition],
+                      label='Emission for '+transition, color='r')
+        except KeyError:
+            raise Exception('The requested transition: <'+transition+'> is not in the stored data. '
+                            'Try computing it first or please make sure it exists')
         axis.set_ylabel('Linear emission density [ph/sm]')
         axis.yaxis.label.set_color('r')
         axis.legend(loc='upper right')
