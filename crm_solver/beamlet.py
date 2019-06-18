@@ -6,16 +6,20 @@ import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
+from crm_solver.atomi_db import AtomicDB
 
 
 class Beamlet:
-    def __init__(self, param=None, profiles=None, components=None,
+    def __init__(self, param=None, profiles=None, components=None, atomic_db=None,
                  solver='numerical', data_path="beamlet/testimp0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.read_beamlet_param(data_path)
         self.profiles = profiles
         self.components = components
+        self.atomic_db = atomic_db
+        if atomic_db is None:
+            self.atomic_db = AtomicDB(param=self.param)
         if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.read_beamlet_profiles()
         if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
