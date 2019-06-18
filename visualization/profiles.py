@@ -48,7 +48,7 @@ class BeamletProfiles:
         axis.grid()
         return axis
 
-    def plot_linear_emission_density(self):
+    def plot_linear_emission_density(self, from_level=None, to_level=None):
         axis_dens = matplotlib.pyplot.subplot()
         self.__setup_density_axis(axis_dens)
         axis_dens.set_xlabel('Distance [m]')
