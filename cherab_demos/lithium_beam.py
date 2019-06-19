@@ -9,7 +9,7 @@ from raysect.optical.observer import PinholeCamera,  SightLine, PowerPipeline0D,
 
 
 from cherab.core import Species, Maxwellian, Plasma, Beam
-from cherab.core.atomic import hydrogen, Line
+from cherab.core.atomic import lithium, Line
 from cherab.core.model import SingleRayAttenuator
 from cherab.tools.plasmas.slab import build_slab_plasma
 
@@ -32,20 +32,21 @@ plasma = build_slab_plasma(peak_density=5e19, world=world)
 # BEAM SETUP ------------------------------------------------------------------
 integration_step = 0.0025
 beam_transform = translate(-0.000001, 0.0, 0) * rotate_basis(Vector3D(1, 0, 0), Vector3D(0, 0, 1))
+line = Line(lithium, 0, ('2p', '2s'))
 
 beam = Beam(parent=world, transform=beam_transform)
 beam.plasma = plasma
 beam.atomic_data = adas
-beam.energy = 100000
-beam.power = 3e6
-beam.element = hydrogen
+beam.energy = 60000
+beam.power = 1e5
+beam.element = lithium
 beam.temperature = 30
-beam.sigma = 0.05
+beam.sigma = 0.03
 beam.divergence_x = 0.5
 beam.divergence_y = 0.5
 beam.length = 3.0
 beam.attenuator = SingleRayAttenuator(clamp_to_zero=True)
-beam.models = [BeamEmissionLine(Line(hydrogen, 0, (3, 2)))]
+beam.models = [BeamEmissionLine(line, renate_atomic_data=temp)]
 beam.integrator.step = integration_step
 beam.integrator.min_samples = 10
 
@@ -65,7 +66,7 @@ camera.observe()
 
 power = PowerPipeline0D(accumulate=False)
 spectral_power = SpectralPowerPipeline0D()
-los = SightLine(pipelines=[power, spectral_power], min_wavelength=654, max_wavelength=658,
+los = SightLine(pipelines=[power, spectral_power], min_wavelength=668, max_wavelength=672,
                 parent=world, transform=translate(0.25, -0.25, 0) * rotate_basis(Vector3D(0, 1, 0), Vector3D(0, 0, 1)))
 los.pixel_samples = 1
 los.spectral_bins = 200

@@ -173,7 +173,7 @@ cdef class BeamEmissionLine(BeamModel):
         self._wavelength = self._atomic_data.wavelength(beam_element, charge, transition)
 
         # run renate model
-        beamlet_grid, beam_emission = _calculate_renate_emissivity(self._plasma, self._beam)
+        beamlet_grid, beam_emission = _calculate_renate_emissivity(self._plasma, self._beam, self._line)
 
         # print()
         # print(beam_emission.min(), beam_emission.max(), beam_emission.mean())
@@ -209,7 +209,7 @@ def _sample_along_beam_axis(function, beam_axis, beam_to_world, debug=False):
     return samples
 
 
-def _calculate_renate_emissivity(plasma, beam):
+def _calculate_renate_emissivity(plasma, beam, line):
 
     # build species specifications, starting with electrons
     charges = [-1]
@@ -282,17 +282,18 @@ def _calculate_renate_emissivity(plasma, beam):
     beamlet_profiles.text = './beamlet_test.h5'
     param = etree.ElementTree(element=xml)
 
+    # move this outside
+    # from crm_solver.atomic_db import AtomicDB
+    # renata_ad = AtomicDB(param=param)
+
     b = Beamlet(param=param, profiles=profiles, components=components)
-
-    print(b.profiles['beamlet grid']['distance']['m'])
-    print(b.profiles['electron']['density']['m-3'])
-    print(b.profiles['ion1']['temperature']['eV'])
-
-    b.compute_linear_emission_density()
+    b.compute_linear_emission_density(to_level=str(line.transition[1]), from_level=str(line.transition[0]))
     b.compute_linear_density_attenuation()
     b.compute_relative_populations()
 
+    from_level, to_level, ground_level, transition = b.atomic_db.set_default_atomic_levels()
+
     beamlet_grid = np.squeeze(np.array(b.profiles['beamlet grid']))
-    beam_emission = np.squeeze(np.array(b.profiles['linear_emission_density']))
+    beam_emission = np.squeeze(np.array(b.profiles[transition]))
 
     return beamlet_grid, beam_emission
