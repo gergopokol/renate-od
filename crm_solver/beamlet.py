@@ -122,7 +122,7 @@ class Beamlet:
                                 'Electrons spontaneously transit from higher to lower atomic states.')
         else:
             raise Exception('The expected input for atomic transitions are strings. '
-                            'Bundled-n for H,D,T beam species ex:[1n, 2n, ... 6n]. '
+                            'Bundled-n for H,D,T beam species ex:[1, 2, ... 6]. '
                             'l-n resolved labels for Li ex: [2s, 2p, ... 4f] and Na ex: [3s, 3p, ... 5s]')
         if self.__was_beamevolution_performed():
             transition_label = from_level + '-' + to_level
