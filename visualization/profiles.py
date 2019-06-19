@@ -4,7 +4,7 @@ from lxml import etree
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
-from crm_solver.atomi_db import AtomicDB
+from crm_solver.atomic_db import AtomicDB
 
 
 class BeamletProfiles:
