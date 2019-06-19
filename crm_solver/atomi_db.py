@@ -83,6 +83,7 @@ class AtomicDB:
             raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
         self.spontaneous_trans = pandas.DataFrame(raw_einstein_coefficient,
                                                   columns=self.atomic_dict.keys(), index=self.atomic_dict.keys())
+        self.spontaneous_trans.transpose()
         self.spontaneous_trans.columns.name = 'from'
         self.spontaneous_trans.index.name = 'to'
 
