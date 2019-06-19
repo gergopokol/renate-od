@@ -119,7 +119,7 @@ class CoefficientMatrix:
 
     def assemble_spontaneous_population_loss_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            - numpy.sum(self.einstein_coeffs[:][atomic_db.inv_atomic_dict[to_level]]) / self.velocity
+            - numpy.sum(self.einstein_coeffs[atomic_db.inv_atomic_dict[from_level][:]]) / self.velocity
         
     def assemble_spontaneous_population_gain_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
