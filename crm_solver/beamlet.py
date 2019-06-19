@@ -136,7 +136,7 @@ class Beamlet:
             self.profiles['linear_density_attenuation'] = self.profiles['level ' + self.atomic_db.inv_atomic_dict[0]]
             for level in range(1, self.atomic_db.atomic_levels):
                 self.profiles['linear_density_attenuation'] += self.profiles['level ' +
-                                                                             self.atomic_db.atomic_dict[level]]
+                                                                             self.atomic_db.inv_atomic_dict[level]]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
@@ -145,8 +145,9 @@ class Beamlet:
             if reference_level is None:
                 reference_level = self.atomic_db.set_default_atomic_levels()[2]
             assert isinstance(reference_level, str)
-            for level in range(0, self.atomic_db.atomic_levels):
+            for level in range(self.atomic_db.atomic_levels):
                 self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]] = \
-                    self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / self.profiles[reference_level]
+                    self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / \
+                    self.profiles['level ' + reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
