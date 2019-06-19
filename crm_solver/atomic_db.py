@@ -45,10 +45,12 @@ class AtomicDB:
         self.ion_impact_loss.index.name = 'q'
         for from_level in range(self.atomic_levels):
             self.electron_impact_loss[self.inv_atomic_dict[from_level]] = \
-                interp1d(self.temperature_axis, raw_impact_loss_transition[0, from_level, :])
+                interp1d(self.temperature_axis, raw_impact_loss_transition[0, from_level, :],
+                         fill_value='extrapolate')
             for charged_state in range(raw_impact_loss_transition.shape[0]-1):
                 self.ion_impact_loss[self.inv_atomic_dict[from_level]][self.charged_states[charged_state]] = \
-                    interp1d(self.temperature_axis, raw_impact_loss_transition[charged_state+1, from_level, :])
+                    interp1d(self.temperature_axis, raw_impact_loss_transition[charged_state+1, from_level, :],
+                             fill_value='extrapolate')
 
     def __set_electron_impact_transition_functions(self):
         raw_electron_transition = self.load_rate_data(self.rates_path,
@@ -57,7 +59,8 @@ class AtomicDB:
         for from_level in range(self.atomic_levels):
             for to_level in range(self.atomic_levels):
                 self.electron_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level]] = \
-                    interp1d(self.temperature_axis, raw_electron_transition[from_level, to_level, :])
+                    interp1d(self.temperature_axis, raw_electron_transition[from_level, to_level, :],
+                             fill_value='extrapolate')
 
     def __set_ion_impact_transition_functions(self):
         raw_proton_transition = self.load_rate_data(self.rates_path,
@@ -71,11 +74,13 @@ class AtomicDB:
         for from_level in range(self.atomic_levels):
             for to_level in range(self.atomic_levels):
                 self.ion_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level], self.charged_states[0]] = \
-                    interp1d(self.temperature_axis, raw_proton_transition[from_level, to_level, :])
+                    interp1d(self.temperature_axis, raw_proton_transition[from_level, to_level, :],
+                             fill_value='extrapolate')
                 for charged_state in range(raw_impurity_transition.shape[0]-1):
                     self.ion_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level],
                                                                             self.charged_states[charged_state+1]] =\
-                        interp1d(self.temperature_axis, raw_impurity_transition[charged_state, from_level, to_level, :])
+                        interp1d(self.temperature_axis, raw_impurity_transition[charged_state, from_level, to_level, :],
+                                 fill_value='extrapolate')
 
     def __set_einstein_coefficient_db(self):
         raw_einstein_coefficient = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
