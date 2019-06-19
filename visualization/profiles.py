@@ -35,7 +35,7 @@ class BeamletProfiles:
     def __setup_RENATE_benchmark_axis(self, axis):
         for level in self.atomic_db.atomic_dict.keys():
             axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level ' +
-                      self.atomic_db.inv_atomic_dict[level]], '-', label='RENATE '+level)
+                      str(self.atomic_db.atomic_dict[level])], '-', label='RENATE '+level)
             axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/self.profiles['level ' +
                       self.atomic_db.inv_atomic_dict[0]][0], '--', label='ROD '+level)
         if hasattr(self, 'x_limits'):
