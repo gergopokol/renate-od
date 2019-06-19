@@ -117,7 +117,7 @@ class Beamlet:
         if to_level is None or from_level is None:
             from_level, to_level, ground_level, transition_label = self.atomic_db.set_default_atomic_levels()
         if isinstance(to_level, str) and isinstance(from_level, str):
-            if self.atomic_db.inv_atomic_dict[to_level] >= self.atomic_db.inv_atomic_dict[from_level]:
+            if self.atomic_db.atomic_dict[to_level] >= self.atomic_db.atomic_dict[from_level]:
                 raise Exception('Dude! Please stop screwing around. '
                                 'Electrons spontaneously transit from higher to lower atomic states.')
         else:
@@ -125,8 +125,7 @@ class Beamlet:
                             'Bundled-n for H,D,T beam species ex:[1n, 2n, ... 6n]. '
                             'l-n resolved labels for Li ex: [2s, 2p, ... 4f] and Na ex: [3s, 3p, ... 5s]')
         if self.was_beamevolution_performed():
-            transition_label = self.atomic_db.inv_atomic_dict[from_level] + \
-                               '-' + self.atomic_db.inv_atomic_dict[to_level]
+            transition_label = from_level + '-' + to_level
             self.profiles[transition_label] = \
                 self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[from_level][to_level]
         else:
@@ -137,7 +136,7 @@ class Beamlet:
             self.profiles['linear_density_attenuation'] = self.profiles['level ' + self.atomic_db.inv_atomic_dict[0]]
             for level in range(1, self.atomic_db.atomic_levels):
                 self.profiles['linear_density_attenuation'] += self.profiles['level ' +
-                                                                             self.atomic_db.atomic_dict[level]]
+                                                                             self.atomic_db.inv_atomic_dict[level]]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
@@ -146,8 +145,9 @@ class Beamlet:
             if reference_level is None:
                 reference_level = self.atomic_db.set_default_atomic_levels()[2]
             assert isinstance(reference_level, str)
-            for level in range(0, self.atomic_db.atomic_levels):
+            for level in range(self.atomic_db.atomic_levels):
                 self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]] = \
-                    self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / self.profiles[reference_level]
+                    self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / \
+                    self.profiles['level ' + reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
