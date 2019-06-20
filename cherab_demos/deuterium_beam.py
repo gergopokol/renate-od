@@ -19,7 +19,7 @@ world = World()
 
 # PLASMA ----------------------------------------------------------------------
 plasma = build_slab_plasma(peak_density=5e19, world=world)
-plasma.b_field = ConstantVector3D(Vector3D(0, 1.5, 0))
+plasma.b_field = ConstantVector3D(Vector3D(0, 0.6, 0))
 
 
 # BEAM SETUP ------------------------------------------------------------------
@@ -34,12 +34,26 @@ beam.power = 3e6
 beam.element = hydrogen
 beam.temperature = 30
 beam.sigma = 0.05
-beam.divergence_x = 0.5
-beam.divergence_y = 0.5
+beam.divergence_x = 0.
+beam.divergence_y = 0.
 beam.length = 3.0
 beam.models = [RenateBeamEmissionLine(line)]
 beam.integrator.step = integration_step
 beam.integrator.min_samples = 10
+
+beam2 = RenateBeam(parent=world, transform=beam_transform)
+beam2.plasma = plasma
+beam2.energy = 60000
+beam2.power = 3e6
+beam2.element = hydrogen
+beam2.temperature = 30
+beam2.sigma = 0.05
+beam2.divergence_x = 0.5
+beam2.divergence_y = 0.5
+beam2.length = 3.0
+beam2.models = [RenateBeamEmissionLine(line)]
+beam2.integrator.step = integration_step
+beam2.integrator.min_samples = 10
 
 
 # line of sight settings
@@ -49,12 +63,14 @@ los_direction = los_start.vector_to(los_target).normalise()
 
 
 beam_density = np.empty((200, 200))
+beam_density2 = np.empty((200, 200))
 xpts = np.linspace(-1, 2, 200)
 ypts = np.linspace(-1, 1, 200)
 for i, xpt in enumerate(xpts):
     for j, ypt in enumerate(ypts):
         pt = Point3D(xpt, ypt, 0).transform(beam.to_local())
         beam_density[i, j] = beam.density(pt.x, pt.y, pt.z)
+        beam_density2[i, j] = beam2.density(pt.x, pt.y, pt.z)
 
 plt.figure()
 plt.imshow(np.transpose(np.squeeze(beam_density)), extent=[-1, 2, -1, 1], origin='lower')
@@ -68,8 +84,10 @@ plt.title("Beam full energy density profile in r-z plane")
 
 z = np.linspace(0, 3, 200)
 beam_full_densities = [beam.density(0, 0, zz) for zz in z]
+beam_half_densities = [beam2.density(0, 0, zz) for zz in z]
 plt.figure()
 plt.plot(z, beam_full_densities, label="full energy")
+plt.plot(z, beam_half_densities, label="half energy")
 plt.xlabel('z axis (beam coords)')
 plt.ylabel('beam component density [m^-3]')
 plt.title("Beam attenuation by energy component")
@@ -96,3 +114,6 @@ los = SightLine(pipelines=[power, spectral_power], min_wavelength=640, max_wavel
 los.pixel_samples = 1
 los.spectral_bins = 2000
 los.observe()
+
+plt.ioff()
+plt.show()

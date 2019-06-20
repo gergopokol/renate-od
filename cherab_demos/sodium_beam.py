@@ -94,3 +94,6 @@ los = SightLine(pipelines=[power, spectral_power], min_wavelength=582, max_wavel
 los.pixel_samples = 1
 los.spectral_bins = 2000
 los.observe()
+
+plt.ioff()
+plt.show()
