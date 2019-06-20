@@ -172,31 +172,24 @@ cdef class RenateBeam(Beam):
             return 0
 
         if not self._renate_wrapper:
-            print('loading wrapper')
             self._configure_renate()
-            print('wrapper loaded')
 
-        print('# calculate beam width')
         # calculate beam width
         sigma_x = self.sigma + z * self._tanxdiv
         sigma_y = self.sigma + z * self._tanydiv
 
-        print('# normalised radius squared')
         # normalised radius squared
         norm_radius_sqr = ((x / sigma_x)**2 + (y / sigma_y)**2)
 
-        print('# clamp low densities')
         # clamp low densities to zero (beam models can skip their calculation if density is zero)
         # comparison is done using the squared radius to avoid a costly square root
         if self.clamp_to_zero:
             if norm_radius_sqr > self._clamp_sigma_sqr:
                 return 0.0
 
-        print('# bi-variate Gaussian')
         # bi-variate Gaussian distribution (normalised)
         gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
 
-        print('returning')
         return self._density.evaluate(z) * gaussian_sample
 
     @property

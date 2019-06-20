@@ -105,18 +105,8 @@ class RenateCRMWrapper:
 
         from_level, to_level, ground_level, transition = b.atomic_db.set_default_atomic_levels()
 
-        print()
-        print('renate transition')
-        print(transition)
-
         beamlet_grid = np.squeeze(np.array(b.profiles['beamlet grid']))
         beam_emission = np.squeeze(np.array(b.profiles[transition]))
-
-        print()
-        print('beam_emission')
-        print(beam_emission.min())
-        print(beam_emission.mean())
-        print(beam_emission.max())
 
         return Interpolate1DLinear(beamlet_grid, beam_emission, extrapolate=True, extrapolation_range=1e-4)
 
@@ -127,25 +117,15 @@ class RenateCRMWrapper:
         beamlet_grid = np.squeeze(np.array(b.profiles['beamlet grid']))
         beam_density = np.squeeze(np.array(b.profiles['linear_density_attenuation']))
 
-        print()
-        print('beam_density')
-        print(beam_density.min())
-        print(beam_density.mean())
-        print(beam_density.max())
-
         return Interpolate1DLinear(beamlet_grid, beam_density, extrapolate=True, extrapolation_range=1e-4)
 
 
 def _sample_along_beam_axis(function, beam_axis, beam_to_world, debug=False):
 
     if debug:
-        print(beam_axis)
         samples = []
         for i, z in enumerate(beam_axis):
             p = Point3D(0, 0, z).transform(beam_to_world)
-            if i == 50:
-                print(z, p)
-                print(function(p.x, p.y, p.z))
             samples.append(function(p.x, p.y, p.z))
     else:
         samples = []
