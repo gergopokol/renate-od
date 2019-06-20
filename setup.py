@@ -69,8 +69,8 @@ else:
 
 setup(
     name="renate-od",
-    version=1.1.0,
     license="LGPL-3.0",
+    version='1.1.0',
     description='RENATE Open Diagnostics',
     classifiers=[
         "Intended Audience :: Science/Research",
