@@ -4,8 +4,13 @@
 from libc.math cimport exp, sqrt, M_PI
 cimport cython
 
-from cherab.core cimport Plasma, Beam, Element
-from cherab.core.model.lineshape cimport doppler_shift, thermal_broadening, add_gaussian_line
+from raysect.core cimport Point3D, Vector3D
+from raysect.core.math.function cimport autowrap_function1d, autowrap_function2d
+
+from cherab.core cimport Plasma, Beam, Element, Spectrum, AtomicData
+from cherab.core.atomic import hydrogen
+from cherab.core.model.lineshape cimport doppler_shift, thermal_broadening, add_gaussian_line, BeamEmissionMultiplet
+from cherab.core.model.beam.beam_emission import SIGMA_TO_PI, SIGMA1_TO_SIGMA0, PI2_TO_PI3, PI4_TO_PI3
 from cherab.core.utility.constants cimport RECIP_4_PI, ELEMENTARY_CHARGE, ATOMIC_MASS
 
 
@@ -45,11 +50,18 @@ cdef class RenateBeamEmissionLine(BeamModel):
     :return:
     """
 
-    def __init__(self, Line line not None, Beam beam=None, Plasma plasma=None, AtomicData atomic_data=None):
+    def __init__(self, Line line not None, Beam beam=None, Plasma plasma=None, AtomicData atomic_data=None,
+                 sigma_to_pi=SIGMA_TO_PI, sigma1_to_sigma0=SIGMA1_TO_SIGMA0,
+                 pi2_to_pi3=PI2_TO_PI3, pi4_to_pi3=PI4_TO_PI3):
 
         super().__init__(beam, plasma, atomic_data)
 
         self._line = line
+
+        self._sigma_to_pi = autowrap_function2d(sigma_to_pi)
+        self._sigma1_to_sigma0 = autowrap_function1d(sigma1_to_sigma0)
+        self._pi2_to_pi3 = autowrap_function1d(pi2_to_pi3)
+        self._pi4_to_pi3 = autowrap_function1d(pi4_to_pi3)
 
         # initialise cache to empty
         self._wavelength = 0.0
@@ -90,7 +102,6 @@ cdef class RenateBeamEmissionLine(BeamModel):
         # abort calculation if temperature is zero
         temperature = self._beam._temperature
         if temperature == 0:
-            # print('beam temperature was zero')
             return spectrum
 
         # extract for more compact code
@@ -115,20 +126,26 @@ cdef class RenateBeamEmissionLine(BeamModel):
         gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
 
         # spectral line emission in W/m^3/str
-        # print('emissivity:', z, self._emissivity.evaluate(z), gaussian_sample)
         emissivity = self._emissivity.evaluate(z) * gaussian_sample
 
-        velocity = beam_direction.normalise().mul(evamu_to_ms(self._beam.get_energy()))
+        if self._using_stark_splitting:
 
-        # calculate emission line central wavelength, doppler shifted along observation direction
-        natural_wavelength = self._wavelength
-        central_wavelength = doppler_shift(natural_wavelength, observation_direction, velocity)
+            return self._lineshape.add_line(emissivity, beam_point, plasma_point,
+                                            beam_direction, observation_direction, spectrum)
 
-        beam_ion_mass = self._beam.get_element().atomic_weight
+        else:
 
-        sigma = thermal_broadening(natural_wavelength, temperature, beam_ion_mass)
+            velocity = beam_direction.normalise().mul(evamu_to_ms(self._beam.get_energy()))
 
-        return add_gaussian_line(emissivity, central_wavelength, sigma, spectrum)
+            # calculate emission line central wavelength, doppler shifted along observation direction
+            natural_wavelength = self._wavelength
+            central_wavelength = doppler_shift(natural_wavelength, observation_direction, velocity)
+
+            beam_ion_mass = self._beam.get_element().atomic_weight
+
+            sigma = thermal_broadening(natural_wavelength, temperature, beam_ion_mass)
+
+            return add_gaussian_line(emissivity, central_wavelength, sigma, spectrum)
 
     cdef int _populate_cache(self) except -1:
 
@@ -159,8 +176,19 @@ cdef class RenateBeamEmissionLine(BeamModel):
         renate_wrapper = self._beam.renate_wrapper
         self._emissivity = renate_wrapper.beam_emission_intensity(self._line.transition)
 
+        if self._line.element == hydrogen and self._line.transition == (3, 2):
+            self._using_stark_splitting = True
+        else:
+            self._using_stark_splitting = False
+
+        # TODO - add a simple guassian beam emission feature
+        # instance line shape renderer
+        self._lineshape = BeamEmissionMultiplet(self._line, self._wavelength, self._beam, self._sigma_to_pi,
+                                                self._sigma1_to_sigma0, self._pi2_to_pi3, self._pi4_to_pi3)
+
     def _change(self):
 
         # clear cache to force regeneration on first use
         self._wavelength = 0.0
         self._emissivity = None
+        self._lineshape = None
