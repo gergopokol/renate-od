@@ -24,6 +24,8 @@ class AtomicDB:
             return '2p', '2s', '2s', '2p-2s'
         elif self.species == 'Na':
             return '3p', '3s', '3s', '3p-3s'
+        elif self.species == 'dummy':
+            return '1', '0', '0', '1-0'
         else:
             raise ValueError('The atomic species: ' + self.atomic_db.species + ' is not supported')
 
@@ -94,7 +96,7 @@ class AtomicDB:
 
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
-        if self.species not in ['H', 'D', 'T', 'Li', 'Na']:
+        if self.species not in ['H', 'D', 'T', 'Li', 'Na', 'dummy']:
             raise Exception(self.species + ' beam atomic data not supported')
         if self.species in ['H', 'D', 'T']:
             self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
@@ -105,6 +107,9 @@ class AtomicDB:
         if self.species == 'Na':
             self.atomic_dict = {'3s': 0, '3p': 1, '3d': 2, '4s': 3, '4p': 4, '4d': 5, '4f': 6, '5s': 7}
             self.atomic_levels = 8
+        if self.species == 'dummy':
+            self.atomic_dict = {'1': 1, '0': 0}
+            self.atomic_levels = 2
         self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
 
     def __set_rates_path(self, rate_type):
