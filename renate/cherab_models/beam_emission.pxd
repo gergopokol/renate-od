@@ -1,13 +1,10 @@
 
-from numpy cimport ndarray
-from raysect.optical cimport Node, World, Primitive, Ray, Spectrum, SpectralFunction, Point3D, Vector3D, AffineMatrix3D
-
-from cherab.core cimport Species, Plasma, Beam, Line, AtomicData, BeamCXPEC
+from cherab.core cimport Line
 from cherab.core.math cimport Function1D
 from cherab.core.beam cimport BeamModel
 
 
-cdef class BeamEmissionLine(BeamModel):
+cdef class RenateBeamEmissionLine(BeamModel):
 
     cdef:
         Line _line

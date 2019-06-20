@@ -8,18 +8,12 @@ from raysect.optical import World
 from raysect.optical.observer import PinholeCamera,  SightLine, PowerPipeline0D, SpectralPowerPipeline0D
 
 
-from cherab.core import Species, Maxwellian, Plasma, Beam
+from cherab.core.math import sample3d
+from cherab.core import Species, Maxwellian, Plasma
 from cherab.core.atomic import hydrogen, Line
-from cherab.core.model import SingleRayAttenuator
 from cherab.tools.plasmas.slab import build_slab_plasma
 
-from cherab.openadas import OpenADAS
-
-from renate.cherab_models import BeamEmissionLine
-
-
-# create atomic data source
-adas = OpenADAS(permit_extrapolation=True)
+from renate.cherab_models import RenateBeamEmissionLine, RenateBeam
 
 
 world = World()
@@ -34,9 +28,8 @@ integration_step = 0.0025
 beam_transform = translate(-0.000001, 0.0, 0) * rotate_basis(Vector3D(1, 0, 0), Vector3D(0, 0, 1))
 line = Line(hydrogen, 0, (3, 2))
 
-beam = Beam(parent=world, transform=beam_transform)
+beam = RenateBeam(parent=world, transform=beam_transform)
 beam.plasma = plasma
-beam.atomic_data = adas
 beam.energy = 100000
 beam.power = 3e6
 beam.element = hydrogen
@@ -45,10 +38,29 @@ beam.sigma = 0.05
 beam.divergence_x = 0.5
 beam.divergence_y = 0.5
 beam.length = 3.0
-beam.attenuator = SingleRayAttenuator(clamp_to_zero=True)
-beam.models = [BeamEmissionLine(line)]
+beam.models = [RenateBeamEmissionLine(line)]
 beam.integrator.step = integration_step
 beam.integrator.min_samples = 10
+
+
+plt.figure()
+x, _, z, beam_density = sample3d(beam.density, (-0.5, 0.5, 200), (0, 0, 1), (0, 3, 200))
+plt.imshow(np.transpose(np.squeeze(beam_density)), extent=[-0.5, 0.5, 0, 3], origin='lower')
+plt.colorbar()
+plt.axis('equal')
+plt.xlabel('x axis (beam coords)')
+plt.ylabel('z axis (beam coords)')
+plt.title("Beam full energy density profile in r-z plane")
+
+
+z = np.linspace(0, 3, 200)
+beam_full_densities = [beam.density(0, 0, zz) for zz in z]
+plt.figure()
+plt.plot(z, beam_full_densities, label="full energy")
+plt.xlabel('z axis (beam coords)')
+plt.ylabel('beam component density [m^-3]')
+plt.title("Beam attenuation by energy component")
+plt.legend()
 
 
 # OBSERVATIONS ----------------------------------------------------------------
