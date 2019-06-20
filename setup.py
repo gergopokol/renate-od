@@ -44,7 +44,8 @@ if use_cython:
                 if path.splitext(file)[1] == ".pyx":
                     pyx_file = path.relpath(path.join(root, file), setup_path)
                     module = path.splitext(pyx_file)[0].replace("/", ".")
-                    extensions.append(Extension(module, [pyx_file], include_dirs=compilation_includes, extra_compile_args=compilation_args),)
+                    extensions.append(Extension(module, [pyx_file], include_dirs=compilation_includes,
+                                                extra_compile_args=compilation_args),)
 
     if profile:
         cython_directives["profile"] = True
@@ -62,12 +63,13 @@ else:
                 if path.splitext(file)[1] == ".c":
                     c_file = path.relpath(path.join(root, file), setup_path)
                     module = path.splitext(c_file)[0].replace("/", ".")
-                    extensions.append(Extension(module, [c_file], include_dirs=compilation_includes, extra_compile_args=compilation_args),)
+                    extensions.append(Extension(module, [c_file], include_dirs=compilation_includes,
+                                                extra_compile_args=compilation_args),)
 
 
 setup(
-    name="renate",
-    version=1.0,
+    name="renate-od",
+    version=1.1.0,
     license="LGPL-3.0",
     description='RENATE Open Diagnostics',
     classifiers=[
@@ -76,8 +78,8 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Scientific/Engineering :: Physics"
     ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'pandas'],
-    packages=['crm_solver'],
+    install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'lxml', 'h5py'],
+    packages=['renate'],
     zip_safe=False,
     ext_modules=extensions
 )
