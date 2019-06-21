@@ -55,14 +55,19 @@ class AtomicDB:
                              fill_value='extrapolate')
 
     def __set_electron_impact_transition_functions(self):
+        '''''
+        Contains electron impact transition data for loaded atomic type.
+        Indexing convention: data[from_level][to_level]
+        '''''
         raw_electron_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Electron Neutral Collisions')
-        self.electron_impact_trans = pandas.DataFrame(index=self.atomic_dict.keys(), columns=self.atomic_dict.keys())
+        self.electron_impact_trans = []
         for from_level in range(self.atomic_levels):
+            from_level_functions = []
             for to_level in range(self.atomic_levels):
-                self.electron_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level]] = \
-                    interp1d(self.temperature_axis, raw_electron_transition[from_level, to_level, :],
-                             fill_value='extrapolate')
+                from_level_functions.append(interp1d(self.temperature_axis, raw_electron_transition[from_level,
+                                                     to_level, :], fill_value='extrapolate'))
+            self.electron_impact_trans.append(from_level_functions)
 
     def __set_ion_impact_transition_functions(self):
         raw_proton_transition = self.load_rate_data(self.rates_path,
