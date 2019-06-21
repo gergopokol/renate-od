@@ -85,13 +85,13 @@ class AtomicDB:
                                  fill_value='extrapolate')
 
     def __set_einstein_coefficient_db(self):
-        raw_einstein_coefficient = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
-        if self.atomic_levels != int(raw_einstein_coefficient.size ** 0.5):
+        '''''
+        Contains spontanous transition data for loaded atomic type.
+        Indexing convention: data[to_level, from_level]
+        '''''
+        self.spontaneous_trans = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
             raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
-        self.spontaneous_trans = pandas.DataFrame(numpy.flip(numpy.flip(raw_einstein_coefficient, axis=0), axis=1),
-                                                  columns=self.atomic_dict.keys(), index=self.atomic_dict.keys())
-        self.spontaneous_trans.columns.name = 'from'
-        self.spontaneous_trans.index.name = 'to'
 
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
@@ -107,8 +107,8 @@ class AtomicDB:
             self.atomic_dict = {'3s': 0, '3p': 1, '3d': 2, '4s': 3, '4p': 4, '4d': 5, '4f': 6, '5s': 7}
             self.atomic_levels = 8
         if self.species == 'dummy':
-            self.atomic_dict = {'1': 1, '0': 0}
-            self.atomic_levels = 2
+            self.atomic_dict = {'1': 1, '0': 0, '2': 2}
+            self.atomic_levels = 3
         self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
 
     def __set_rates_path(self, rate_type):
