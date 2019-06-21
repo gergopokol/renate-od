@@ -21,7 +21,6 @@ class CoefficientMatrix:
             [comp for comp in plasma_components['Z'] if comp > 0])])
         self.ion_impact_loss_np = numpy.concatenate([[self.electron_impact_loss_np] * len(
             [comp for comp in plasma_components['Z'] if comp > 0])])
-        self.spontaneous_trans_np = numpy.array(atomic_db.spontaneous_trans)
         # Initialize assembly matrices
         self.matrix = numpy.zeros(
             (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet grid'].size))
@@ -74,8 +73,8 @@ class CoefficientMatrix:
                     self.assemble_spontaneous_population_loss_terms(from_level, to_level, atomic_db)
                 else:
                     self.assemble_spontaneous_population_gain_terms(from_level, to_level, atomic_db)
-        #for step in range(self.beamlet_profiles['beamlet grid'].size):
-            #self.apply_photons(step)
+        for step in range(self.beamlet_profiles['beamlet grid'].size):
+            self.apply_photons(step)
 
     def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
         self.electron_impact_trans_np[from_level, to_level, :] \
@@ -119,11 +118,11 @@ class CoefficientMatrix:
 
     def assemble_spontaneous_population_loss_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            - numpy.sum(self.spontaneous_trans_np[from_level, :]) / self.velocity
+            - numpy.sum(atomic_db.spontaneous_trans[:, from_level]) / self.velocity
         
     def assemble_spontaneous_population_gain_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            self.spontaneous_trans_np[from_level, to_level] / self.velocity
+            atomic_db.spontaneous_trans[to_level, from_level] / self.velocity
         
     def apply_electron_density(self, step):
         self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
