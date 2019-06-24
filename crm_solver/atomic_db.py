@@ -37,22 +37,22 @@ class AtomicDB:
         self.__set_ion_impact_transition_functions()
 
     def __set_impact_loss_functions(self):
+        '''''
+        Contains beam atom impact ionization (ion + ch) data for loaded atomic type.
+        Indexing convention: data[charge][to_level]
+        '''''
         raw_impact_loss_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Electron Loss Collisions')
         self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
-        self.electron_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys(), index=['electron'])
-        self.electron_impact_loss.columns.name = 'from'
-        self.ion_impact_loss = pandas.DataFrame(columns=self.atomic_dict.keys(), index=self.charged_states)
-        self.ion_impact_loss.columns.name = 'from'
-        self.ion_impact_loss.index.name = 'q'
+        self.electron_impact_loss, self.ion_impact_loss = [], []
         for from_level in range(self.atomic_levels):
-            self.electron_impact_loss[self.inv_atomic_dict[from_level]] = \
-                interp1d(self.temperature_axis, raw_impact_loss_transition[0, from_level, :],
-                         fill_value='extrapolate')
+            self.electron_impact_loss.append(interp1d(self.temperature_axis, raw_impact_loss_transition[0, from_level, :],
+                                             fill_value='extrapolate'))
             for charged_state in range(raw_impact_loss_transition.shape[0]-1):
-                self.ion_impact_loss[self.inv_atomic_dict[from_level]][self.charged_states[charged_state]] = \
-                    interp1d(self.temperature_axis, raw_impact_loss_transition[charged_state+1, from_level, :],
-                             fill_value='extrapolate')
+                from_level_functions=[]
+                from_level_functions.append(interp1d(self.temperature_axis, raw_impact_loss_transition[charged_state+1,
+                                                     from_level, :], fill_value='extrapolate'))
+            self.ion_impact_loss.append(from_level_functions)
 
     def __set_electron_impact_transition_functions(self):
         '''''
@@ -75,9 +75,7 @@ class AtomicDB:
         raw_impurity_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Impurity Neutral Collisions')
 
-        multiindex = pandas.MultiIndex.from_product([self.atomic_dict.keys(), self.charged_states], names=['to', 'q'])
-        self.ion_impact_trans = pandas.DataFrame(columns=self.atomic_dict.keys(), index=multiindex)
-        self.ion_impact_trans.columns.name = 'from'
+        self.ion_impact_trans = []
         for from_level in range(self.atomic_levels):
             for to_level in range(self.atomic_levels):
                 self.ion_impact_trans[self.inv_atomic_dict[from_level]][self.inv_atomic_dict[to_level], self.charged_states[0]] = \
