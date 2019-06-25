@@ -47,7 +47,7 @@ class CoefficientMatrix:
                 self.interpolate_ion_impact_loss(ion, from_level, atomic_db)
                 for to_level in range(atomic_db.atomic_levels):
                     if to_level != from_level:
-                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db, plasma_components)
+                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db)
 
     def assemble_matrix(self, atomic_db, plasma_components):
         for from_level in range(atomic_db.atomic_levels):
@@ -90,10 +90,10 @@ class CoefficientMatrix:
         self.electron_impact_loss_np[from_level, :] = \
             atomic_db.electron_impact_loss[from_level](self.beamlet_profiles['electron']['temperature']['eV'][:])
 
-    def interpolate_ion_impact_loss(self, ion, from_level, atomic_db, plasma_components):
+    def interpolate_ion_impact_loss(self, ion, from_level, atomic_db):
         self.ion_impact_loss_np[ion, from_level, :] = \
-            atomic_db.ion_impact_loss[atomic_db.inv_atomic_dict[from_level]][atomic_db.charged_states[
-                plasma_components['q']['ion'+str(ion+1)]-1]](self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
+            atomic_db.ion_impact_loss[from_level][ion](
+                self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
 
     def assemble_electron_impact_population_loss_terms(self, from_level, to_level, atomic_db):
         self.electron_terms[from_level, to_level, :] = \
