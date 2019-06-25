@@ -27,7 +27,7 @@ class AtomicDB:
         elif self.species == 'dummy':
             return '1', '0', '0', '1-0'
         else:
-            raise ValueError('The atomic species: ' + self.atomic_db.species + ' is not supported')
+            raise ValueError('The atomic species: ' + self.species + ' is not supported')
 
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
@@ -42,16 +42,16 @@ class AtomicDB:
         Indexing convention: data[from_level][charge] for ion impact electron loss interaction.
         Indexing convention: data[from_level] for electron impact electron loss interactions. 
         '''''
-        self.raw_impact_loss_transition = self.load_rate_data(self.rates_path,
+        raw_impact_loss_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Electron Loss Collisions')
-        self.__set_charge_state_lib(self.raw_impact_loss_transition.shape[0]-1)
+        self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
         self.electron_impact_loss, self.ion_impact_loss = [], []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
-            self.electron_impact_loss.append(interp1d(self.temperature_axis, self.raw_impact_loss_transition
+            self.electron_impact_loss.append(interp1d(self.temperature_axis, raw_impact_loss_transition
                                                       [0, from_level, :], fill_value='extrapolate'))
-            for charged_state in range(self.raw_impact_loss_transition.shape[0]-1):
-                from_level_functions.append(interp1d(self.temperature_axis, self.raw_impact_loss_transition
+            for charged_state in range(raw_impact_loss_transition.shape[0]-1):
+                from_level_functions.append(interp1d(self.temperature_axis, raw_impact_loss_transition
                                                      [charged_state+1, from_level, :], fill_value='extrapolate'))
             self.ion_impact_loss.append(from_level_functions)
 
@@ -60,32 +60,36 @@ class AtomicDB:
         Contains electron impact transition data for loaded atomic type.
         Indexing convention: data[from_level][to_level]
         '''''
-        self.raw_electron_transition = self.load_rate_data(self.rates_path,
+        raw_electron_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Electron Neutral Collisions')
         self.electron_impact_trans = []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
             for to_level in range(self.atomic_levels):
-                from_level_functions.append(interp1d(self.temperature_axis, self.raw_electron_transition[from_level,
+                from_level_functions.append(interp1d(self.temperature_axis, raw_electron_transition[from_level,
                                                      to_level, :], fill_value='extrapolate'))
             self.electron_impact_trans.append(from_level_functions)
 
     def __set_ion_impact_transition_functions(self):
-        self.raw_proton_transition = self.load_rate_data(self.rates_path,
+        '''''
+        Contains spontanous transition data for loaded atomic type.
+        Indexing convention: data[from_level, to_level, charge]
+        '''''
+        raw_proton_transition = self.load_rate_data(self.rates_path,
                                                          'Collisional Coeffs/Proton Neutral Collisions')
-        self.raw_impurity_transition = self.load_rate_data(self.rates_path,
+        raw_impurity_transition = self.load_rate_data(self.rates_path,
                                                            'Collisional Coeffs/Impurity Neutral Collisions')
         self.ion_impact_trans = []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
             for to_level in range(self.atomic_levels):
                 to_level_functions = []
-                for charged_state in range(self.raw_impurity_transition.shape[0]+1):
+                for charged_state in range(raw_impurity_transition.shape[0]+1):
                     if charged_state == 0:
-                        to_level_functions.append(interp1d(self.temperature_axis, self.raw_proton_transition
+                        to_level_functions.append(interp1d(self.temperature_axis, raw_proton_transition
                                                            [from_level, to_level, :], fill_value='extrapolate'))
                     else:
-                        to_level_functions.append(interp1d(self.temperature_axis, self.raw_impurity_transition
+                        to_level_functions.append(interp1d(self.temperature_axis, raw_impurity_transition
                                                            [charged_state-1, from_level, to_level, :],
                                                            fill_value='extrapolate'))
                 from_level_functions.append(to_level_functions)
