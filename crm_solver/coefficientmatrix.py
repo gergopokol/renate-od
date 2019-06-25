@@ -78,7 +78,7 @@ class CoefficientMatrix:
 
     def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
         self.electron_impact_trans_np[from_level, to_level, :] \
-            = atomic_db.electron_impact_trans[atomic_db.inv_atomic_dict[from_level]][atomic_db.inv_atomic_dict[to_level]](
+            = atomic_db.electron_impact_trans[from_level][to_level](
             self.beamlet_profiles['electron']['temperature']['eV'][:])
 
     def interpolate_ion_impact_trans(self, ion, from_level, to_level, atomic_db, plasma_components):
