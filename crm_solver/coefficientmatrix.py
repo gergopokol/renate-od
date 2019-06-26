@@ -21,6 +21,7 @@ class CoefficientMatrix:
             [comp for comp in plasma_components['Z'] if comp > 0])])
         self.ion_impact_loss_np = numpy.concatenate([[self.electron_impact_loss_np] * len(
             [comp for comp in plasma_components['Z'] if comp > 0])])
+
         # Initialize assembly matrices
         self.matrix = numpy.zeros(
             (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet grid'].size))
@@ -33,8 +34,8 @@ class CoefficientMatrix:
             (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet grid'].size))
         self.interpolate_rates(atomic_db, plasma_components)
         self.assemble_matrix(atomic_db, plasma_components)
-        for step in range(self.beamlet_profiles['beamlet grid'].size):
-            self.matrix[:, :, step]=self.matrix[:, :, step].transpose()
+        #for step in range(self.beamlet_profiles['beamlet grid'].size):
+        #    self.matrix[:, :, step]=self.matrix[:, :, step].transpose()
 
     def interpolate_rates(self, atomic_db, plasma_components):
         for from_level in range(atomic_db.atomic_levels):
