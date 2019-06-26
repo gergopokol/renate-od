@@ -17,16 +17,16 @@ class Obs1d:
         self.obs_profile = self.read_observation_profile(data_path=self.obs_param.getroot().find('body').find('observation_profile_path').text)
         self.observed_level = self.obs_param.getroot().find('body').find('observed_level').text
         self.observed_level_index = int(re.findall('\\d+', self.observed_level)[0])
-        self.photon_fraction = beam_current * self.beamlet.coefficient_matrix.rates.einstein_coeffs[0, self.observed_level_index]\
+        self.photon_fraction = beam_current * self.beamlet.coefficient_matrix.spontaneous_trans_np[0, self.observed_level_index]\
                                / self.constants.charge_electron / float(beamlet.param.getroot().find('body').find('beamlet_velocity').text)
         self.photon_emission_profile = numpy.zeros(self.obs_profile.size)
         self.emission_profile = pandas.DataFrame()
 
     def calculate_photon_emission_profile(self):
         for detector_index in range(len(self.obs_profile)):
-            if self.obs_profile[0][detector_index] + float(self.obs_param.getroot().find('body').find('detector_size').text)\
-                    / 2 < max(self.beamlet.profiles.beamlet_grid):
-                detector_steps = numpy.where(abs(self.beamlet.profiles.beamlet_grid-self.obs_profile[0][detector_index])
+            if self.obs_profile[0][detector_index] + float(self.obs_param.getroot().find('body').find(
+                    'detector_size').text) / 2 < max(self.beamlet.profiles['beamlet grid']):
+                detector_steps = numpy.where(abs(self.beamlet.profiles['beamlet grid']-self.obs_profile[0][detector_index])
                                              < float(self.obs_param.getroot().find('body').find('detector_size').text) / 2)
                 for step_index in detector_steps[0]:
                     self.photon_emission_profile[detector_index] = self.photon_emission_profile[detector_index] + \
