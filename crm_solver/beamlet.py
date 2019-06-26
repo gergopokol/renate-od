@@ -127,7 +127,8 @@ class Beamlet:
         if self.__was_beamevolution_performed():
             transition_label = from_level + '-' + to_level
             self.profiles[transition_label] = \
-                self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[from_level][to_level]
+                self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[self.atomic_db.atomic_dict
+                                                                                      [to_level], self.atomic_db.atomic_dict[from_level]]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
