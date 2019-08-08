@@ -1,6 +1,6 @@
 from crm_solver.atomic_db import AtomicDB
 import unittest
-from lxml import etree
+import numpy
 
 
 class AtomicDBTest(unittest.TestCase):
@@ -37,3 +37,14 @@ class AtomicDBTest(unittest.TestCase):
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
             self.assertIsInstance(atom.atomic_dict, dict)
             self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
+
+    def test_spontaneous_trans(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.spontaneous_trans, numpy.ndarray)
+        self.assertEqual(actual.spontaneous_trans.ndim, 2)
+        self.assertEqual(actual.atomic_levels, int(actual.spontaneous_trans.size ** 0.5))
+        for to_level in range(actual.atomic_levels):
+            for from_level in range(actual.atomic_levels):
+                if from_level <= to_level:
+                    self.assertEqual(actual.spontaneous_trans[to_level, from_level],
+                                     0.0, msg='Spontaneous transition levels set wrong!!')
