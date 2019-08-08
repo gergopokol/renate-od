@@ -36,4 +36,4 @@ class AtomicDBTest(unittest.TestCase):
             self.assertIsInstance(atom.atomic_levels, int)
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
             self.assertIsInstance(atom.atomic_dict, dict)
-            self.assertEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
+            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
