@@ -37,6 +37,7 @@ class AtomicDBTest(unittest.TestCase):
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
             self.assertIsInstance(atom.atomic_dict, dict)
             self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
+            self.assertIsInstance(atom.inv_atomic_dict, dict)
 
     def test_spontaneous_trans(self):
         actual = AtomicDB()
