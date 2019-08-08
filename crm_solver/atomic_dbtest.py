@@ -1,6 +1,7 @@
 from crm_solver.atomic_db import AtomicDB
 import unittest
 import numpy
+import scipy
 
 
 class AtomicDBTest(unittest.TestCase):
@@ -49,3 +50,11 @@ class AtomicDBTest(unittest.TestCase):
                 if from_level <= to_level:
                     self.assertEqual(actual.spontaneous_trans[to_level, from_level],
                                      0.0, msg='Spontaneous transition levels set wrong!!')
+
+    def test_electron_impact_loss_terms(self):
+        actual = AtomicDB()
+        self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
+        self.assertIsInstance(actual.electron_impact_loss, list)
+        for index in range(actual.atomic_levels):
+            self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
+
