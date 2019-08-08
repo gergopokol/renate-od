@@ -30,10 +30,10 @@ class AtomicDBTest(unittest.TestCase):
 
     def test_atomic_levels(self):
         actual = AtomicDB()
-        assert isinstance(actual.atomic_dict, dict)
-        assert isinstance(actual.inv_atomic_dict, dict)
-        assert isinstance(actual.atomic_levels, int)
         for index in range(len(self.EXPECTED_ATOM)):
             actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
             atom = AtomicDB(param=actual.param)
+            self.assertIsInstance(atom.atomic_levels, int)
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
+            self.assertIsInstance(atom.atomic_dict, dict)
+            self.assertEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
