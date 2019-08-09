@@ -53,8 +53,17 @@ class AtomicDBTest(unittest.TestCase):
 
     def test_electron_impact_loss_terms(self):
         actual = AtomicDB()
-        self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
         self.assertIsInstance(actual.electron_impact_loss, list)
+        self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
         for index in range(actual.atomic_levels):
             self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
 
+    def test_electron_impact_transition_terms(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.electron_impact_trans, list)
+        self.assertEqual(len(actual.electron_impact_trans), actual.atomic_levels)
+        for from_level in range(actual.atomic_levels):
+            self.assertIsInstance(actual.electron_impact_trans[from_level], list)
+            self.assertEqual(len(actual.electron_impact_trans[from_level]), actual.atomic_levels)
+            for to_level in range(actual.atomic_levels):
+                self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
