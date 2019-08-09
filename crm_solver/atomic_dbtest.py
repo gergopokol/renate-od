@@ -86,4 +86,15 @@ class AtomicDBTest(unittest.TestCase):
                 self.assertIsInstance(actual.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d)
 
     def test_ion_impact_transition_terms(self):
-        pass
+        actual = AtomicDB()
+        self.assertIsInstance(actual.ion_impact_trans, list)
+        self.assertEqual(len(actual.ion_impact_trans), actual.atomic_levels)
+        for from_level in range(actual.atomic_levels):
+            self.assertIsInstance(actual.ion_impact_trans[from_level], list)
+            self.assertEqual(len(actual.ion_impact_trans[from_level]), actual.atomic_levels)
+            for to_level in range(actual.atomic_levels):
+                self.assertIsInstance(actual.ion_impact_trans[from_level][to_level], list)
+                self.assertEqual(len(actual.ion_impact_trans[from_level][to_level]), len(actual.charged_states))
+                for charge in range(len(actual.charged_states)):
+                    self.assertIsInstance(actual.ion_impact_trans[from_level][to_level][charge],
+                                          scipy.interpolate.interp1d)
