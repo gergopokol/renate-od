@@ -67,3 +67,10 @@ class AtomicDBTest(unittest.TestCase):
             self.assertEqual(len(actual.electron_impact_trans[from_level]), actual.atomic_levels)
             for to_level in range(actual.atomic_levels):
                 self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
+
+    def test_charged_state_library(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.charged_states, list)
+        for state in range(len(actual.charged_states)):
+            self.assertIsInstance(actual.charged_states[state], str)
+            self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
