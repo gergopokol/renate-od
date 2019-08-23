@@ -3,6 +3,7 @@ from lxml import etree
 from utility import getdata
 import pandas
 from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
 
 
 class AtomicDB:
@@ -131,6 +132,54 @@ class AtomicDB:
         self.charged_states = []
         for state in range(nr_charged_states):
             self.charged_states.append('charge-'+str(state+1))
+
+    def plot_rates(self, *args, temperature=None):
+        if temperature is None:
+            temperature = self.temperature_axis
+        elif not (isinstance(temperature, numpy.ndarray) or isinstance(temperature, list)):
+            raise TypeError('The give temperature axis is not of list or numpy.ndarray type.')
+
+        for arg in args:
+            if not isinstance(arg, tuple):
+                raise TypeError('Rate coordinates are expected to be of type tuples. Each coordinate is expected '
+                                'to contain following information (transition type {ion, trans, spont}, '
+                                'interaction with {e, p}, from level {2s,3s,1,...}, to level {2s,2p,2,...}, '
+                                'charge {-1,1,2,...} )')
+            assert isinstance(arg[0], str)
+            if arg[0] not in ['trans', 'ion', 'spont']:
+                raise ValueError(arg[0] + ' is not a supported transition. Try: trans, ion or spont keywords.')
+            if arg[0] is 'spont':
+                assert (isinstance(arg[1], str) and isinstance(arg[2], str))
+                plt.plot(temperature, self.spontaneous_trans[self.atomic_dict[arg[2]], self.atomic_dict[arg[1]]] *
+                         numpy.ones(len(temperature)), label='Spont. trans.: '+arg[1]+'-->'+arg[2])
+            assert isinstance(arg[1], str)
+            if arg[1] not in ['e', 'p']:
+                raise ValueError('Expected impact interactions are: e or p')
+            if arg[1] is 'e':
+                assert isinstance(arg[2], str)
+                if arg[0] is 'ion':
+                    plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature),
+                             label='e impact ion: '+self.atomic_dict[arg[2]]+'-->i')
+                else:
+                    assert isinstance(arg[3], str)
+                    plt.plot(temperature, self.electron_impact_trans[self.atomic_dict[arg[2]]]
+                             [self.atomic_dict[arg[3]]](temperature), label='e impact trans: '+arg[2]+'-->'+arg[3])
+            else:
+                assert isinstance(arg[2], str)
+                assert isinstance(arg[-1], int)
+                if arg[-1] > len(self.charged_states):
+                    raise ValueError('There are no rates available for atom impact with charged state: q='+str(arg[-1]))
+                if arg[0] is 'ion':
+                    plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature),
+                             label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
+                else:
+                    assert isinstance(arg[3], str)
+                    plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
+                             [arg[-1]], label='p impact trans (q='+str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
+        plt.xlabel('Temperature [keV]')
+        plt.ylabel('Rates [m^-2]')
+        plt.legend()
+        plt.show()
 
     @staticmethod
     def load_rate_data(path, tag_name):
