@@ -169,15 +169,19 @@ class AtomicDB:
                 assert isinstance(arg[-1], int)
                 if arg[-1] > len(self.charged_states):
                     raise ValueError('There are no rates available for atom impact with charged state: q='+str(arg[-1]))
+                if arg[-1] < 1:
+                    raise ValueError('There are supported charged for or below: q='+str(arg[-1]))
                 if arg[0] is 'ion':
                     plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature),
                              label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
                 else:
                     assert isinstance(arg[3], str)
                     plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
-                             [arg[-1]], label='p impact trans (q='+str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
+                             [arg[-1]-1](temperature), label='p impact trans (q='+str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
         plt.xlabel('Temperature [keV]')
         plt.ylabel('Rates [m^-2]')
+        plt.yscale('log')
+        plt.xscale('log')
         plt.legend()
         plt.show()
 
