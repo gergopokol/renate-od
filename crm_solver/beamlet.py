@@ -2,6 +2,7 @@ import utility
 from utility.getdata import GetData
 from utility.convert import calculate_velocity_from_energy
 from utility.constants import Constants
+from utility.convert import convert_keV_to_eV
 import pandas
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
@@ -64,7 +65,7 @@ class Beamlet:
     def __get_velocity(self):
         energy = self.param.getroot().find('body').find('beamlet_energy').text
         mass = self.param.getroot().find('body').find('beamlet_mass').text
-        velocity = calculate_velocity_from_energy(energy, float(mass))
+        velocity = calculate_velocity_from_energy(convert_keV_to_eV(energy), float(mass))
         new_element = etree.Element('beamlet_velocity')
         new_element.text = str(velocity)
         new_element.set('unit', 'm/s')
