@@ -80,3 +80,7 @@ def cylin_to_cartesian(point):
     assert len(point) == 3
     x, y, z = point[0]*math.cos(point[2]), point[0]*math.sin(point[2]), point[1]
     return np.asarray([x, y, z])
+
+
+def convert_keV_to_eV(energy):
+    return energy*1E3
