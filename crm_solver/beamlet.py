@@ -65,7 +65,7 @@ class Beamlet:
     def __get_velocity(self):
         energy = self.param.getroot().find('body').find('beamlet_energy').text
         mass = self.param.getroot().find('body').find('beamlet_mass').text
-        velocity = calculate_velocity_from_energy(convert_keV_to_eV(energy), float(mass))
+        velocity = calculate_velocity_from_energy(convert_keV_to_eV(float(energy)), float(mass))
         new_element = etree.Element('beamlet_velocity')
         new_element.text = str(velocity)
         new_element.set('unit', 'm/s')
