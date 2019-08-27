@@ -179,7 +179,7 @@ class AtomicDB:
                     plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
                              [arg[-1]-1](temperature), label='p impact trans (q='+str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
         plt.title('Reduced rates for '+self.species+' projectiles at '+str(self.energy)+' keV impact energy.')
-        plt.xlabel('Temperature [keV]')
+        plt.xlabel('Temperature [eV]')
         plt.ylabel('Rates [cm^2]')
         plt.yscale('log')
         plt.xscale('log')
