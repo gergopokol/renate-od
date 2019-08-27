@@ -17,6 +17,10 @@ class AtomicDBTest(unittest.TestCase):
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5},
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5},
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}]
+    INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
+    EXPECTED_ELECTRON_IMPACT_LOSS = [[11., 111., 211., 261., 311., 811., 1011.],
+                                     [21., 121., 221., 271., 321., 821., 1021.],
+                                     [31., 131., 231., 281., 331., 831., 1031.]]
 
     def test_all_attributes(self):
         actual = AtomicDB()
@@ -100,7 +104,11 @@ class AtomicDBTest(unittest.TestCase):
                                           scipy.interpolate.interp1d)
 
     def test_electron_impact_loss_interpolator(self):
-        pass
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        for level in range(actual.atomic_levels):
+            rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
+            for element_index in range(len(rates)):
+                self.assertEqual(rates[element_index], self.EXPECTED_ELECTRON_IMPACT_LOSS[level][element_index])
 
     def test_electron_impact_transition_interpolator(self):
         pass
