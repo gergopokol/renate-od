@@ -49,7 +49,7 @@ def convert_beamlet_profiles_to_si(data_path_name='beamlet/test_profiles.h5'):
 
 def calculate_velocity_from_energy(energy, mass):
     constants = Constants()
-    velocity = (2 * float(energy) * constants.charge_electron / mass) ** 0.5
+    velocity = (2 * energy * constants.charge_electron / mass) ** 0.5
     return velocity
 
 
