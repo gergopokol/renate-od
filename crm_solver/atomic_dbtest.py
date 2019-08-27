@@ -98,3 +98,15 @@ class AtomicDBTest(unittest.TestCase):
                 for charge in range(len(actual.charged_states)):
                     self.assertIsInstance(actual.ion_impact_trans[from_level][to_level][charge],
                                           scipy.interpolate.interp1d)
+
+    def test_electron_impact_loss_interpolator(self):
+        pass
+
+    def test_electron_impact_transition_interpolator(self):
+        pass
+
+    def test_ion_impact_loss_interpolator(self):
+        pass
+
+    def test_ion_impact_transition_interpolator(self):
+        pass
