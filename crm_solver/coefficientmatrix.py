@@ -122,12 +122,12 @@ class CoefficientMatrix:
         
     def apply_electron_density(self, step):
         self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
-                                  * convert.convert_from_cm2_to_m2(self.electron_terms[:, :, step])
+                                  * self.electron_terms[:, :, step]
         
     def apply_ion_density(self, ion, step):
         self.matrix[:, :, step] = self.matrix[:, :, step] + \
                                   self.beamlet_profiles['ion' + str(ion + 1)]['density']['m-3'][step] \
-                                  * convert.convert_from_cm2_to_m2(self.ion_terms[ion, :, :, step])
+                                  * self.ion_terms[ion, :, :, step]
         
     def apply_photons(self, step):
         self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
