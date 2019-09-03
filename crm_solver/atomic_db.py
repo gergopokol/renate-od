@@ -1,5 +1,4 @@
 import numpy
-import utility
 from lxml import etree
 from utility import getdata
 import utility.convert as uc
