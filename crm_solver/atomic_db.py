@@ -54,7 +54,8 @@ class AtomicDB:
             for charged_state in range(raw_impact_loss_transition.shape[0]-1):
                 from_level_functions.append(interp1d(self.temperature_axis, raw_impact_loss_transition
                                                      [charged_state+1, from_level, :], fill_value='extrapolate'))
-            self.ion_impact_loss.append(from_level_functions)
+            self.ion_impact_loss.append(tuple(from_level_functions))
+        self.electron_impact_loss, self.ion_impact_loss = tuple(self.electron_impact_loss), tuple(self.ion_impact_loss)
 
     def __set_electron_impact_transition_functions(self):
         '''''
@@ -69,7 +70,8 @@ class AtomicDB:
             for to_level in range(self.atomic_levels):
                 from_level_functions.append(interp1d(self.temperature_axis, raw_electron_transition[from_level,
                                                      to_level, :], fill_value='extrapolate'))
-            self.electron_impact_trans.append(from_level_functions)
+            self.electron_impact_trans.append(tuple(from_level_functions))
+        self.electron_impact_trans = tuple(self.electron_impact_trans)
 
     def __set_ion_impact_transition_functions(self):
         '''''
@@ -93,8 +95,9 @@ class AtomicDB:
                         to_level_functions.append(interp1d(self.temperature_axis, raw_impurity_transition
                                                            [charged_state-1, from_level, to_level, :],
                                                            fill_value='extrapolate'))
-                from_level_functions.append(to_level_functions)
-            self.ion_impact_trans.append(from_level_functions)
+                from_level_functions.append(tuple(to_level_functions))
+            self.ion_impact_trans.append(tuple(from_level_functions))
+        self.ion_impact_trans = tuple(self.ion_impact_trans)
 
     def __set_einstein_coefficient_db(self):
         '''''
