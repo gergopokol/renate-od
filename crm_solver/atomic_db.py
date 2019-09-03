@@ -68,11 +68,11 @@ class AtomicDB:
         self.electron_impact_loss, self.ion_impact_loss = [], []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
-            self.electron_impact_loss.append(interp1d(self.temperature_axis, raw_impact_loss_transition
-                                                      [0, from_level, :], fill_value='extrapolate'))
+            self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
             for charged_state in range(raw_impact_loss_transition.shape[0]-1):
-                from_level_functions.append(interp1d(self.temperature_axis, raw_impact_loss_transition
-                                                     [charged_state+1, from_level, :], fill_value='extrapolate'))
+                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                    raw_impact_loss_transition[charged_state+1, from_level, :]), fill_value='extrapolate'))
             self.ion_impact_loss.append(tuple(from_level_functions))
         self.electron_impact_loss, self.ion_impact_loss = tuple(self.electron_impact_loss), tuple(self.ion_impact_loss)
 
@@ -87,8 +87,8 @@ class AtomicDB:
         for from_level in range(self.atomic_levels):
             from_level_functions = []
             for to_level in range(self.atomic_levels):
-                from_level_functions.append(interp1d(self.temperature_axis, raw_electron_transition[from_level,
-                                                     to_level, :], fill_value='extrapolate'))
+                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                    raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
             self.electron_impact_trans.append(tuple(from_level_functions))
         self.electron_impact_trans = tuple(self.electron_impact_trans)
 
@@ -108,11 +108,11 @@ class AtomicDB:
                 to_level_functions = []
                 for charged_state in range(raw_impurity_transition.shape[0]+1):
                     if charged_state == 0:
-                        to_level_functions.append(interp1d(self.temperature_axis, raw_proton_transition
-                                                           [from_level, to_level, :], fill_value='extrapolate'))
+                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                            raw_proton_transition[from_level, to_level, :]), fill_value='extrapolate'))
                     else:
-                        to_level_functions.append(interp1d(self.temperature_axis, raw_impurity_transition
-                                                           [charged_state-1, from_level, to_level, :],
+                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                            raw_impurity_transition[charged_state-1, from_level, to_level, :]),
                                                            fill_value='extrapolate'))
                 from_level_functions.append(tuple(to_level_functions))
             self.ion_impact_trans.append(tuple(from_level_functions))
