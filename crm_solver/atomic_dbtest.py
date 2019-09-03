@@ -5,8 +5,8 @@ import scipy
 
 
 class AtomicDBTest(unittest.TestCase):
-    EXPECTED_ATTR = ['energy', 'param', 'species', 'electron_impact_loss', 'ion_impact_loss',
-                     'atomic_dict', 'rate_type', 'electron_impact_trans', 'ion_impact_trans',
+    EXPECTED_ATTR = ['energy', 'param', 'species', 'electron_impact_loss', 'ion_impact_loss', 'mass',
+                     'atomic_dict', 'rate_type', 'electron_impact_trans', 'ion_impact_trans', 'velocity',
                      'spontaneous_trans', 'atomic_levels', 'charged_states', 'inv_atomic_dict']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
