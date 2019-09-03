@@ -8,8 +8,8 @@ from utility import convert
 class CoefficientMatrix:
     def __init__(self, beamlet_param, beamlet_profiles, plasma_components, atomic_db):
         assert isinstance(beamlet_param, etree._ElementTree)
-        self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
-        self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
+        #self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
+        #self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
         # Initialize interpolation matrices
@@ -118,11 +118,11 @@ class CoefficientMatrix:
 
     def assemble_spontaneous_population_loss_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            - numpy.sum(atomic_db.spontaneous_trans[:, from_level]) / self.velocity
+            - numpy.sum(atomic_db.spontaneous_trans[:, from_level]) / atomic_db.velocity
         
     def assemble_spontaneous_population_gain_terms(self, from_level, to_level, atomic_db):
         self.photon_terms[from_level, to_level, :] = \
-            atomic_db.spontaneous_trans[to_level, from_level] / self.velocity
+            atomic_db.spontaneous_trans[to_level, from_level] / atomic_db.velocity
         
     def apply_electron_density(self, step):
         self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
