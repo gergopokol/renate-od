@@ -30,6 +30,21 @@ class AtomicDBTest(unittest.TestCase):
                                       [[31., 131., 231., 281., 331., 831., 1031.],
                                        [32., 132., 232., 282., 332., 832., 1032.],
                                        [0.,    0.,   0.,   0.,   0.,   0.,    0.]]]
+    EXPECTED_ION_IMPACT_LOSS = [[[12., 112., 212., 262., 312., 812., 1012.],
+                                 [13., 113., 213., 263., 313., 813., 1013.],
+                                 [14., 114., 214., 264., 314., 814., 1014.],
+                                 [15., 115., 215., 265., 315., 815., 1015.],
+                                 [16., 116., 216., 266., 316., 816., 1016.]],
+                                [[22., 122., 222., 272., 322., 822., 1022.],
+                                 [23., 123., 223., 273., 323., 823., 1023.],
+                                 [24., 124., 224., 274., 324., 824., 1024.],
+                                 [25., 125., 225., 275., 325., 825., 1025.],
+                                 [26., 126., 226., 276., 326., 826., 1026.]],
+                                [[32., 132., 232., 282., 332., 832., 1032.],
+                                 [33., 133., 233., 283., 333., 833., 1033.],
+                                 [34., 134., 234., 284., 334., 834., 1034.],
+                                 [35., 135., 235., 285., 335., 835., 1035.],
+                                 [36., 136., 236., 286., 336., 836., 1036.]]]
 
     def test_all_attributes(self):
         actual = AtomicDB()
@@ -129,7 +144,12 @@ class AtomicDBTest(unittest.TestCase):
                                      self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level][to_level][element_index])
 
     def test_ion_impact_loss_interpolator(self):
-        pass
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        for level in range(actual.atomic_levels):
+            for charge in range(len(actual.charged_states)):
+                rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
+                for element_index in range(len(rates)):
+                    self.assertEqual(rates[element_index], self.EXPECTED_ION_IMPACT_LOSS[level][charge][element_index])
 
     def test_ion_impact_transition_interpolator(self):
         pass
