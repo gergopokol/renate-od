@@ -135,6 +135,7 @@ class AtomicDB:
         self.charged_states = []
         for state in range(nr_charged_states):
             self.charged_states.append('charge-'+str(state+1))
+        self.charged_states = tuple(self.charged_states)
 
     def plot_rates(self, *args, temperature=None):
         if temperature is None:
