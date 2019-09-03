@@ -19,10 +19,7 @@ class Obs1d:
                 min([self.beamlet.profiles['beamlet grid']['distance']['m'][j + 1] -
                  self.beamlet.profiles['beamlet grid']['distance']['m'][j] for j in range(
                 self.beamlet.profiles['beamlet grid']['distance']['m'].size - 1)])):
-            warnings.warn('The calculated resolution is poorer than the detector resolution. It is recommended to rerun the '
-                  'photon emission calculations on a finer grid. If you still want to continue, '
-                  'call calculate_photon_emission_profile() function.')
-
+            warnings.warn('Use finer grid or call calculate_photon_emission_profile() with input \'interpolate=True\'.')
         if (from_level is None) or (to_level is None):
             self.observed_level = beamlet.atomic_db.set_default_atomic_levels()[3]
         else:
@@ -31,13 +28,25 @@ class Obs1d:
         self.photon_emission_profile = numpy.zeros(self.obs_profile.size)
         self.emission_profile = pandas.DataFrame()
 
-    def calculate_photon_emission_profile(self):
+    def calculate_photon_emission_profile(self, interpolate=False):
+        if interpolate:
+            new_resolution = int((max(self.beamlet.profiles['beamlet grid']['distance']['m']) -
+                                  min(self.beamlet.profiles['beamlet grid']['distance']['m'])) /
+                                 self.detector_size * 10)
+            self.beamlet_grid_int = numpy.linspace(min(self.beamlet.profiles['beamlet grid']['distance']['m']),
+                                                   max(self.beamlet.profiles['beamlet grid']['distance']['m']),
+                                                   new_resolution)
+            self.observed_profile_int = numpy.interp(self.beamlet_grid_int, self.beamlet.profiles['beamlet grid'][
+                'distance']['m'], self.beamlet.profiles[self.observed_level])
+        else:
+            self.beamlet_grid_int = self.beamlet.profiles['beamlet grid']['distance']['m']
+            self.observed_profile_int = self.beamlet.profiles[self.observed_level]
         for detector_index in range(len(self.obs_profile)):
-            if self.obs_profile[0][detector_index] + self.detector_size / 2. < max(self.beamlet.profiles['beamlet grid']['distance']['m']):
-                detector_steps = [i for i in range(self.beamlet.profiles['beamlet grid']['distance']['m'].size) if abs(
-                    self.beamlet.profiles['beamlet grid']['distance']['m'][i] - self.obs_profile[0][detector_index])
+            if self.obs_profile[0][detector_index] + self.detector_size / 2. < max(self.beamlet_grid_int):
+                detector_steps = [i for i in range(self.beamlet_grid_int.size) if abs(
+                    self.beamlet_grid_int[i] - self.obs_profile[0][detector_index])
                                        < (self.detector_size/2)]
-                self.photon_emission_profile[detector_index] = sum([self.beamlet.profiles[self.observed_level][step]
+                self.photon_emission_profile[detector_index] = sum([self.observed_profile_int[step]
                                                                     for step in detector_steps])
         observing_detectors = numpy.nonzero(self.photon_emission_profile)
         self.emission_profile = pandas.concat([self.obs_profile, pandas.DataFrame(self.photon_emission_profile)],
