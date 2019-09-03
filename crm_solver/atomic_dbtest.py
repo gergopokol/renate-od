@@ -101,6 +101,10 @@ class AtomicDBTest(unittest.TestCase):
         self.assertIsInstance(actual.energy, str)
         self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
 
+    def test_projectile_mass(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.mass, float)
+
     def test_atomic_species(self):
         actual = AtomicDB()
         self.assertIsInstance(actual.species, str)
