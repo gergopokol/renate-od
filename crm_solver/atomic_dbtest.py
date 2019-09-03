@@ -126,47 +126,47 @@ class AtomicDBTest(unittest.TestCase):
 
     def test_electron_impact_loss_terms(self):
         actual = AtomicDB()
-        self.assertIsInstance(actual.electron_impact_loss, list)
+        self.assertIsInstance(actual.electron_impact_loss, tuple)
         self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
         for index in range(actual.atomic_levels):
             self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
 
     def test_electron_impact_transition_terms(self):
         actual = AtomicDB()
-        self.assertIsInstance(actual.electron_impact_trans, list)
+        self.assertIsInstance(actual.electron_impact_trans, tuple)
         self.assertEqual(len(actual.electron_impact_trans), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.electron_impact_trans[from_level], list)
+            self.assertIsInstance(actual.electron_impact_trans[from_level], tuple)
             self.assertEqual(len(actual.electron_impact_trans[from_level]), actual.atomic_levels)
             for to_level in range(actual.atomic_levels):
                 self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
 
     def test_charged_state_library(self):
         actual = AtomicDB()
-        self.assertIsInstance(actual.charged_states, list)
+        self.assertIsInstance(actual.charged_states, tuple)
         for state in range(len(actual.charged_states)):
             self.assertIsInstance(actual.charged_states[state], str)
             self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
 
     def test_ion_impact_loss_terms(self):
         actual = AtomicDB()
-        self.assertIsInstance(actual.ion_impact_loss, list)
+        self.assertIsInstance(actual.ion_impact_loss, tuple)
         self.assertEqual(len(actual.ion_impact_loss), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_loss[from_level], list)
+            self.assertIsInstance(actual.ion_impact_loss[from_level], tuple)
             self.assertEqual(len(actual.ion_impact_loss[from_level]), len(actual.charged_states))
             for charge in range(len(actual.charged_states)):
                 self.assertIsInstance(actual.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d)
 
     def test_ion_impact_transition_terms(self):
         actual = AtomicDB()
-        self.assertIsInstance(actual.ion_impact_trans, list)
+        self.assertIsInstance(actual.ion_impact_trans, tuple)
         self.assertEqual(len(actual.ion_impact_trans), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_trans[from_level], list)
+            self.assertIsInstance(actual.ion_impact_trans[from_level], tuple)
             self.assertEqual(len(actual.ion_impact_trans[from_level]), actual.atomic_levels)
             for to_level in range(actual.atomic_levels):
-                self.assertIsInstance(actual.ion_impact_trans[from_level][to_level], list)
+                self.assertIsInstance(actual.ion_impact_trans[from_level][to_level], tuple)
                 self.assertEqual(len(actual.ion_impact_trans[from_level][to_level]), len(actual.charged_states))
                 for charge in range(len(actual.charged_states)):
                     self.assertIsInstance(actual.ion_impact_trans[from_level][to_level][charge],
