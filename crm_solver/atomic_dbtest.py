@@ -96,6 +96,11 @@ class AtomicDBTest(unittest.TestCase):
         for attr in self.EXPECTED_ATTR:
             assert hasattr(actual, attr)
 
+    def test_projectile_energy(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.energy, str)
+        self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
+
     def test_atomic_species(self):
         actual = AtomicDB()
         self.assertIsInstance(actual.species, str)
