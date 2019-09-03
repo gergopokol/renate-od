@@ -1,7 +1,8 @@
 import numpy
+import utility
 from lxml import etree
 from utility import getdata
-import utility
+import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
@@ -47,8 +48,7 @@ class AtomicDB:
             raise ValueError
 
     def __get_projectile_velocity(self):
-        self.velocity = utility.convert.calculate_velocity_from_energy(
-            utility.convert.convert_keV_to_eV(float(self.energy)), self.mass)
+        self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
 
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
@@ -213,7 +213,7 @@ class AtomicDB:
         if spont_flag:
             plt.ylabel('Reduced rate [1/m]')
         else:
-            plt.ylabel('Reduces rate coefficient  [cm^2]')
+            plt.ylabel('Reduces rate coefficient  [m^2]')
         plt.yscale('log')
         plt.xscale('log')
         plt.legend()
