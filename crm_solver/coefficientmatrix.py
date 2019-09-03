@@ -2,16 +2,14 @@ import numpy
 from lxml import etree
 import pandas
 from utility import convert
-#from scipy.interpolate import interp1d
 
 
 class CoefficientMatrix:
     def __init__(self, beamlet_param, beamlet_profiles, plasma_components, atomic_db):
         assert isinstance(beamlet_param, etree._ElementTree)
-        #self.mass = float(beamlet_param.getroot().find('body').find('beamlet_mass').text)
-        #self.velocity = float(beamlet_param.getroot().find('body').find('beamlet_velocity').text)
         assert isinstance(beamlet_profiles, pandas.DataFrame)
         self.beamlet_profiles = beamlet_profiles
+
         # Initialize interpolation matrices
         self.electron_impact_trans_np = numpy.zeros((atomic_db.atomic_levels, atomic_db.atomic_levels,
                                                      self.beamlet_profiles['beamlet grid'].size))
@@ -34,8 +32,6 @@ class CoefficientMatrix:
             (atomic_db.atomic_levels, atomic_db.atomic_levels, self.beamlet_profiles['beamlet grid'].size))
         self.interpolate_rates(atomic_db, plasma_components)
         self.assemble_matrix(atomic_db, plasma_components)
-        #for step in range(self.beamlet_profiles['beamlet grid'].size):
-        #    self.matrix[:, :, step]=self.matrix[:, :, step].transpose()
 
     def interpolate_rates(self, atomic_db, plasma_components):
         for from_level in range(atomic_db.atomic_levels):
