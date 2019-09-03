@@ -41,12 +41,13 @@ class Obs1d:
         else:
             self.beamlet_grid_int = self.beamlet.profiles['beamlet grid']['distance']['m']
             self.observed_profile_int = self.beamlet.profiles[self.observed_level]
+        step_size = (max(self.beamlet_grid_int)-min(self.beamlet_grid_int))/len(self.beamlet_grid_int)
         for detector_index in range(len(self.obs_profile)):
             if self.obs_profile[0][detector_index] + self.detector_size / 2. < max(self.beamlet_grid_int):
                 detector_steps = [i for i in range(self.beamlet_grid_int.size) if abs(
                     self.beamlet_grid_int[i] - self.obs_profile[0][detector_index])
                                        < (self.detector_size/2)]
-                self.photon_emission_profile[detector_index] = sum([self.observed_profile_int[step]
+                self.photon_emission_profile[detector_index] = sum([self.observed_profile_int[step]*step_size
                                                                     for step in detector_steps])
         observing_detectors = numpy.nonzero(self.photon_emission_profile)
         self.emission_profile = pandas.concat([self.obs_profile, pandas.DataFrame(self.photon_emission_profile)],
