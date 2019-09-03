@@ -23,10 +23,10 @@ class Beamlet:
             self.atomic_db = AtomicDB(param=self.param)
         if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.__read_beamlet_profiles()
-        if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
-            self.__get_mass()
-        if not isinstance(self.param.getroot().find('body').find('beamlet_velocity'), etree._Element):
-            self.__get_velocity()
+        #if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
+        #    self.__get_mass()
+        #if not isinstance(self.param.getroot().find('body').find('beamlet_velocity'), etree._Element):
+        #    self.__get_velocity()
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
@@ -78,8 +78,8 @@ class Beamlet:
 
     def __get_linear_density(self):
         current = float(self.param.getroot().find('body').find('beamlet_current').text)
-        velocity = float(self.param.getroot().find('body').find('beamlet_velocity').text)
-        return current / (velocity * self.const.charge_electron)
+        #velocity = float(self.param.getroot().find('body').find('beamlet_velocity').text)
+        return current / (self.atomic_db.velocity * self.const.charge_electron)
 
     def __solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:
