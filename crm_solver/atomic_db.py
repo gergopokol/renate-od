@@ -137,12 +137,12 @@ class AtomicDB:
             self.charged_states.append('charge-'+str(state+1))
         self.charged_states = tuple(self.charged_states)
 
-    def plot_rates(self, *args, temperature=None):
+    def plot_rates(self, *args, temperature=None, external_density=1.):
         if temperature is None:
             temperature = self.temperature_axis
         elif not (isinstance(temperature, numpy.ndarray) or isinstance(temperature, list)):
             raise TypeError('The give temperature axis is not of list or numpy.ndarray type.')
-
+        spont_flag = False
         for arg in args:
             if not isinstance(arg, tuple):
                 raise TypeError('Rate coordinates are expected to be of type tuples. Each coordinate is expected '
@@ -154,6 +154,10 @@ class AtomicDB:
                 raise ValueError(arg[0] + ' is not a supported transition. Try: trans, ion or spont keywords.')
             if arg[0] is 'spont':
                 assert (isinstance(arg[1], str) and isinstance(arg[2], str))
+                spont_flag = True
+                if external_density is 1.:
+                    raise ValueError('In case spontaneous emission terms are being compared an external density '
+                                     'correction is required for the rates. Please apply a realistic density value.')
                 plt.plot(temperature, self.spontaneous_trans[self.atomic_dict[arg[2]], self.atomic_dict[arg[1]]] *
                          numpy.ones(len(temperature)), label='Spont. trans.: '+arg[1]+'-->'+arg[2])
             assert isinstance(arg[1], str)
@@ -162,11 +166,11 @@ class AtomicDB:
             if arg[1] is 'e':
                 assert isinstance(arg[2], str)
                 if arg[0] is 'ion':
-                    plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature),
-                             label='e impact ion: '+self.atomic_dict[arg[2]]+'-->i')
+                    plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature) *
+                             external_density, label='e impact ion: '+self.atomic_dict[arg[2]]+'-->i')
                 else:
                     assert isinstance(arg[3], str)
-                    plt.plot(temperature, self.electron_impact_trans[self.atomic_dict[arg[2]]]
+                    plt.plot(temperature, external_density * self.electron_impact_trans[self.atomic_dict[arg[2]]]
                              [self.atomic_dict[arg[3]]](temperature), label='e impact trans: '+arg[2]+'-->'+arg[3])
             else:
                 assert isinstance(arg[2], str)
@@ -176,15 +180,19 @@ class AtomicDB:
                 if arg[-1] < 1:
                     raise ValueError('There are supported charged for or below: q='+str(arg[-1]))
                 if arg[0] is 'ion':
-                    plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature),
-                             label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
+                    plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature) *
+                             external_density, label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
                 else:
                     assert isinstance(arg[3], str)
                     plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
-                             [arg[-1]-1](temperature), label='p impact trans (q='+str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
+                             [arg[-1]-1](temperature) * external_density, label='p impact trans (q=' +
+                                                                                str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
         plt.title('Reduced rates for '+self.species+' projectiles at '+str(self.energy)+' keV impact energy.')
         plt.xlabel('Temperature [eV]')
-        plt.ylabel('Rates [cm^2]')
+        if spont_flag:
+            plt.ylabel('Reduced rate [1/m]')
+        else:
+            plt.ylabel('Reduces rate coefficient  [cm^2]')
         plt.yscale('log')
         plt.xscale('log')
         plt.legend()
