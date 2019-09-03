@@ -21,6 +21,15 @@ class AtomicDBTest(unittest.TestCase):
     EXPECTED_ELECTRON_IMPACT_LOSS = [[11., 111., 211., 261., 311., 811., 1011.],
                                      [21., 121., 221., 271., 321., 821., 1021.],
                                      [31., 131., 231., 281., 331., 831., 1031.]]
+    EXPECTED_ELECTRON_IMPACT_TRANS = [[[0.,    0.,   0.,   0.,   0.,   0.,    0.],
+                                       [12., 112., 212., 262., 312., 812., 1012.],
+                                       [13., 113., 213., 263., 313., 813., 1013.]],
+                                      [[21., 121., 221., 271., 321., 821., 1021.],
+                                       [0.,    0.,   0.,   0.,   0.,   0.,    0.],
+                                       [23., 123., 223., 273., 323., 823., 1023.]],
+                                      [[31., 131., 231., 281., 331., 831., 1031.],
+                                       [32., 132., 232., 282., 332., 832., 1032.],
+                                       [0.,    0.,   0.,   0.,   0.,   0.,    0.]]]
 
     def test_all_attributes(self):
         actual = AtomicDB()
@@ -111,7 +120,13 @@ class AtomicDBTest(unittest.TestCase):
                 self.assertEqual(rates[element_index], self.EXPECTED_ELECTRON_IMPACT_LOSS[level][element_index])
 
     def test_electron_impact_transition_interpolator(self):
-        pass
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        for from_level in range(actual.atomic_levels):
+            for to_level in range(actual.atomic_levels):
+                rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
+                for element_index in range(len(rates)):
+                    self.assertEqual(rates[element_index],
+                                     self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level][to_level][element_index])
 
     def test_ion_impact_loss_interpolator(self):
         pass
