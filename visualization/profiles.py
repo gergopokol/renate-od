@@ -1,6 +1,4 @@
 import matplotlib.pyplot
-import pandas
-from lxml import etree
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
@@ -20,7 +18,7 @@ class BeamletProfiles:
     def set_x_range(self, x_min=None, x_max=None):
         self.x_limits = [x_min, x_max]
 
-    def plot_RENATE_bechmark(self):
+    def plot_RENATE_bechmark(self, plot_type='population'):
         fig1 = matplotlib.pyplot.figure()
         grid = matplotlib.pyplot.GridSpec(3, 1)
         ax1 = matplotlib.pyplot.subplot(grid[0, 0])
@@ -29,19 +27,28 @@ class BeamletProfiles:
         self.__setup_temperature_axis(ax2)
         self.title = 'Plasma profiles'
         ax1.set_title(self.title)
-        self.__setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]))
+        self.__setup_RENATE_benchmark_axis(matplotlib.pyplot.subplot(grid[1:, 0]), plot_type)
         matplotlib.pyplot.show()
 
-    def __setup_RENATE_benchmark_axis(self, axis):
+    def __setup_RENATE_benchmark_axis(self, axis, plot_type):
+        max_val = self.profiles['level ' + self.atomic_db.inv_atomic_dict[0]][0]
         for level in self.atomic_db.atomic_dict.keys():
-            axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level ' +
-                      str(self.atomic_db.atomic_dict[level])], '-', label='RENATE '+level)
-            axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/self.profiles['level ' +
-                      self.atomic_db.inv_atomic_dict[0]][0], '--', label='ROD '+level)
+            if plot_type is 'population':
+                axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level ' +
+                          str(self.atomic_db.atomic_dict[level])], '-', label='RENATE '+level)
+                axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/max_val,
+                          '--', label='ROD '+level)
+                axis.set_ylabel('Relative electron population [-]')
+                axis.set_yscale('log', nonposy='clip')
+            elif plot_type is 'error':
+                axis.set_ylabel('Relative error [-]')
+                axis.plot(self.profiles['beamlet grid'], abs(self.profiles['level '+level]/max_val -
+                          self.profiles['RENATE level ' + str(self.atomic_db.atomic_dict[level])]) /
+                          (self.profiles['level '+level]/max_val), '--', label='Level '+level)
+            else:
+                raise ValueError('Grid type ' + plot_type + 'not implemented!')
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
-        axis.set_yscale('log', nonposy='clip')
-        axis.set_ylabel('Relative electron population [-]')
         axis.legend(loc='best', ncol=1)
         self.title = 'Benchmark: RENATE - ROD'
         axis.set_title(self.title)

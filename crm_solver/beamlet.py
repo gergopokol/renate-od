@@ -1,6 +1,4 @@
 import utility
-from utility.getdata import GetData
-from utility.convert import calculate_velocity_from_energy
 from utility.constants import Constants
 import pandas
 from lxml import etree
@@ -22,10 +20,6 @@ class Beamlet:
             self.atomic_db = AtomicDB(param=self.param)
         if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.__read_beamlet_profiles()
-        if not isinstance(self.param.getroot().find('body').find('beamlet_mass'), etree._Element):
-            self.__get_mass()
-        if not isinstance(self.param.getroot().find('body').find('beamlet_velocity'), etree._Element):
-            self.__get_velocity()
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
@@ -45,40 +39,13 @@ class Beamlet:
         assert isinstance(self.profiles, pandas.DataFrame)
         print('Beamlet.imp_profiles read from file: ' + hdf5_path)
 
-    def __get_mass(self):
-        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
-                         '/supplementary_data/default/' + \
-                         self.param.getroot().find('body').find('beamlet_species').text + '_m.txt'
-        mass_str = GetData(data_path_name=data_path_name, data_format="array").data
-        try:
-            mass = float(mass_str)
-        except ValueError:
-            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
-            raise ValueError
-        new_element = etree.Element('beamlet_mass')
-        new_element.text = mass_str
-        new_element.set('unit', 'kg')
-        self.param.getroot().find('body').append(new_element)
-        return
-
-    def __get_velocity(self):
-        energy = self.param.getroot().find('body').find('beamlet_energy').text
-        mass = self.param.getroot().find('body').find('beamlet_mass').text
-        velocity = calculate_velocity_from_energy(energy, float(mass))
-        new_element = etree.Element('beamlet_velocity')
-        new_element.text = str(velocity)
-        new_element.set('unit', 'm/s')
-        self.param.getroot().find('body').append(new_element)
-        return
-
     def __initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components, self.atomic_db)
         self.initial_condition = [self.__get_linear_density()] + [0] * (self.atomic_db.atomic_levels - 1)
 
     def __get_linear_density(self):
         current = float(self.param.getroot().find('body').find('beamlet_current').text)
-        velocity = float(self.param.getroot().find('body').find('beamlet_velocity').text)
-        return current / (velocity * self.const.charge_electron)
+        return current / (self.atomic_db.velocity * self.const.charge_electron)
 
     def __solve_numerically(self):
         if self.coefficient_matrix is None or self.initial_condition is None:

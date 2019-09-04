@@ -49,7 +49,7 @@ def convert_beamlet_profiles_to_si(data_path_name='beamlet/test_profiles.h5'):
 
 def calculate_velocity_from_energy(energy, mass):
     constants = Constants()
-    velocity = (2 * float(energy) * constants.charge_electron / mass) ** 0.5
+    velocity = (2 * energy * constants.charge_electron / mass) ** 0.5
     return velocity
 
 
@@ -80,3 +80,7 @@ def cylin_to_cartesian(point):
     assert len(point) == 3
     x, y, z = point[0]*math.cos(point[2]), point[0]*math.sin(point[2]), point[1]
     return np.asarray([x, y, z])
+
+
+def convert_keV_to_eV(energy):
+    return energy*1E3
