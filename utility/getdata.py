@@ -6,6 +6,9 @@ from lxml import etree
 from utility import convert
 
 
+DEFAULT_SETUP = 'getdata_setup.xml'
+
+
 class GetData:
     """
     This class is to access and load data from files. It looks for data in the following order:
@@ -41,21 +44,27 @@ class GetData:
         self.data = ''
         self.read_data()
 
-    def read_setup(self, setup_path_name='utility/getdata_setup.xml'):
+    def read_setup(self, setup_path_name=None):
+
+        if not setup_path_name:
+            setup_path_name = os.path.join(os.path.dirname(__file__), DEFAULT_SETUP)
+
         tree = etree.parse(setup_path_name)
         body = tree.getroot().find('body')
         self.dummy_directory = body.find('dummy_directory').text
-        self.common_local_data_directory = body.find('common_local_data_directory').text
-        self.user_local_data_directory = body.find('user_local_data_directory').text
+        self.common_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
+                                                        body.find('common_local_data_directory').text)
+        self.user_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
+                                                      body.find('user_local_data_directory').text)
         self.server_private_address = body.find('server_private_address').text
         self.private_key = body.find('private_key').text
         self.server_public_address = body.find('server_public_address').text
         self.contact_address = body.find('contact_address').text
 
     def path_setup(self):
-        self.common_local_data_path = self.common_local_data_directory + '/' + self.data_path_name
-        self.user_local_data_path = self.user_local_data_directory + '/' + self.data_path_name
-        self.user_local_dummy_path = self.user_local_data_directory + '/' + self.dummy_directory + '/' + self.data_path_name
+        self.common_local_data_path = os.path.join(self.common_local_data_directory, self.data_path_name)
+        self.user_local_data_path = os.path.join(self.user_local_data_directory, self.data_path_name)
+        self.user_local_dummy_path = os.path.join(self.user_local_data_directory, self.dummy_directory, self.data_path_name)
 
     def read_data(self):
         """
@@ -64,15 +73,14 @@ class GetData:
         """
 
         if self.get_data():
-            extension = os.path.splitext(self.data_path_name)[1]
-            if extension == '.h5':
+            if self.data_path_name.endswith('.h5'):
                 if self.data_format == "pandas":
                     self.read_h5_to_pandas()
                 else:
                     self.read_h5_to_array()
-            elif extension == '.txt':
+            elif self.data_path_name.endswith('.txt'):
                 self.read_txt()
-            elif extension == '.xml':
+            elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
                 print('NO data read from file: ' + self.access_path)
@@ -152,10 +160,10 @@ class GetData:
             return True
         else:
             print('Error: No data source available!')
-            self.contact_with_us()
+            self.contact_us()
             return False
 
-    def contact_with_us(self):
+    def contact_us(self):
         print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
 
     def check_common_local_data_path(self):
@@ -177,7 +185,7 @@ class GetData:
             return False
 
     def get_private_data(self):
-        server_private_path = self.server_private_address + "/" + self.data_path_name
+        server_private_path = self.server_private_address + '/' + self.data_path_name
         self.ensure_dir(self.user_local_data_path)
         print('Attempting to download from server: ' + server_private_path)
         try:
@@ -208,7 +216,7 @@ class GetData:
             return False
 
     def get_public_data(self):
-        server_public_path = self.server_public_address + "/" + self.data_path_name
+        server_public_path = self.server_public_address + '/' + self.data_path_name
         print('Attempting to download dummy data from public server: ' + server_public_path)
         try:
             self.ensure_dir(self.user_local_dummy_path)
@@ -230,7 +238,7 @@ class GetData:
 def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
     file_name = 'rate_coeffs_' + str(beamlet_energy) + '_' + \
                 beamlet_species + '.h5'
-    data_path_name = locate_h5_dir(beamlet_species,rate_type) + file_name
+    data_path_name = locate_rates_dir(beamlet_species, rate_type) + file_name
     temperature_array = GetData(data_path_name=data_path_name,
                                                 data_key=['Temperature axis'],
                                                 data_format='array').data
@@ -269,5 +277,5 @@ def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
     return rate_coeff_arrays
 
 
-def locate_h5_dir(beamlet_species, rate_type):
+def locate_rates_dir(beamlet_species, rate_type):
     return 'atomic_data/' + beamlet_species + '/rates/' + rate_type + '/'

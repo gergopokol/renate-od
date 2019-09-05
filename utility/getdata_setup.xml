@@ -4,8 +4,8 @@
   </head>
   <body>
     <dummy_directory>dummy</dummy_directory>
-    <common_local_data_directory>/data</common_local_data_directory>
-    <user_local_data_directory>data</user_local_data_directory>
+    <common_local_data_directory>common_data</common_local_data_directory><!--requires relative path-->
+    <user_local_data_directory>data</user_local_data_directory><!--requires relative path-->
     <server_private_address>data@deep.reak.bme.hu:~/private_html/renate-od</server_private_address>
     <private_key>data/deep-data.ppk</private_key>
     <server_public_address>http://deep.reak.bme.hu/~data/renate-od</server_public_address>

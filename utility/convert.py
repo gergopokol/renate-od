@@ -19,7 +19,8 @@ def convert_beamlet_profiles(data_path_name='data/beamlet/test_profiles.h5'):
     for column in columns:
         pandas_profiles[column] = h5file[column].value
     h5file.close()
-    os.rename(data_path_name, data_path_name + '.old')
+    os.rename(os.path.join(os.path.dirname(__file__),'..', data_path_name),
+              os.path.join(os.path.dirname(__file__),'..', data_path_name +'.old'))
     pandas_profiles.to_hdf(data_path_name)
 
 
@@ -38,17 +39,17 @@ def convert_from_10_19_to_1(density):
 def convert_beamlet_profiles_to_si(data_path_name='beamlet/test_profiles.h5'):
     pandas_profiles = utility.getdata.GetData(data_path_name=data_path_name).data
     assert isinstance(pandas_profiles, pandas.DataFrame)
-    full_data_path_name = 'data/' + data_path_name
+    full_data_path_name = os.path.join('data/', data_path_name)
     pandas_profiles['beamlet_density'] = convert_from_10_19_to_1(pandas_profiles['beamlet_density'])
-    # pandas_profiles['beamlet_grid'] = convert_from_cm_to_m(pandas_profiles['beamlet_grid'])
-    os.rename(full_data_path_name, full_data_path_name + '.non-si')
-    pandas_profiles.to_hdf(full_data_path_name, 'profiles')
+    os.rename(os.path.join(os.path.dirname(__file__),'..', full_data_path_name),
+              os.path.join(os.path.dirname(__file__), '..', full_data_path_name + '.non-si'))
+    pandas_profiles.to_hdf(os.path.join(os.path.dirname(__file__),'..', full_data_path_name), 'profiles')
     print('Beamlet.param converted to SI in file: ' + full_data_path_name)
 
 
 def calculate_velocity_from_energy(energy, mass):
     constants = Constants()
-    velocity = (2 * float(energy) * constants.charge_electron / mass) ** 0.5
+    velocity = (2 * energy * constants.charge_electron / mass) ** 0.5
     return velocity
 
 
@@ -79,3 +80,7 @@ def cylin_to_cartesian(point):
     assert len(point) == 3
     x, y, z = point[0]*math.cos(point[2]), point[0]*math.sin(point[2]), point[1]
     return np.asarray([x, y, z])
+
+
+def convert_keV_to_eV(energy):
+    return energy*1E3
