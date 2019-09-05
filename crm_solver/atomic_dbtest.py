@@ -194,6 +194,7 @@ class AtomicDBTest(unittest.TestCase):
         actual = AtomicDB(data_path='beamlet/dummy0001.xml')
         for level in range(actual.atomic_levels):
             rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
+            self.assertIsInstance(rates, numpy.ndarray)
             for element_index in range(len(rates)):
                 self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ELECTRON_IMPACT_LOSS[level]
                                                                  [element_index]), rates[element_index], 5)
@@ -203,6 +204,7 @@ class AtomicDBTest(unittest.TestCase):
         for from_level in range(actual.atomic_levels):
             for to_level in range(actual.atomic_levels):
                 rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray)
                 for element_index in range(len(rates)):
                     self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level]
                                            [to_level][element_index]), rates[element_index], 5)
@@ -212,6 +214,7 @@ class AtomicDBTest(unittest.TestCase):
         for level in range(actual.atomic_levels):
             for charge in range(len(actual.charged_states)):
                 rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray)
                 for element_index in range(len(rates)):
                     self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ION_IMPACT_LOSS[level][charge]
                                                                      [element_index]), rates[element_index], 5)
@@ -222,6 +225,7 @@ class AtomicDBTest(unittest.TestCase):
             for to_level in range(actual.atomic_levels):
                 for charge in range(len(actual.charged_states)):
                     rates = actual.ion_impact_trans[from_level][to_level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
+                    self.assertIsInstance(rates, numpy.ndarray)
                     for element_index in range(len(actual.charged_states)):
                         self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ION_IMPACT_TRANS[from_level]
                                                [to_level][charge][element_index]), rates[element_index], 5)
