@@ -2,6 +2,7 @@ from crm_solver.atomic_db import AtomicDB
 import unittest
 import numpy
 import scipy
+import utility.convert as uc
 
 
 class AtomicDBTest(unittest.TestCase):
@@ -194,7 +195,8 @@ class AtomicDBTest(unittest.TestCase):
         for level in range(actual.atomic_levels):
             rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
             for element_index in range(len(rates)):
-                self.assertEqual(rates[element_index], self.EXPECTED_ELECTRON_IMPACT_LOSS[level][element_index])
+                self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ELECTRON_IMPACT_LOSS[level]
+                                                                 [element_index]), rates[element_index], 5)
 
     def test_electron_impact_transition_interpolator(self):
         actual = AtomicDB(data_path='beamlet/dummy0001.xml')
@@ -202,8 +204,8 @@ class AtomicDBTest(unittest.TestCase):
             for to_level in range(actual.atomic_levels):
                 rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
                 for element_index in range(len(rates)):
-                    self.assertEqual(rates[element_index],
-                                     self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level][to_level][element_index])
+                    self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level]
+                                           [to_level][element_index]), rates[element_index], 5)
 
     def test_ion_impact_loss_interpolator(self):
         actual = AtomicDB(data_path='beamlet/dummy0001.xml')
@@ -211,7 +213,8 @@ class AtomicDBTest(unittest.TestCase):
             for charge in range(len(actual.charged_states)):
                 rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
                 for element_index in range(len(rates)):
-                    self.assertEqual(rates[element_index], self.EXPECTED_ION_IMPACT_LOSS[level][charge][element_index])
+                    self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ION_IMPACT_LOSS[level][charge]
+                                                                     [element_index]), rates[element_index], 5)
 
     def test_ion_impact_transition_interpolator(self):
         actual = AtomicDB(data_path='beamlet/dummy0001.xml')
@@ -220,5 +223,5 @@ class AtomicDBTest(unittest.TestCase):
                 for charge in range(len(actual.charged_states)):
                     rates = actual.ion_impact_trans[from_level][to_level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
                     for element_index in range(len(actual.charged_states)):
-                        self.assertEqual(rates[element_index],
-                                         self.EXPECTED_ION_IMPACT_TRANS[from_level][to_level][charge][element_index])
+                        self.assertAlmostEqual(uc.convert_from_cm2_to_m2(self.EXPECTED_ION_IMPACT_TRANS[from_level]
+                                               [to_level][charge][element_index]), rates[element_index], 5)
