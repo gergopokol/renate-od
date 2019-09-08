@@ -12,6 +12,7 @@ class AtomicDB:
         if not isinstance(self.param, etree._ElementTree):
             self.param = getdata.GetData(data_path_name=data_path).data
         assert isinstance(self.param, etree._ElementTree)
+        self.__set_impurity_mass_scaling_dictionary()
         self.__projectile_parameters()
         self.__set_atomic_dictionary()
         self.__set_rates_path(rate_type)
@@ -48,6 +49,18 @@ class AtomicDB:
 
     def __get_projectile_velocity(self):
         self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
+
+    def __set_impurity_mass_scaling_dictionary(self):
+        self.impurity_mass_norm = {'charge-1': 1,
+                                   'charge-2': 4,
+                                   'charge-3': 7,
+                                   'charge-4': 9,
+                                   'charge-5': 11,
+                                   'charge-6': 12,
+                                   'charge-7': 14,
+                                   'charge-8': 16,
+                                   'charge-9': 19,
+                                   'charge-10': 20}
 
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
