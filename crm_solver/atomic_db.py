@@ -51,16 +51,17 @@ class AtomicDB:
         self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
 
     def __set_impurity_mass_scaling_dictionary(self):
-        self.impurity_mass_norm = {'charge-1': 1,
-                                   'charge-2': 4,
-                                   'charge-3': 7,
-                                   'charge-4': 9,
-                                   'charge-5': 11,
-                                   'charge-6': 12,
-                                   'charge-7': 14,
-                                   'charge-8': 16,
-                                   'charge-9': 19,
-                                   'charge-10': 20}
+        self.impurity_mass_normalization = {'charge-1': 1,
+                                            'charge-2': 4,
+                                            'charge-3': 7,
+                                            'charge-4': 9,
+                                            'charge-5': 11,
+                                            'charge-6': 12,
+                                            'charge-7': 14,
+                                            'charge-8': 16,
+                                            'charge-9': 19,
+                                            'charge-10': 20,
+                                            'charge-11': 23}
 
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
