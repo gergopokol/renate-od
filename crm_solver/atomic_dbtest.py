@@ -6,9 +6,9 @@ import utility.convert as uc
 
 
 class AtomicDBTest(unittest.TestCase):
-    EXPECTED_ATTR = ['energy', 'param', 'species', 'electron_impact_loss', 'ion_impact_loss', 'mass',
-                     'atomic_dict', 'rate_type', 'electron_impact_trans', 'ion_impact_trans', 'velocity',
-                     'spontaneous_trans', 'atomic_levels', 'charged_states', 'inv_atomic_dict']
+    EXPECTED_ATTR = ['energy', 'param', 'species', 'electron_impact_loss', 'ion_impact_loss', 'mass', 'atomic_dict',
+                     'rate_type', 'electron_impact_trans', 'ion_impact_trans', 'velocity', 'spontaneous_trans',
+                     'atomic_levels', 'charged_states', 'inv_atomic_dict', 'impurity_mass_normalization']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
     EXPECTED_ENERGY = '60'
@@ -20,6 +20,9 @@ class AtomicDBTest(unittest.TestCase):
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5},
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5},
                             {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}]
+    EXPECTED_MASS_CORRECTION_DICT = {'charge-1': 1, 'charge-2': 4, 'charge-3': 7, 'charge-4': 9, 'charge-5': 11,
+                                     'charge-6': 12, 'charge-7': 14, 'charge-8': 16, 'charge-9': 19, 'charge-10': 20,
+                                     'charge-11': 23}
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
@@ -107,6 +110,12 @@ class AtomicDBTest(unittest.TestCase):
         actual = AtomicDB()
         self.assertIsInstance(actual.energy, str)
         self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
+
+    def test_impurity_mass_correction_dictionary(self):
+        actual = AtomicDB()
+        self.assertIsInstance(actual.impurity_mass_normalization, dict)
+        self.assertDictEqual(actual.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT)
+        self.assertGreaterEqual(len(actual.impurity_mass_normalization.keys()), len(actual.charged_states))
 
     def test_projectile_mass(self):
         actual = AtomicDB()
