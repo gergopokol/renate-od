@@ -123,6 +123,15 @@ class AtomicDB(RenateDB):
         self.__set_electron_impact_transition_functions()
         self.__set_ion_impact_transition_functions()
 
+    def __set_einstein_coefficient_db(self):
+        '''''
+        Contains spontanous transition data for loaded atomic type.
+        Indexing convention: data[to_level, from_level]
+        '''''
+        self.spontaneous_trans = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
+            raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
+
     def __set_impact_loss_functions(self):
         '''''
         Contains beam atom impact ionization (ion + charge exchange) data for loaded atomic type.
@@ -159,6 +168,12 @@ class AtomicDB(RenateDB):
             self.electron_impact_trans.append(tuple(from_level_functions))
         self.electron_impact_trans = tuple(self.electron_impact_trans)
 
+    def __set_charge_state_lib(self, nr_charged_states):
+        self.charged_states = []
+        for state in range(nr_charged_states):
+            self.charged_states.append('charge-'+str(state+1))
+        self.charged_states = tuple(self.charged_states)
+
     def __set_ion_impact_transition_functions(self):
         '''''
         Contains spontanous transition data for loaded atomic type.
@@ -184,21 +199,6 @@ class AtomicDB(RenateDB):
                 from_level_functions.append(tuple(to_level_functions))
             self.ion_impact_trans.append(tuple(from_level_functions))
         self.ion_impact_trans = tuple(self.ion_impact_trans)
-
-    def __set_einstein_coefficient_db(self):
-        '''''
-        Contains spontanous transition data for loaded atomic type.
-        Indexing convention: data[to_level, from_level]
-        '''''
-        self.spontaneous_trans = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
-        if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
-            raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
-
-    def __set_charge_state_lib(self, nr_charged_states):
-        self.charged_states = []
-        for state in range(nr_charged_states):
-            self.charged_states.append('charge-'+str(state+1))
-        self.charged_states = tuple(self.charged_states)
 
     def plot_rates(self, *args, temperature=None, external_density=1.):
         if temperature is None:
