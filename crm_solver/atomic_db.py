@@ -108,7 +108,8 @@ class RenateDB:
 
 
 class AtomicDB(RenateDB):
-    def __init__(self, atomic_source='renate', param=None, rate_type='default', data_path='beamlet/testimp0001.xml'):
+    def __init__(self, atomic_source='renate', param=None, rate_type='default',
+                 data_path='beamlet/testimp0001.xml', components=None):
         assert isinstance(atomic_source, str)
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
