@@ -89,6 +89,23 @@ class RenateDB:
         else:
             raise ValueError('The atomic species: ' + self.species + ' is not supported')
 
+    def get_from_renate_atomic(self, source):
+        assert isinstance(source, str)
+        if source is 'electron_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Neutral Collisions')
+        elif source is 'ion_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Proton Neutral Collisions')
+        elif source is 'impurity_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Impurity Neutral Collisions')
+        elif source is 'ionization_terms':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Loss Collisions')
+        elif source is 'spontaneous_transition':
+            return self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        elif source is 'temperature':
+            return self.load_rate_data(self.rates_path, 'Temperature axis')
+        else:
+            raise ValueError('Data '+ source + ' is not located and supported in the Renate rate library.')
+
 
 class AtomicDB(RenateDB):
     def __init__(self, atomic_source='renate', param=None, rate_type='default', data_path='beamlet/testimp0001.xml'):
