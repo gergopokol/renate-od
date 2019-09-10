@@ -235,3 +235,75 @@ class AtomicDB:
     @staticmethod
     def load_rate_data(path, tag_name):
         return getdata.GetData(data_path_name=path, data_key=[tag_name], data_format='array').data
+
+
+class RenateDB:
+    def __init__(self, param=None, rate_type='default', data_path='beamlet/testimp0001.xml'):
+        self.param = param
+        if not isinstance(self.param, etree._ElementTree):
+            self.param = getdata.GetData(data_path_name=data_path).data
+        assert isinstance(self.param, etree._ElementTree)
+        self.__set_impurity_mass_scaling_dictionary()
+        self.__projectile_parameters()
+        self.__set_atomic_dictionary()
+        self.__set_rates_path(rate_type)
+
+    def __set_impurity_mass_scaling_dictionary(self):
+        self.impurity_mass_normalization = {'charge-1': 1,
+                                            'charge-2': 4,
+                                            'charge-3': 7,
+                                            'charge-4': 9,
+                                            'charge-5': 11,
+                                            'charge-6': 12,
+                                            'charge-7': 14,
+                                            'charge-8': 16,
+                                            'charge-9': 19,
+                                            'charge-10': 20,
+                                            'charge-11': 23}
+
+    def __projectile_parameters(self):
+        self.energy = self.param.getroot().find('body').find('beamlet_energy').text
+        self.species = self.param.getroot().find('body').find('beamlet_species').text
+        self.__get_atomic_mass()
+        self.__get_projectile_velocity()
+
+    def __get_atomic_mass(self):
+        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
+                         '/supplementary_data/default/' + \
+                         self.param.getroot().find('body').find('beamlet_species').text + '_m.txt'
+        mass_str = getdata.GetData(data_path_name=data_path_name, data_format="array").data
+        try:
+            self.mass = float(mass_str)
+        except ValueError:
+            print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
+            raise ValueError
+
+    def __get_projectile_velocity(self):
+        self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
+
+    def __set_atomic_dictionary(self):
+        assert isinstance(self.species, str)
+        if self.species not in ['H', 'D', 'T', 'Li', 'Na', 'dummy']:
+            raise Exception(self.species + ' beam atomic data not supported')
+        if self.species in ['H', 'D', 'T']:
+            self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
+            self.atomic_levels = 6
+        if self.species == 'Li':
+            self.atomic_dict = {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8}
+            self.atomic_levels = 9
+        if self.species == 'Na':
+            self.atomic_dict = {'3s': 0, '3p': 1, '3d': 2, '4s': 3, '4p': 4, '4d': 5, '4f': 6, '5s': 7}
+            self.atomic_levels = 8
+        if self.species == 'dummy':
+            self.atomic_dict = {'1': 1, '0': 0, '2': 2}
+            self.atomic_levels = 3
+        self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
+
+    def __set_rates_path(self, rate_type):
+        self.rate_type = rate_type
+        self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
+        self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
+
+    @staticmethod
+    def load_rate_data(path, tag_name):
+        return getdata.GetData(data_path_name=path, data_key=[tag_name], data_format='array').data
