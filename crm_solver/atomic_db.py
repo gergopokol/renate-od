@@ -117,18 +117,21 @@ class AtomicDB(RenateDB):
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
 
     def __generate_rate_function_db(self):
-        self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
+        self.__set_temperature_axis()
         self.__set_einstein_coefficient_db()
         self.__set_impact_loss_functions()
         self.__set_electron_impact_transition_functions()
         self.__set_ion_impact_transition_functions()
+
+    def __set_temperature_axis(self):
+        self.temperature_axis = self.get_from_renate_atomic('temperature')
 
     def __set_einstein_coefficient_db(self):
         '''''
         Contains spontanous transition data for loaded atomic type.
         Indexing convention: data[to_level, from_level]
         '''''
-        self.spontaneous_trans = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        self.spontaneous_trans = self.get_from_renate_atomic('spontaneous_transition')
         if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
             raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
 
@@ -138,8 +141,7 @@ class AtomicDB(RenateDB):
         Indexing convention: data[from_level][charge] for ion impact electron loss interaction.
         Indexing convention: data[from_level] for electron impact electron loss interactions. 
         '''''
-        raw_impact_loss_transition = self.load_rate_data(self.rates_path,
-                                                         'Collisional Coeffs/Electron Loss Collisions')
+        raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
         self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
         self.electron_impact_loss, self.ion_impact_loss = [], []
         for from_level in range(self.atomic_levels):
@@ -157,8 +159,7 @@ class AtomicDB(RenateDB):
         Contains electron impact transition data for loaded atomic type.
         Indexing convention: data[from_level][to_level]
         '''''
-        raw_electron_transition = self.load_rate_data(self.rates_path,
-                                                           'Collisional Coeffs/Electron Neutral Collisions')
+        raw_electron_transition = self.get_from_renate_atomic('electron_transition')
         self.electron_impact_trans = []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
@@ -179,10 +180,8 @@ class AtomicDB(RenateDB):
         Contains spontanous transition data for loaded atomic type.
         Indexing convention: data[from_level, to_level, charge]
         '''''
-        raw_proton_transition = self.load_rate_data(self.rates_path,
-                                                         'Collisional Coeffs/Proton Neutral Collisions')
-        raw_impurity_transition = self.load_rate_data(self.rates_path,
-                                                           'Collisional Coeffs/Impurity Neutral Collisions')
+        raw_proton_transition = self.get_from_renate_atomic('ion_transition')
+        raw_impurity_transition = self.get_from_renate_atomic('impurity_transition')
         self.ion_impact_trans = []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
