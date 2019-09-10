@@ -4,6 +4,7 @@ from utility import getdata
 import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+import pandas
 
 
 class RenateDB:
@@ -111,11 +112,13 @@ class AtomicDB(RenateDB):
     def __init__(self, atomic_source='renate', param=None, rate_type='default',
                  data_path='beamlet/testimp0001.xml', components=None):
         assert isinstance(atomic_source, str)
+        assert isinstance(components, pandas.core.frame.DataFrame)
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
             self.__generate_rate_function_db()
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
+        self.components = components
 
     def __generate_rate_function_db(self):
         self.__set_temperature_axis()
