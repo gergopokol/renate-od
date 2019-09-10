@@ -104,17 +104,17 @@ class RenateDB:
         elif source is 'temperature':
             return self.load_rate_data(self.rates_path, 'Temperature axis')
         else:
-            raise ValueError('Data '+ source + ' is not located and supported in the Renate rate library.')
+            raise ValueError('Data ' + source + ' is not located and supported in the Renate rate library.')
 
 
 class AtomicDB(RenateDB):
     def __init__(self, atomic_source='renate', param=None, rate_type='default', data_path='beamlet/testimp0001.xml'):
-        super().__init__(param, rate_type, data_path)
-        self.__test_inheritance()
-        self.__generate_rate_function_db()
-
-    def __test_inheritance(self):
-        pass
+        assert isinstance(atomic_source, str)
+        if atomic_source is 'renate':
+            RenateDB.__init__(self, param, rate_type, data_path)
+            self.__generate_rate_function_db()
+        else:
+            raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
 
     def __generate_rate_function_db(self):
         self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
