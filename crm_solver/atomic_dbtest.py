@@ -1,14 +1,14 @@
 from crm_solver.atomic_db import AtomicDB
+from crm_solver.atomic_db import RenateDB
 import unittest
 import numpy
 import scipy
 import utility.convert as uc
 
 
-class AtomicDBTest(unittest.TestCase):
-    EXPECTED_ATTR = ['energy', 'param', 'species', 'electron_impact_loss', 'ion_impact_loss', 'mass', 'atomic_dict',
-                     'rate_type', 'electron_impact_trans', 'ion_impact_trans', 'velocity', 'spontaneous_trans',
-                     'atomic_levels', 'charged_states', 'inv_atomic_dict', 'impurity_mass_normalization']
+class RenateDBTest(unittest.TestCase):
+    EXPECTED_ATTR = ['energy', 'param', 'species', 'mass', 'atomic_dict', 'rate_type', 'velocity',
+                     'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
     EXPECTED_ENERGY = '60'
@@ -23,6 +23,53 @@ class AtomicDBTest(unittest.TestCase):
     EXPECTED_MASS_CORRECTION_DICT = {'charge-1': 1, 'charge-2': 4, 'charge-3': 7, 'charge-4': 9, 'charge-5': 11,
                                      'charge-6': 12, 'charge-7': 14, 'charge-8': 16, 'charge-9': 19, 'charge-10': 20,
                                      'charge-11': 23}
+    INPUT_PATH = 'beamlet/testimp0001.xml'
+
+    def test_all_attributes(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        for attr in self.EXPECTED_ATTR:
+            assert hasattr(actual, attr)
+
+    def test_projectile_energy(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.energy, str)
+        self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
+
+    def test_impurity_mass_correction_dictionary(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.impurity_mass_normalization, dict)
+        self.assertDictEqual(actual.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT)
+
+    def test_projectile_mass(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.mass, float)
+        self.assertEqual(actual.mass, self.EXPECTED_MASS)
+
+    def test_projectile_velocity(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.velocity, float)
+        self.assertAlmostEqual(actual.velocity, self.EXPECTED_VELOCITY, 3)
+
+    def test_atomic_species(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.species, str)
+        self.assertIn(actual.species, self.EXPECTED_ATOM)
+        self.assertIsInstance(actual.species, str)
+
+    def test_atomic_levels(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        for index in range(len(self.EXPECTED_ATOM)):
+            actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
+            atom = RenateDB(actual.param, 'default', None)
+            self.assertIsInstance(atom.atomic_levels, int)
+            self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
+            self.assertIsInstance(atom.atomic_dict, dict)
+            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
+            self.assertIsInstance(atom.inv_atomic_dict, dict)
+
+
+
+class AtomicDBTest(unittest.TestCase):
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
@@ -105,44 +152,6 @@ class AtomicDBTest(unittest.TestCase):
         actual = AtomicDB()
         for attr in self.EXPECTED_ATTR:
             assert hasattr(actual, attr)
-
-    def test_projectile_energy(self):
-        actual = AtomicDB()
-        self.assertIsInstance(actual.energy, str)
-        self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
-
-    def test_impurity_mass_correction_dictionary(self):
-        actual = AtomicDB()
-        self.assertIsInstance(actual.impurity_mass_normalization, dict)
-        self.assertDictEqual(actual.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT)
-        self.assertGreaterEqual(len(actual.impurity_mass_normalization.keys()), len(actual.charged_states))
-
-    def test_projectile_mass(self):
-        actual = AtomicDB()
-        self.assertIsInstance(actual.mass, float)
-        self.assertEqual(actual.mass, self.EXPECTED_MASS)
-
-    def test_projectile_velocity(self):
-        actual = AtomicDB()
-        self.assertIsInstance(actual.velocity, float)
-        self.assertAlmostEqual(actual.velocity, self.EXPECTED_VELOCITY, 3)
-
-    def test_atomic_species(self):
-        actual = AtomicDB()
-        self.assertIsInstance(actual.species, str)
-        self.assertIn(actual.species, self.EXPECTED_ATOM)
-        self.assertIsInstance(actual.species, str)
-
-    def test_atomic_levels(self):
-        actual = AtomicDB()
-        for index in range(len(self.EXPECTED_ATOM)):
-            actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
-            atom = AtomicDB(param=actual.param)
-            self.assertIsInstance(atom.atomic_levels, int)
-            self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
-            self.assertIsInstance(atom.atomic_dict, dict)
-            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
-            self.assertIsInstance(atom.inv_atomic_dict, dict)
 
     def test_spontaneous_trans(self):
         actual = AtomicDB()
