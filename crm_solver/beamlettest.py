@@ -4,10 +4,9 @@ from crm_solver.beamlet import Beamlet
 
 class BeamletTest(unittest.TestCase):
 
-    EXPECTED_PRECISION = [0.15, 0.001, 0.3]
+    EXPECTED_PRECISION = 0.0001
     INPUT_TESTCASES = ['beamlet/D_plasma_Li_beam@60keV.xml',
-                       'beamlet/H_plasma_Na_beam@60keV.xml',
-                       'beamlet/He_plasma_H_beam@60keV.xml']
+                       'beamlet/H_plasma_Na_beam@60keV.xml']
 
     def test_renate_rod_benchmark(self):
         for testcase in range(len(self.INPUT_TESTCASES)):
@@ -18,4 +17,4 @@ class BeamletTest(unittest.TestCase):
                                                                                 actual.atomic_db.inv_atomic_dict[0]][0]
                 for index in range(1, len(renate)-1):
                     self.assertTrue(abs(renate_od[index] - renate[index])/renate_od[index] <=
-                                    self.EXPECTED_PRECISION[testcase])
+                                    self.EXPECTED_PRECISION)
