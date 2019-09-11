@@ -153,7 +153,7 @@ class AtomicDB(RenateDB):
             self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                 raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
             for target in self.components.T.keys():
-                if target is not 'electron':
+                if target != 'electron':
                     from_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                         raw_impact_loss_transition[self.components['q'][target], from_level, :]), target))
             self.ion_impact_loss.append(tuple(from_level_functions))
@@ -193,10 +193,10 @@ class AtomicDB(RenateDB):
             for to_level in range(self.atomic_levels):
                 to_level_functions = []
                 for target in self.components.T.keys():
-                    if (target is not 'electron') and (self.components['Z'][target] == 1):
+                    if (target != 'electron') and (self.components['Z'][target] == 1):
                         to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                             raw_proton_transition[from_level, to_level, :]), target))
-                    elif (target is not 'electron') and (self.components['q'] >= 2):
+                    elif (target != 'electron') and (self.components['q'] >= 2):
                         to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                             raw_impurity_transition[self.components['q'][target]-2, from_level, to_level, :]), target))
                 from_level_functions.append(tuple(to_level_functions))
