@@ -113,12 +113,12 @@ class AtomicDB(RenateDB):
                  data_path='beamlet/testimp0001.xml', components=None):
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
+        self.components = components
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
             self.__generate_rate_function_db()
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
-        self.components = components
 
     def __generate_rate_function_db(self):
         self.__set_temperature_axis()
@@ -183,7 +183,7 @@ class AtomicDB(RenateDB):
     def __set_ion_impact_transition_functions(self):
         '''''
         Contains spontanous transition data for loaded atomic type.
-        Indexing convention: data[from_level, to_level, charge]
+        Indexing convention: data[from_level, to_level, target]
         '''''
         raw_proton_transition = self.get_from_renate_atomic('ion_transition')
         raw_impurity_transition = self.get_from_renate_atomic('impurity_transition')
@@ -192,14 +192,13 @@ class AtomicDB(RenateDB):
             from_level_functions = []
             for to_level in range(self.atomic_levels):
                 to_level_functions = []
-                for charged_state in range(raw_impurity_transition.shape[0]+1):
-                    if charged_state == 0:
-                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                            raw_proton_transition[from_level, to_level, :]), fill_value='extrapolate'))
-                    else:
-                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                            raw_impurity_transition[charged_state-1, from_level, to_level, :]),
-                                                           fill_value='extrapolate'))
+                for target in self.components.T.keys():
+                    if (target is not 'electron') and (self.components['Z'][target] == 1):
+                        to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            raw_proton_transition[from_level, to_level, :]), target))
+                    elif (target is not 'electron') and (self.components['q'] >= 2):
+                        to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            raw_impurity_transition[self.components['q'][target]-2, from_level, to_level, :]), target))
                 from_level_functions.append(tuple(to_level_functions))
             self.ion_impact_trans.append(tuple(from_level_functions))
         self.ion_impact_trans = tuple(self.ion_impact_trans)
