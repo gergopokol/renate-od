@@ -30,6 +30,8 @@ class RenateDBTest(unittest.TestCase):
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2']]
     INPUT_PATH = 'beamlet/testimp0001.xml'
+    INPUT_DATA_GETTING = ['temperature', 'spontaneous_transition', 'ionization_terms',
+                          'impurity_transition', 'ion_transition', 'electron_transition']
 
     def test_all_attributes(self):
         actual = RenateDB(None, 'default', self.INPUT_PATH)
@@ -87,6 +89,12 @@ class RenateDBTest(unittest.TestCase):
             self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2])
             self.assertIsInstance(trans, str)
             self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3])
+
+    def test_atomic_data_getter(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        for index in range(len(self.INPUT_DATA_GETTING)):
+            data = actual.get_from_renate_atomic(self.INPUT_DATA_GETTING[index])
+            self.assertIsInstance(data, numpy.ndarray)
 
 
 class AtomicDBTest(unittest.TestCase):
