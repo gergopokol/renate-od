@@ -193,10 +193,10 @@ class AtomicDB(RenateDB):
             for to_level in range(self.atomic_levels):
                 to_level_functions = []
                 for target in self.components.T.keys():
-                    if (target != 'electron') and (self.components['Z'][target] == 1):
+                    if self.components['q'][target] == 1:
                         to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                             raw_proton_transition[from_level, to_level, :]), target))
-                    elif (target != 'electron') and (self.components['q'] >= 2):
+                    elif self.components['q'][target] > 1:
                         to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                             raw_impurity_transition[self.components['q'][target]-2, from_level, to_level, :]), target))
                 from_level_functions.append(tuple(to_level_functions))
@@ -206,7 +206,7 @@ class AtomicDB(RenateDB):
     def __interp1d_scaled_ion(self, rates, target):
         scaling_mass_ratio = float(self.components['A'][target]) /\
                              self.impurity_mass_normalization['charge-'+str(self.components['q'][target])]
-        return interp1d(self.temperature_axis/scaling_mass_ratio, rates, fill_value='extrapolate')
+        return interp1d(self.temperature_axis*scaling_mass_ratio, rates, fill_value='extrapolate')
 
     def plot_rates(self, *args, temperature=None, external_density=1.):
         if temperature is None:
