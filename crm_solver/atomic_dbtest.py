@@ -23,6 +23,12 @@ class RenateDBTest(unittest.TestCase):
     EXPECTED_MASS_CORRECTION_DICT = {'charge-1': 1, 'charge-2': 4, 'charge-3': 7, 'charge-4': 9, 'charge-5': 11,
                                      'charge-6': 12, 'charge-7': 14, 'charge-8': 16, 'charge-9': 19, 'charge-10': 20,
                                      'charge-11': 23}
+    EXPECTED_DEFAULT_ATOMIC_STATES = [['1', '0', '0', '1-0'],
+                                      ['2p', '2s', '2s', '2p-2s'],
+                                      ['3p', '3s', '3s', '3p-3s'],
+                                      ['3', '2', '1', '3-2'],
+                                      ['3', '2', '1', '3-2'],
+                                      ['3', '2', '1', '3-2']]
     INPUT_PATH = 'beamlet/testimp0001.xml'
 
     def test_all_attributes(self):
@@ -67,6 +73,20 @@ class RenateDBTest(unittest.TestCase):
             self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
             self.assertIsInstance(atom.inv_atomic_dict, dict)
 
+    def test_default_atomic_levels(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        for index in range(len(self.EXPECTED_ATOM)):
+            actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
+            atom = RenateDB(actual.param, 'default', None)
+            fr, to, ground, trans = atom.set_default_atomic_levels()
+            self.assertIsInstance(fr, str)
+            self.assertEqual(fr, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][0])
+            self.assertIsInstance(to, str)
+            self.assertEqual(to, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][1])
+            self.assertIsInstance(ground, str)
+            self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2])
+            self.assertIsInstance(trans, str)
+            self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3])
 
 
 class AtomicDBTest(unittest.TestCase):
