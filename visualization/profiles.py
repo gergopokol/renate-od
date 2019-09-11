@@ -2,7 +2,7 @@ import matplotlib.pyplot
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
-from crm_solver.atomic_db import AtomicDB
+from crm_solver.atomic_db import RenateDB
 
 
 class BeamletProfiles:
@@ -11,8 +11,9 @@ class BeamletProfiles:
         self.param = utility.getdata.GetData(data_path_name=self.param_path).data
         self.access_path = self.param.getroot().find('body').find('beamlet_profiles').text
         self.key = key
-        self.atomic_db = AtomicDB(param=self.param)
+        self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key)
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
+        self.atomic_db = RenateDB(self.param, 'default', self.access_path)
         self.title = None
 
     def set_x_range(self, x_min=None, x_max=None):
