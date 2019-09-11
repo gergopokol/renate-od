@@ -142,7 +142,7 @@ class AtomicDB(RenateDB):
     def __set_impact_loss_functions(self):
         '''''
         Contains beam atom impact ionization (ion + charge exchange) data for loaded atomic type.
-        Indexing convention: data[from_level][charge] for ion impact electron loss interaction.
+        Indexing convention: data[from_level][target] for ion impact electron loss interaction.
         Indexing convention: data[from_level] for electron impact electron loss interactions. 
         '''''
         raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
@@ -152,9 +152,10 @@ class AtomicDB(RenateDB):
             from_level_functions = []
             self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                 raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
-            for charged_state in range(raw_impact_loss_transition.shape[0]-1):
-                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                    raw_impact_loss_transition[charged_state+1, from_level, :]), fill_value='extrapolate'))
+            for target in self.components.T.keys():
+                if target is not 'electron':
+                    from_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                        raw_impact_loss_transition[self.components['q'][target], from_level, :]), target))
             self.ion_impact_loss.append(tuple(from_level_functions))
         self.electron_impact_loss, self.ion_impact_loss = tuple(self.electron_impact_loss), tuple(self.ion_impact_loss)
 
@@ -202,6 +203,11 @@ class AtomicDB(RenateDB):
                 from_level_functions.append(tuple(to_level_functions))
             self.ion_impact_trans.append(tuple(from_level_functions))
         self.ion_impact_trans = tuple(self.ion_impact_trans)
+
+    def __interp1d_scaled_ion(self, rates, target):
+        scaling_mass_ratio = float(self.components['A'][target]) /\
+                             self.impurity_mass_normalization['charge-'+str(self.components['q'][target])]
+        return interp1d(self.temperature_axis/scaling_mass_ratio, rates, fill_value='extrapolate')
 
     def plot_rates(self, *args, temperature=None, external_density=1.):
         if temperature is None:
