@@ -4,30 +4,33 @@ from utility import getdata
 import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+import pandas
 
 
-class AtomicDB:
-    def __init__(self, param=None, rate_type='default', data_path='beamlet/testimp0001.xml'):
+class RenateDB:
+    def __init__(self, param, rate_type, data_path):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.param = getdata.GetData(data_path_name=data_path).data
         assert isinstance(self.param, etree._ElementTree)
+        self.__set_impurity_mass_scaling_dictionary()
         self.__projectile_parameters()
         self.__set_atomic_dictionary()
         self.__set_rates_path(rate_type)
-        self.__generate_rate_function_db()
+        self.__set_charge_state_lib()
 
-    def set_default_atomic_levels(self):
-        if self.species in ['H', 'D', 'T']:
-            return '3', '2', '1', '3-2'
-        elif self.species == 'Li':
-            return '2p', '2s', '2s', '2p-2s'
-        elif self.species == 'Na':
-            return '3p', '3s', '3s', '3p-3s'
-        elif self.species == 'dummy':
-            return '1', '0', '0', '1-0'
-        else:
-            raise ValueError('The atomic species: ' + self.species + ' is not supported')
+    def __set_impurity_mass_scaling_dictionary(self):
+        self.impurity_mass_normalization = {'charge-1': 1,
+                                            'charge-2': 4,
+                                            'charge-3': 7,
+                                            'charge-4': 9,
+                                            'charge-5': 11,
+                                            'charge-6': 12,
+                                            'charge-7': 14,
+                                            'charge-8': 16,
+                                            'charge-9': 19,
+                                            'charge-10': 20,
+                                            'charge-11': 23}
 
     def __projectile_parameters(self):
         self.energy = self.param.getroot().find('body').find('beamlet_energy').text
@@ -48,84 +51,6 @@ class AtomicDB:
 
     def __get_projectile_velocity(self):
         self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
-
-    def __generate_rate_function_db(self):
-        self.temperature_axis = self.load_rate_data(self.rates_path, 'Temperature axis')
-        self.__set_einstein_coefficient_db()
-        self.__set_impact_loss_functions()
-        self.__set_electron_impact_transition_functions()
-        self.__set_ion_impact_transition_functions()
-
-    def __set_impact_loss_functions(self):
-        '''''
-        Contains beam atom impact ionization (ion + charge exchange) data for loaded atomic type.
-        Indexing convention: data[from_level][charge] for ion impact electron loss interaction.
-        Indexing convention: data[from_level] for electron impact electron loss interactions. 
-        '''''
-        raw_impact_loss_transition = self.load_rate_data(self.rates_path,
-                                                         'Collisional Coeffs/Electron Loss Collisions')
-        self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
-        self.electron_impact_loss, self.ion_impact_loss = [], []
-        for from_level in range(self.atomic_levels):
-            from_level_functions = []
-            self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
-            for charged_state in range(raw_impact_loss_transition.shape[0]-1):
-                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                    raw_impact_loss_transition[charged_state+1, from_level, :]), fill_value='extrapolate'))
-            self.ion_impact_loss.append(tuple(from_level_functions))
-        self.electron_impact_loss, self.ion_impact_loss = tuple(self.electron_impact_loss), tuple(self.ion_impact_loss)
-
-    def __set_electron_impact_transition_functions(self):
-        '''''
-        Contains electron impact transition data for loaded atomic type.
-        Indexing convention: data[from_level][to_level]
-        '''''
-        raw_electron_transition = self.load_rate_data(self.rates_path,
-                                                           'Collisional Coeffs/Electron Neutral Collisions')
-        self.electron_impact_trans = []
-        for from_level in range(self.atomic_levels):
-            from_level_functions = []
-            for to_level in range(self.atomic_levels):
-                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                    raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
-            self.electron_impact_trans.append(tuple(from_level_functions))
-        self.electron_impact_trans = tuple(self.electron_impact_trans)
-
-    def __set_ion_impact_transition_functions(self):
-        '''''
-        Contains spontanous transition data for loaded atomic type.
-        Indexing convention: data[from_level, to_level, charge]
-        '''''
-        raw_proton_transition = self.load_rate_data(self.rates_path,
-                                                         'Collisional Coeffs/Proton Neutral Collisions')
-        raw_impurity_transition = self.load_rate_data(self.rates_path,
-                                                           'Collisional Coeffs/Impurity Neutral Collisions')
-        self.ion_impact_trans = []
-        for from_level in range(self.atomic_levels):
-            from_level_functions = []
-            for to_level in range(self.atomic_levels):
-                to_level_functions = []
-                for charged_state in range(raw_impurity_transition.shape[0]+1):
-                    if charged_state == 0:
-                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                            raw_proton_transition[from_level, to_level, :]), fill_value='extrapolate'))
-                    else:
-                        to_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                            raw_impurity_transition[charged_state-1, from_level, to_level, :]),
-                                                           fill_value='extrapolate'))
-                from_level_functions.append(tuple(to_level_functions))
-            self.ion_impact_trans.append(tuple(from_level_functions))
-        self.ion_impact_trans = tuple(self.ion_impact_trans)
-
-    def __set_einstein_coefficient_db(self):
-        '''''
-        Contains spontanous transition data for loaded atomic type.
-        Indexing convention: data[to_level, from_level]
-        '''''
-        self.spontaneous_trans = self.load_rate_data(self.rates_path, 'Einstein Coeffs')
-        if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
-            raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
 
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
@@ -150,11 +75,139 @@ class AtomicDB:
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
         self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
 
-    def __set_charge_state_lib(self, nr_charged_states):
+    def __set_charge_state_lib(self):
+        impact_loss = self.get_from_renate_atomic('ionization_terms')
         self.charged_states = []
-        for state in range(nr_charged_states):
+        for state in range(impact_loss.shape[0]-1):
             self.charged_states.append('charge-'+str(state+1))
         self.charged_states = tuple(self.charged_states)
+
+    @staticmethod
+    def load_rate_data(path, tag_name):
+        return getdata.GetData(data_path_name=path, data_key=[tag_name], data_format='array').data
+
+    def set_default_atomic_levels(self):
+        if self.species in ['H', 'D', 'T']:
+            return '3', '2', '1', '3-2'
+        elif self.species == 'Li':
+            return '2p', '2s', '2s', '2p-2s'
+        elif self.species == 'Na':
+            return '3p', '3s', '3s', '3p-3s'
+        elif self.species == 'dummy':
+            return '1', '0', '0', '1-0'
+        else:
+            raise ValueError('The atomic species: ' + self.species + ' is not supported')
+
+    def get_from_renate_atomic(self, source):
+        assert isinstance(source, str)
+        if source is 'electron_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Neutral Collisions')
+        elif source is 'ion_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Proton Neutral Collisions')
+        elif source is 'impurity_transition':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Impurity Neutral Collisions')
+        elif source is 'ionization_terms':
+            return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Loss Collisions')
+        elif source is 'spontaneous_transition':
+            return self.load_rate_data(self.rates_path, 'Einstein Coeffs')
+        elif source is 'temperature':
+            return self.load_rate_data(self.rates_path, 'Temperature axis')
+        else:
+            raise ValueError('Data ' + source + ' is not located and supported in the Renate rate library.')
+
+
+class AtomicDB(RenateDB):
+    def __init__(self, atomic_source='renate', param=None, rate_type='default',
+                 data_path='beamlet/testimp0001.xml', components=None):
+        assert isinstance(atomic_source, str)
+        assert isinstance(components, pandas.core.frame.DataFrame)
+        self.components = components
+        if atomic_source is 'renate':
+            RenateDB.__init__(self, param, rate_type, data_path)
+            self.__generate_rate_function_db()
+        else:
+            raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
+
+    def __generate_rate_function_db(self):
+        self.__set_temperature_axis()
+        self.__set_einstein_coefficient_db()
+        self.__set_impact_loss_functions()
+        self.__set_electron_impact_transition_functions()
+        self.__set_ion_impact_transition_functions()
+
+    def __set_temperature_axis(self):
+        self.temperature_axis = self.get_from_renate_atomic('temperature')
+
+    def __set_einstein_coefficient_db(self):
+        '''''
+        Contains spontanous transition data for loaded atomic type.
+        Indexing convention: data[to_level, from_level]
+        '''''
+        self.spontaneous_trans = self.get_from_renate_atomic('spontaneous_transition')
+        if self.atomic_levels != int(self.spontaneous_trans.size ** 0.5):
+            raise Exception('Loaded atomic database is inconsistent with atomic data dictionary. Wrong data loaded.')
+
+    def __set_impact_loss_functions(self):
+        '''''
+        Contains beam atom impact ionization (ion + charge exchange) data for loaded atomic type.
+        Indexing convention: data[from_level][target] for ion impact electron loss interaction.
+        Indexing convention: data[from_level] for electron impact electron loss interactions. 
+        '''''
+        raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
+        self.electron_impact_loss, self.ion_impact_loss = [], []
+        for from_level in range(self.atomic_levels):
+            from_level_functions = []
+            self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
+            for target in self.components.T.keys():
+                if target != 'electron':
+                    from_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                        raw_impact_loss_transition[self.components['q'][target], from_level, :]), target))
+            self.ion_impact_loss.append(tuple(from_level_functions))
+        self.electron_impact_loss, self.ion_impact_loss = tuple(self.electron_impact_loss), tuple(self.ion_impact_loss)
+
+    def __set_electron_impact_transition_functions(self):
+        '''''
+        Contains electron impact transition data for loaded atomic type.
+        Indexing convention: data[from_level][to_level]
+        '''''
+        raw_electron_transition = self.get_from_renate_atomic('electron_transition')
+        self.electron_impact_trans = []
+        for from_level in range(self.atomic_levels):
+            from_level_functions = []
+            for to_level in range(self.atomic_levels):
+                from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                    raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
+            self.electron_impact_trans.append(tuple(from_level_functions))
+        self.electron_impact_trans = tuple(self.electron_impact_trans)
+
+    def __set_ion_impact_transition_functions(self):
+        '''''
+        Contains spontanous transition data for loaded atomic type.
+        Indexing convention: data[from_level, to_level, target]
+        '''''
+        raw_proton_transition = self.get_from_renate_atomic('ion_transition')
+        raw_impurity_transition = self.get_from_renate_atomic('impurity_transition')
+        self.ion_impact_trans = []
+        for from_level in range(self.atomic_levels):
+            from_level_functions = []
+            for to_level in range(self.atomic_levels):
+                to_level_functions = []
+                for target in self.components.T.keys():
+                    if self.components['q'][target] == 1:
+                        to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            raw_proton_transition[from_level, to_level, :]), target))
+                    elif self.components['q'][target] > 1:
+                        to_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            raw_impurity_transition[self.components['q'][target]-2, from_level, to_level, :]), target))
+                from_level_functions.append(tuple(to_level_functions))
+            self.ion_impact_trans.append(tuple(from_level_functions))
+        self.ion_impact_trans = tuple(self.ion_impact_trans)
+
+    def __interp1d_scaled_ion(self, rates, target):
+        scaling_mass_ratio = float(self.components['A'][target]) /\
+                             self.impurity_mass_normalization['charge-'+str(self.components['q'][target])]
+        return interp1d(self.temperature_axis*scaling_mass_ratio, rates, fill_value='extrapolate')
 
     def plot_rates(self, *args, temperature=None, external_density=1.):
         if temperature is None:
@@ -187,7 +240,7 @@ class AtomicDB:
                     assert isinstance(arg[2], str)
                     if arg[0] is 'ion':
                         plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature) *
-                                 external_density, label='e impact ion: '+self.atomic_dict[arg[2]]+'-->i')
+                                 external_density, label='e impact ion: '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, external_density * self.electron_impact_trans[self.atomic_dict[arg[2]]]
@@ -195,18 +248,23 @@ class AtomicDB:
                 else:
                     assert isinstance(arg[2], str)
                     assert isinstance(arg[-1], int)
-                    if arg[-1] > len(self.charged_states):
-                        raise ValueError('There are no rates available for atom impact with charged state: q='+str(arg[-1]))
+                    if arg[-1] > len(self.components.T.keys()):
+                        raise ValueError('There are no rates available for atom impact with '
+                                         'requested component: ion'+str(arg[-1]+1))
                     if arg[-1] < 1:
-                        raise ValueError('There are supported charged for or below: q='+str(arg[-1]))
+                        raise ValueError('There are supported components for or below:ion'+str(arg[-1]))
+                    elements = self.components.T.keys()
+                    ion = (self.components['q'][elements[arg[-1]]], self.components['Z'][elements[arg[-1]]],
+                           self.components['A'][elements[arg[-1]]])
                     if arg[0] is 'ion':
-                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature) *
-                                 external_density, label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
+                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]-1](temperature) *
+                                 external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+',' +
+                                                         str(ion[2])+'): '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
-                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q=' +
-                                                                                    str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
+                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q,Z,A)=(' +
+                                 str(ion[0])+','+str(ion[1])+',' + str(ion[2])+'): '+arg[2]+'-->'+arg[3])
         plt.title('Reduced rates for '+self.species+' projectiles at '+str(self.energy)+' keV impact energy.')
         plt.xlabel('Temperature [eV]')
         if spont_flag:
@@ -217,7 +275,3 @@ class AtomicDB:
         plt.xscale('log')
         plt.legend()
         plt.show()
-
-    @staticmethod
-    def load_rate_data(path, tag_name):
-        return getdata.GetData(data_path_name=path, data_key=[tag_name], data_format='array').data

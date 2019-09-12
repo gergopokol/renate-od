@@ -16,10 +16,10 @@ class Beamlet:
         self.profiles = profiles
         self.components = components
         self.atomic_db = atomic_db
-        if atomic_db is None:
-            self.atomic_db = AtomicDB(param=self.param)
         if not (isinstance(self.components, pandas.DataFrame) and isinstance(self.profiles, pandas.DataFrame)):
             self.__read_beamlet_profiles()
+        if atomic_db is None:
+            self.atomic_db = AtomicDB(param=self.param, components=self.components)
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
