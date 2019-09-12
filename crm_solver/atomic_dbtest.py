@@ -239,6 +239,10 @@ class AtomicDBTest(unittest.TestCase):
         for attr in self.EXPECTED_ATTR:
             assert hasattr(actual, attr)
 
+    def test_inheritance(self):
+        atomic_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
+        self.assertIsInstance(atomic_db, RenateDB)
+
     def test_spontaneous_trans(self):
         actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.spontaneous_trans, numpy.ndarray)
