@@ -104,6 +104,17 @@ class RenateDBTest(unittest.TestCase):
             self.assertIsInstance(actual.charged_states[state], str)
             self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
 
+    def test_renate_temperature(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        data = actual.get_from_renate_atomic('temperature')
+        self.assertEqual(data.ndim, 1)
+
+    def test_renate_spontaneous(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        data = actual.get_from_renate_atomic('spontaneous_transition')
+        self.assertEqual(data.ndim, 2)
+        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels))
+
 
 class AtomicDBTest(unittest.TestCase):
     EXPECTED_ATTR = ['temperature_axis', 'spontaneous_trans', 'electron_impact_loss',
