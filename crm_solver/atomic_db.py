@@ -17,6 +17,7 @@ class RenateDB:
         self.__projectile_parameters()
         self.__set_atomic_dictionary()
         self.__set_rates_path(rate_type)
+        self.__set_charge_state_lib()
 
     def __set_impurity_mass_scaling_dictionary(self):
         self.impurity_mass_normalization = {'charge-1': 1,
@@ -73,6 +74,13 @@ class RenateDB:
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
         self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
+
+    def __set_charge_state_lib(self):
+        impact_loss = self.get_from_renate_atomic('ionization_terms')
+        self.charged_states = []
+        for state in range(impact_loss.shape[0]-1):
+            self.charged_states.append('charge-'+str(state+1))
+        self.charged_states = tuple(self.charged_states)
 
     @staticmethod
     def load_rate_data(path, tag_name):
@@ -146,7 +154,6 @@ class AtomicDB(RenateDB):
         Indexing convention: data[from_level] for electron impact electron loss interactions. 
         '''''
         raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
-        self.__set_charge_state_lib(raw_impact_loss_transition.shape[0]-1)
         self.electron_impact_loss, self.ion_impact_loss = [], []
         for from_level in range(self.atomic_levels):
             from_level_functions = []
@@ -173,12 +180,6 @@ class AtomicDB(RenateDB):
                     raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
             self.electron_impact_trans.append(tuple(from_level_functions))
         self.electron_impact_trans = tuple(self.electron_impact_trans)
-
-    def __set_charge_state_lib(self, nr_charged_states):
-        self.charged_states = []
-        for state in range(nr_charged_states):
-            self.charged_states.append('charge-'+str(state+1))
-        self.charged_states = tuple(self.charged_states)
 
     def __set_ion_impact_transition_functions(self):
         '''''
