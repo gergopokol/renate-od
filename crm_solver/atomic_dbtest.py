@@ -313,11 +313,11 @@ class AtomicDBTest(unittest.TestCase):
     def test_ion_impact_loss_interpolator(self):
         actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
         for level in range(actual.atomic_levels):
-            for charge in range(len(actual.charged_states)):
-                rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
+            for target in range(len(actual.components.T.keys())-1):
+                rates = actual.ion_impact_loss[level][target](self.INTERPOLATION_TEST_TEMPERATURE)
                 self.assertIsInstance(rates, numpy.ndarray)
                 for element_index in range(len(rates)):
-                    self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_LOSS[level][charge]
+                    self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_LOSS[level][target]
                                            [element_index], rates[element_index], 3)
 
     def test_ion_impact_transition_interpolator(self):
