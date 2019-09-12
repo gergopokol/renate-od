@@ -240,7 +240,7 @@ class AtomicDB(RenateDB):
                     assert isinstance(arg[2], str)
                     if arg[0] is 'ion':
                         plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature) *
-                                 external_density, label='e impact ion: '+self.atomic_dict[arg[2]]+'-->i')
+                                 external_density, label='e impact ion: '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, external_density * self.electron_impact_trans[self.atomic_dict[arg[2]]]
@@ -248,18 +248,23 @@ class AtomicDB(RenateDB):
                 else:
                     assert isinstance(arg[2], str)
                     assert isinstance(arg[-1], int)
-                    if arg[-1] > len(self.charged_states):
-                        raise ValueError('There are no rates available for atom impact with charged state: q='+str(arg[-1]))
+                    if arg[-1] > len(self.components.T.keys()):
+                        raise ValueError('There are no rates available for atom impact with '
+                                         'requested component: ion'+str(arg[-1]+1))
                     if arg[-1] < 1:
-                        raise ValueError('There are supported charged for or below: q='+str(arg[-1]))
+                        raise ValueError('There are supported components for or below:ion'+str(arg[-1]-1))
+                    elements = self.components.T.keys()
+                    ion = (self.components['q'][elements[arg[-1]]], self.components['Z'][elements[arg[-1]]],
+                           self.components['A'][elements[arg[-1]]])
                     if arg[0] is 'ion':
                         plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature) *
-                                 external_density, label='p impact ion (q='+str(arg[-1])+'): '+arg[2]+'-->i')
+                                 external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+',' +
+                                                         str(ion[2])+'): '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
-                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q=' +
-                                                                                    str(arg[-1])+'): '+arg[2]+'-->'+arg[3])
+                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q,Z,A)=(' +
+                                 str(ion[0])+','+str(ion[1])+',' + str(ion[2])+'): '+arg[2]+'-->'+arg[3])
         plt.title('Reduced rates for '+self.species+' projectiles at '+str(self.energy)+' keV impact energy.')
         plt.xlabel('Temperature [eV]')
         if spont_flag:
