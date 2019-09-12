@@ -9,7 +9,7 @@ import pandas
 
 class RenateDBTest(unittest.TestCase):
     EXPECTED_ATTR = ['energy', 'param', 'species', 'mass', 'atomic_dict', 'rate_type', 'velocity',
-                     'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization']
+                     'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization', 'charged_states']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
     EXPECTED_ENERGY = '60'
@@ -97,6 +97,13 @@ class RenateDBTest(unittest.TestCase):
             data = actual.get_from_renate_atomic(self.INPUT_DATA_GETTING[index])
             self.assertIsInstance(data, numpy.ndarray)
 
+    def test_charged_state_library(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        self.assertIsInstance(actual.charged_states, tuple)
+        for state in range(len(actual.charged_states)):
+            self.assertIsInstance(actual.charged_states[state], str)
+            self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
+
 
 class AtomicDBTest(unittest.TestCase):
     EXPECTED_ATTR = ['energy', 'param', 'species', 'mass', 'atomic_dict', 'rate_type', 'velocity',
@@ -108,6 +115,7 @@ class AtomicDBTest(unittest.TestCase):
     COMPONENTS = pandas.DataFrame([[-1] + q, [0] + z, [0] + a], index=['q', 'Z', 'A'],
                                   columns=['electron'] + ['ion' + str(i + 1) for i in
                                   range(len(elements))]).transpose()
+    INPUT_DUMMY_PATH = 'beamlet/dummy0001.xml'
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
@@ -219,13 +227,6 @@ class AtomicDBTest(unittest.TestCase):
             for to_level in range(actual.atomic_levels):
                 self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
 
-    def test_charged_state_library(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.charged_states, tuple)
-        for state in range(len(actual.charged_states)):
-            self.assertIsInstance(actual.charged_states[state], str)
-            self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
-
     def test_ion_impact_loss_terms(self):
         actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.ion_impact_loss, tuple)
@@ -251,7 +252,7 @@ class AtomicDBTest(unittest.TestCase):
                                           scipy.interpolate.interp1d)
 
     def test_electron_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
+        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
         for level in range(actual.atomic_levels):
             rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
             self.assertIsInstance(rates, numpy.ndarray)
@@ -260,7 +261,7 @@ class AtomicDBTest(unittest.TestCase):
                                        [element_index], rates[element_index], 5)
 
     def test_electron_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
+        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
         for from_level in range(actual.atomic_levels):
             for to_level in range(actual.atomic_levels):
                 rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
@@ -270,7 +271,7 @@ class AtomicDBTest(unittest.TestCase):
                                            [to_level][element_index], rates[element_index], 5)
 
     def test_ion_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
+        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
         for level in range(actual.atomic_levels):
             for charge in range(len(actual.charged_states)):
                 rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
@@ -280,7 +281,7 @@ class AtomicDBTest(unittest.TestCase):
                                            [element_index], rates[element_index], 5)
 
     def test_ion_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
+        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
         for from_level in range(actual.atomic_levels):
             for to_level in range(actual.atomic_levels):
                 for charge in range(len(actual.charged_states)):
