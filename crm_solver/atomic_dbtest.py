@@ -106,8 +106,8 @@ class RenateDBTest(unittest.TestCase):
 
 
 class AtomicDBTest(unittest.TestCase):
-    EXPECTED_ATTR = ['energy', 'param', 'species', 'mass', 'atomic_dict', 'rate_type', 'velocity',
-                     'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization']
+    EXPECTED_ATTR = ['temperature_axis', 'spontaneous_trans', 'electron_impact_loss',
+                     'ion_impact_loss', 'electron_impact_trans', 'ion_impact_trans']
     elements = ['1H+', '1D+', '3He+', '4He++', '9Be++++']
     q = [1, 1, 1, 2, 4]
     z = [1, 1, 2, 2, 4]
