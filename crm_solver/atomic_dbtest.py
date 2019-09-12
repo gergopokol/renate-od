@@ -115,6 +115,35 @@ class RenateDBTest(unittest.TestCase):
         self.assertEqual(data.ndim, 2)
         self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels))
 
+    def test_renate_electron_transitions(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        temp = actual.get_from_renate_atomic('temperature')
+        data = actual.get_from_renate_atomic('electron_transition')
+        self.assertEqual(data.ndim, 3)
+        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels, len(temp)))
+
+    def test_renate_ion_transitions(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        temp = actual.get_from_renate_atomic('temperature')
+        data = actual.get_from_renate_atomic('ion_transition')
+        self.assertEqual(data.ndim, 3)
+        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels, len(temp)))
+
+    def test_renate_impurity_transitions(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        temp = actual.get_from_renate_atomic('temperature')
+        data = actual.get_from_renate_atomic('impurity_transition')
+        self.assertEqual(data.ndim, 4)
+        self.assertEqual(data.shape, (len(actual.charged_states)-1, actual.atomic_levels,
+                                      actual.atomic_levels, len(temp)))
+
+    def test_renate_ionization_terms(self):
+        actual = RenateDB(None, 'default', self.INPUT_PATH)
+        temp = actual.get_from_renate_atomic('temperature')
+        data = actual.get_from_renate_atomic('ionization_terms')
+        self.assertEqual(data.ndim, 3)
+        self.assertEqual(data.shape, (len(actual.charged_states)+1, actual.atomic_levels, len(temp)))
+
 
 class AtomicDBTest(unittest.TestCase):
     EXPECTED_ATTR = ['temperature_axis', 'spontaneous_trans', 'electron_impact_loss',
