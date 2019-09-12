@@ -252,12 +252,12 @@ class AtomicDB(RenateDB):
                         raise ValueError('There are no rates available for atom impact with '
                                          'requested component: ion'+str(arg[-1]+1))
                     if arg[-1] < 1:
-                        raise ValueError('There are supported components for or below:ion'+str(arg[-1]-1))
+                        raise ValueError('There are supported components for or below:ion'+str(arg[-1]))
                     elements = self.components.T.keys()
                     ion = (self.components['q'][elements[arg[-1]]], self.components['Z'][elements[arg[-1]]],
                            self.components['A'][elements[arg[-1]]])
                     if arg[0] is 'ion':
-                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]](temperature) *
+                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]-1](temperature) *
                                  external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+',' +
                                                          str(ion[2])+'): '+arg[2]+'-->i')
                     else:
