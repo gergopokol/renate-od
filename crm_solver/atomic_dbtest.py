@@ -4,6 +4,7 @@ import unittest
 import numpy
 import scipy
 import utility.convert as uc
+import pandas
 
 
 class RenateDBTest(unittest.TestCase):
@@ -98,6 +99,15 @@ class RenateDBTest(unittest.TestCase):
 
 
 class AtomicDBTest(unittest.TestCase):
+    EXPECTED_ATTR = ['energy', 'param', 'species', 'mass', 'atomic_dict', 'rate_type', 'velocity',
+                     'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization']
+    elements = ['1H+', '1D+', '3He+', '4He++', '9Be++++']
+    q = [1, 1, 1, 2, 4]
+    z = [1, 1, 2, 2, 4]
+    a = [1, 2, 3, 4, 9]
+    COMPONENTS = pandas.DataFrame([[-1] + q, [0] + z, [0] + a], index=['q', 'Z', 'A'],
+                                  columns=['electron'] + ['ion' + str(i + 1) for i in
+                                  range(len(elements))]).transpose()
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
@@ -177,12 +187,12 @@ class AtomicDBTest(unittest.TestCase):
                                                              [0., 0., 0., 0., 0., 0., 0.]]]]))
 
     def test_all_attributes(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         for attr in self.EXPECTED_ATTR:
             assert hasattr(actual, attr)
 
     def test_spontaneous_trans(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.spontaneous_trans, numpy.ndarray)
         self.assertEqual(actual.spontaneous_trans.ndim, 2)
         self.assertEqual(actual.atomic_levels, int(actual.spontaneous_trans.size ** 0.5))
@@ -193,14 +203,14 @@ class AtomicDBTest(unittest.TestCase):
                                      0.0, msg='Spontaneous transition levels set wrong!!')
 
     def test_electron_impact_loss_terms(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.electron_impact_loss, tuple)
         self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
         for index in range(actual.atomic_levels):
             self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
 
     def test_electron_impact_transition_terms(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.electron_impact_trans, tuple)
         self.assertEqual(len(actual.electron_impact_trans), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
@@ -210,14 +220,14 @@ class AtomicDBTest(unittest.TestCase):
                 self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
 
     def test_charged_state_library(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.charged_states, tuple)
         for state in range(len(actual.charged_states)):
             self.assertIsInstance(actual.charged_states[state], str)
             self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
 
     def test_ion_impact_loss_terms(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.ion_impact_loss, tuple)
         self.assertEqual(len(actual.ion_impact_loss), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
@@ -227,7 +237,7 @@ class AtomicDBTest(unittest.TestCase):
                 self.assertIsInstance(actual.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d)
 
     def test_ion_impact_transition_terms(self):
-        actual = AtomicDB()
+        actual = AtomicDB(components=self.COMPONENTS)
         self.assertIsInstance(actual.ion_impact_trans, tuple)
         self.assertEqual(len(actual.ion_impact_trans), actual.atomic_levels)
         for from_level in range(actual.atomic_levels):
@@ -241,7 +251,7 @@ class AtomicDBTest(unittest.TestCase):
                                           scipy.interpolate.interp1d)
 
     def test_electron_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
         for level in range(actual.atomic_levels):
             rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
             self.assertIsInstance(rates, numpy.ndarray)
@@ -250,7 +260,7 @@ class AtomicDBTest(unittest.TestCase):
                                        [element_index], rates[element_index], 5)
 
     def test_electron_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
         for from_level in range(actual.atomic_levels):
             for to_level in range(actual.atomic_levels):
                 rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
@@ -260,7 +270,7 @@ class AtomicDBTest(unittest.TestCase):
                                            [to_level][element_index], rates[element_index], 5)
 
     def test_ion_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
         for level in range(actual.atomic_levels):
             for charge in range(len(actual.charged_states)):
                 rates = actual.ion_impact_loss[level][charge](self.INTERPOLATION_TEST_TEMPERATURE)
@@ -270,7 +280,7 @@ class AtomicDBTest(unittest.TestCase):
                                            [element_index], rates[element_index], 5)
 
     def test_ion_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path='beamlet/dummy0001.xml')
+        actual = AtomicDB(data_path='beamlet/dummy0001.xml', components=self.COMPONENTS)
         for from_level in range(actual.atomic_levels):
             for to_level in range(actual.atomic_levels):
                 for charge in range(len(actual.charged_states)):
