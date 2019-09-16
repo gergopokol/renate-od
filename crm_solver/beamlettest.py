@@ -7,4 +7,9 @@ import pandas
 
 
 class BeamletTest(unittest.TestCase):
-    pass
+    EXPECTED_ATTR = ['param', 'components', 'profiles', 'coefficient_matrix', 'atomic_db', 'initial_condition']
+
+    def test_attributes(self):
+        actual = Beamlet()
+        for attr in self.EXPECTED_ATTR:
+            assert hasattr(actual, attr)
