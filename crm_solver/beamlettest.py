@@ -20,3 +20,12 @@ class BeamletTest(unittest.TestCase):
                                                                   'Expected type: list')
         self.assertEqual(len(actual.initial_condition), actual.atomic_db.atomic_levels, msg='Initial conditions must '
                          'match number of atomic levels.')
+        for element in range(len(actual.initial_condition)):
+            self.assertIsInstance(actual.initial_condition[element], float, msg='Expected type for initial'
+                                                                                ' conditions is float.')
+            if element == 0:
+                self.assertNotEqual(actual.initial_condition[element], 0., msg='Ground level electron density '
+                                                                               'is expected to be not 0.')
+            else:
+                self.assertEqual(actual.initial_condition[element], 0., msg='Default initial conditions for '
+                                                                            'higher atomic levels is 0.')
