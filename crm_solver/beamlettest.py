@@ -8,6 +8,7 @@ import pandas
 
 class BeamletTest(unittest.TestCase):
     EXPECTED_ATTR = ['param', 'components', 'profiles', 'coefficient_matrix', 'atomic_db', 'initial_condition']
+    EXPECTED_INITIAL_CONDITION = [4832583711.839067, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def test_attributes(self):
         actual = Beamlet()
@@ -23,9 +24,8 @@ class BeamletTest(unittest.TestCase):
         for element in range(len(actual.initial_condition)):
             self.assertIsInstance(actual.initial_condition[element], float, msg='Expected type for initial'
                                                                                 ' conditions is float.')
-            if element == 0:
-                self.assertNotEqual(actual.initial_condition[element], 0., msg='Ground level electron density '
-                                                                               'is expected to be not 0.')
-            else:
-                self.assertEqual(actual.initial_condition[element], 0., msg='Default initial conditions for '
-                                                                            'higher atomic levels is 0.')
+            self.assertEqual(actual.initial_condition[element], self.EXPECTED_INITIAL_CONDITION[element],
+                             msg='Computed Init conditions do not match expected init conditions.')
+
+    def test_param_xml(self):
+        pass
