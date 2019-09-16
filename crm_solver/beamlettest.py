@@ -1,9 +1,6 @@
 from crm_solver.beamlet import Beamlet
 import unittest
-import numpy
-import scipy
-import utility.convert as uc
-import pandas
+from lxml import etree
 
 
 class BeamletTest(unittest.TestCase):
@@ -28,4 +25,5 @@ class BeamletTest(unittest.TestCase):
                              msg='Computed Init conditions do not match expected init conditions.')
 
     def test_param_xml(self):
-        pass
+        actual = Beamlet()
+        self.assertIsInstance(actual.param, etree._ElementTree, msg='Expected type for param input is xml elementtree.')
