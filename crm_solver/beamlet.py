@@ -41,7 +41,7 @@ class Beamlet:
 
     def __initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components, self.atomic_db)
-        self.initial_condition = [self.__get_linear_density()] + [0] * (self.atomic_db.atomic_levels - 1)
+        self.initial_condition = [self.__get_linear_density()] + [0.] * (self.atomic_db.atomic_levels - 1)
 
     def __get_linear_density(self):
         current = float(self.param.getroot().find('body').find('beamlet_current').text)
