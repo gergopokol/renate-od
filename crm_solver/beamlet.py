@@ -64,8 +64,7 @@ class Beamlet:
         if solver is 'numerical':
             self.__solve_numerically()
         elif solver is 'analytical':
-            # TODO: Implement analytical solver
-            pass
+            raise NotImplementedError('Analytical solver not yet implemented.')
         elif solver is 'disregard':
             print('Beam evolution not calculated.')
             return
