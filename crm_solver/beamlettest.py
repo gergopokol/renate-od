@@ -58,3 +58,7 @@ class BeamletTest(unittest.TestCase):
             for coordinate in description:
                 self.assertIsInstance(actual.components[coordinate][component], numpy.int64,
                                       msg='Type mismatch of pandas components content.')
+
+    def test_profiles(self):
+        actual = Beamlet(solver='disregard')
+        self.assertIsInstance(actual.profiles, pandas.core.frame.DataFrame)
