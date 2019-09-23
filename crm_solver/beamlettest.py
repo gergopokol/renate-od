@@ -3,6 +3,7 @@ import unittest
 from lxml import etree
 from crm_solver.atomic_db import AtomicDB
 import pandas
+import numpy
 
 
 class BeamletTest(unittest.TestCase):
@@ -10,6 +11,7 @@ class BeamletTest(unittest.TestCase):
     EXPECTED_INITIAL_CONDITION = [4832583711.839067, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     EXPECTED_PARAM_ATTR = ['beamlet_source', 'beamlet_energy', 'beamlet_species', 'beamlet_current']
     EXPECTED_COMPONENTS_KEYS = ['q', 'Z', 'A']
+    EXPECTED_COMPONENTS_SPECIES = ['electron', 'ion1', 'ion2']
 
     def test_attributes(self):
         actual = Beamlet()
@@ -42,7 +44,17 @@ class BeamletTest(unittest.TestCase):
     def test_components(self):
         actual = Beamlet()
         self.assertIsInstance(actual.components, pandas.core.frame.DataFrame)
-        self.assertEqual(len(actual.components.keys()), 3, msg='')
-        for key in range(len(actual.components.keys())):
-            self.assertEqual(actual.components.keys()[key], self.EXPECTED_COMPONENTS_KEYS[key], msg='The index: ' +
-                             actual.components.keys()[key] + ' is a mismatch for '+self.EXPECTED_COMPONENTS_KEYS[key])
+        description = actual.components.keys()
+        species = actual.components.T.keys()
+        self.assertEqual(len(description), 3, msg='')
+        for key in range(len(description)):
+            self.assertEqual(description[key], self.EXPECTED_COMPONENTS_KEYS[key], msg='The index: ' +
+                             description[key] + ' is a mismatch for '+self.EXPECTED_COMPONENTS_KEYS[key])
+        self.assertEqual(len(species), len(actual.atomic_db.ion_impact_loss[0])+1)
+        for key in range(len(species)):
+            self.assertEqual(species[key], self.EXPECTED_COMPONENTS_SPECIES[key],
+                             msg='Mismatch of expected plasma species.')
+        for component in species:
+            for coordinate in description:
+                self.assertIsInstance(actual.components[coordinate][component], numpy.int64,
+                                      msg='Type mismatch of pandas components content.')
