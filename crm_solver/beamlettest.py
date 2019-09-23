@@ -2,12 +2,14 @@ from crm_solver.beamlet import Beamlet
 import unittest
 from lxml import etree
 from crm_solver.atomic_db import AtomicDB
+import pandas
 
 
 class BeamletTest(unittest.TestCase):
     EXPECTED_ATTR = ['param', 'components', 'profiles', 'coefficient_matrix', 'atomic_db', 'initial_condition']
     EXPECTED_INITIAL_CONDITION = [4832583711.839067, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     EXPECTED_PARAM_ATTR = ['beamlet_source', 'beamlet_energy', 'beamlet_species', 'beamlet_current']
+    EXPECTED_COMPONENTS_KEYS = ['q', 'Z', 'A']
 
     def test_attributes(self):
         actual = Beamlet()
@@ -36,3 +38,11 @@ class BeamletTest(unittest.TestCase):
     def test_atomic_db(self):
         actual = Beamlet()
         self.assertIsInstance(actual.atomic_db, AtomicDB)
+
+    def test_components(self):
+        actual = Beamlet()
+        self.assertIsInstance(actual.components, pandas.core.frame.DataFrame)
+        self.assertEqual(len(actual.components.keys()), 3, msg='')
+        for key in range(len(actual.components.keys())):
+            self.assertEqual(actual.components.keys()[key], self.EXPECTED_COMPONENTS_KEYS[key], msg='The index: ' +
+                             actual.components.keys()[key] + ' is a mismatch for '+self.EXPECTED_COMPONENTS_KEYS[key])
