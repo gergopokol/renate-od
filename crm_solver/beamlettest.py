@@ -62,3 +62,7 @@ class BeamletTest(unittest.TestCase):
     def test_profiles(self):
         actual = Beamlet(solver='disregard')
         self.assertIsInstance(actual.profiles, pandas.core.frame.DataFrame)
+
+    def test_analytical_solver(self):
+        with self.assertRaises(NotImplementedError):
+            actual = Beamlet(solver='analytical')
