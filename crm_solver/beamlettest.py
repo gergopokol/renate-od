@@ -98,3 +98,7 @@ class BeamletTest(unittest.TestCase):
                                   pandas.core.series.Series)
             self.assertEqual(len(actual.profiles['level '+actual.atomic_db.inv_atomic_dict[level]]),
                              self.EXPECTED_PROFILES_LENGTH)
+
+    def test_not_supported_solver(self):
+        with self.assertRaises(Exception):
+            actual = Beamlet(solver='not-supported')
