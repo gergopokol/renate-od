@@ -84,3 +84,17 @@ class BeamletTest(unittest.TestCase):
     def test_analytical_solver(self):
         with self.assertRaises(NotImplementedError):
             actual = Beamlet(solver='analytical')
+
+    def test_numerical_solver(self):
+        actual = Beamlet()
+        self.assertTupleEqual(actual.profiles.shape, (self.EXPECTED_PROFILES_LENGTH,
+                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1+actual.atomic_db.atomic_levels))
+        for key_index in range(2*len(self.EXPECTED_COMPONENTS_KEYS)+1,
+                               len(actual.profiles.keys())):
+            self.assertEqual(actual.profiles.keys()[key_index][0], 'level '+actual.atomic_db.inv_atomic_dict[key_index -
+                             2*len(self.EXPECTED_COMPONENTS_KEYS)-1])
+        for level in range(actual.atomic_db.atomic_levels):
+            self.assertIsInstance(actual.profiles['level '+actual.atomic_db.inv_atomic_dict[level]],
+                                  pandas.core.series.Series)
+            self.assertEqual(len(actual.profiles['level '+actual.atomic_db.inv_atomic_dict[level]]),
+                             self.EXPECTED_PROFILES_LENGTH)
