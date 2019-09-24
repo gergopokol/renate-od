@@ -12,6 +12,8 @@ class BeamletTest(unittest.TestCase):
     EXPECTED_PARAM_ATTR = ['beamlet_source', 'beamlet_energy', 'beamlet_species', 'beamlet_current']
     EXPECTED_COMPONENTS_KEYS = ['q', 'Z', 'A']
     EXPECTED_COMPONENTS_SPECIES = ['electron', 'ion1', 'ion2']
+    EXPECTED_PROFILES_LENGTH = 101
+    EXPECTED_PROFILES_SHAPE = (101, 7)
 
     def test_attributes(self):
         actual = Beamlet()
@@ -61,7 +63,14 @@ class BeamletTest(unittest.TestCase):
 
     def test_profiles(self):
         actual = Beamlet(solver='disregard')
-        self.assertIsInstance(actual.profiles, pandas.core.frame.DataFrame)
+        self.assertIsInstance(actual.profiles, pandas.core.frame.DataFrame,
+                              msg='Expected data type of profiles is: pandas DataFrame.')
+        self.assertEqual(len(actual.profiles), self.EXPECTED_PROFILES_LENGTH)
+        self.assertTupleEqual(actual.profiles.shape, self.EXPECTED_PROFILES_SHAPE)
+        self.assertIsInstance(actual.profiles.axes[0], pandas.Int64Index,
+                              msg='Expected X - axis type to be of Int64Index.')
+        self.assertIsInstance(actual.profiles.axes[1], pandas.MultiIndex,
+                              msg='Expected data type of Y axis for profiles is MultiIndex.')
 
     def test_analytical_solver(self):
         with self.assertRaises(NotImplementedError):
