@@ -103,7 +103,7 @@ class BeamletTest(unittest.TestCase):
         with self.assertRaises(Exception):
             actual = Beamlet(solver='not-supported')
 
-    def test_attenuation_caluculator(self):
+    def test_attenuation_calculator(self):
         pass
 
     def test_emission_calculator(self):
