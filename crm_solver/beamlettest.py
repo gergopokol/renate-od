@@ -21,7 +21,7 @@ class BeamletTest(unittest.TestCase):
                               ('ion2', 'density', 'm-3'),
                               ('ion2', 'temperature', 'eV')]
     EXPECTED_ATTENUATION_KEY = 'linear_density_attenuation'
-    INPUT_TRANSITION = ['2s', '2p', '5s']
+    INPUT_TRANSITION = ['2s', '2p', '5s', '5p']
 
     def test_attributes(self):
         actual = Beamlet()
@@ -122,6 +122,12 @@ class BeamletTest(unittest.TestCase):
             actual = Beamlet()
             actual.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[1],
                                                    from_level=self.INPUT_TRANSITION[0])
+
+    def test_not_supported_atomic_level_fail(self):
+        with self.assertRaises(Exception):
+            actual = Beamlet()
+            actual.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[2],
+                                                   from_level=self.INPUT_TRANSITION[3])
 
     def test_emission_calculator(self):
         pass
