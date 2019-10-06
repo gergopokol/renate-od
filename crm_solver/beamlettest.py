@@ -130,7 +130,14 @@ class BeamletTest(unittest.TestCase):
                                                    from_level=self.INPUT_TRANSITION[3])
 
     def test_emission_calculator(self):
-        pass
+        actual = Beamlet()
+        actual.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[0], from_level=self.INPUT_TRANSITION[1])
+        test = actual.profiles['level '+self.INPUT_TRANSITION[1]] * actual.atomic_db.spontaneous_trans[
+            actual.atomic_db.atomic_dict[self.INPUT_TRANSITION[0]],
+            actual.atomic_db.atomic_dict[self.INPUT_TRANSITION[1]]]
+        for index in range(len(test)):
+            self.assertEqual(test[index], actual.profiles[self.INPUT_TRANSITION[1]
+                                                          + '-' + self.INPUT_TRANSITION[0]][index])
 
     def test_relative_population_calculator(self):
         pass
