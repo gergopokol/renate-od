@@ -20,6 +20,7 @@ class BeamletTest(unittest.TestCase):
                               ('ion1', 'temperature', 'eV'),
                               ('ion2', 'density', 'm-3'),
                               ('ion2', 'temperature', 'eV')]
+    EXPECTED_ATTENUATION_KEY = 'linear_density_attenuation'
 
     def test_attributes(self):
         actual = Beamlet()
@@ -104,7 +105,16 @@ class BeamletTest(unittest.TestCase):
             actual = Beamlet(solver='not-supported')
 
     def test_attenuation_calculator(self):
-        pass
+        actual = Beamlet()
+        actual.compute_linear_density_attenuation()
+        self.assertEqual(actual.profiles.keys()[-1][0], self.EXPECTED_ATTENUATION_KEY)
+        self.assertIsInstance(actual.profiles[self.EXPECTED_ATTENUATION_KEY], pandas.core.series.Series)
+        self.assertEqual(len(actual.profiles[self.EXPECTED_ATTENUATION_KEY]), self.EXPECTED_PROFILES_LENGTH)
+        test = actual.profiles['level 2s']
+        for level in range(1, actual.atomic_db.atomic_levels):
+            test += actual.profiles['level ' + actual.atomic_db.inv_atomic_dict[level]]
+        for index in range(self.EXPECTED_PROFILES_LENGTH):
+            self.assertEqual(test[index], actual.profiles[self.EXPECTED_ATTENUATION_KEY][index])
 
     def test_emission_calculator(self):
         pass
