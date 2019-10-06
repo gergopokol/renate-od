@@ -21,6 +21,7 @@ class BeamletTest(unittest.TestCase):
                               ('ion2', 'density', 'm-3'),
                               ('ion2', 'temperature', 'eV')]
     EXPECTED_ATTENUATION_KEY = 'linear_density_attenuation'
+    INPUT_TRANSITION = ['2s', '2p', '5s']
 
     def test_attributes(self):
         actual = Beamlet()
@@ -115,6 +116,12 @@ class BeamletTest(unittest.TestCase):
             test += actual.profiles['level ' + actual.atomic_db.inv_atomic_dict[level]]
         for index in range(self.EXPECTED_PROFILES_LENGTH):
             self.assertEqual(test[index], actual.profiles[self.EXPECTED_ATTENUATION_KEY][index])
+
+    def test_spontaneous_emission_fail(self):
+        with self.assertRaises(Exception):
+            actual = Beamlet()
+            actual.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[1],
+                                                   from_level=self.INPUT_TRANSITION[0])
 
     def test_emission_calculator(self):
         pass
