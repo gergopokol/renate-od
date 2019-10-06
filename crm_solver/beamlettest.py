@@ -140,4 +140,14 @@ class BeamletTest(unittest.TestCase):
                                                           + '-' + self.INPUT_TRANSITION[0]][index])
 
     def test_relative_population_calculator(self):
-        pass
+        actual = Beamlet()
+        actual.compute_relative_populations(reference_level=self.INPUT_TRANSITION[0])
+        self.assertTupleEqual(actual.profiles.filter(like='rel.pop').shape,
+                              (self.EXPECTED_PROFILES_LENGTH, actual.atomic_db.atomic_levels),
+                              msg='Relative populations calculated do not match input level number.')
+        for level in range(actual.atomic_db.atomic_levels):
+            for index in range(len(actual.profiles)):
+                if actual.atomic_db.inv_atomic_dict[level] == self.INPUT_TRANSITION[0]:
+                    self.assertEqual(actual.profiles['rel.pop '+actual.atomic_db.inv_atomic_dict[level]][index], 1.0)
+                else:
+                    self.assertLess(actual.profiles['rel.pop '+actual.atomic_db.inv_atomic_dict[level]][index], 1.0)
