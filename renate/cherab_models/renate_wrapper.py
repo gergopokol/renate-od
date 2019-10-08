@@ -24,7 +24,7 @@ class RenateCRMWrapper:
         nuclear_charges.extend([s.element.atomic_number for s in plasma.composition if not s.charge == 0])
         atomic_weights = [0]
         atomic_weights.extend([int(s.element.atomic_weight) for s in plasma.composition if not s.charge == 0])
-        index = ['electrons']
+        index = ['electron']
         index.extend(['ion{}'.format(i+1) for i in range(len(atomic_weights) - 1)])
         components = pd.DataFrame(data={'q': charges, 'Z': nuclear_charges, 'A': atomic_weights}, index=index)
 
