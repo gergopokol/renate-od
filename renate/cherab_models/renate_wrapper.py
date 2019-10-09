@@ -51,11 +51,11 @@ class RenateCRMWrapper:
         unit_labels.append('eV')
         for i, species in enumerate(plasma.composition):
             profiles[i*2 + 3, :] = _sample_along_beam_axis(species.distribution.density, beam_axis, beam_to_world)
-            type_labels.append('ion{}'.format(i))
+            type_labels.append('ion{}'.format(i+1))
             property_labels.append('density')
             unit_labels.append('m-3')
             profiles[i*2 + 4, :] = _sample_along_beam_axis(species.distribution.effective_temperature, beam_axis, beam_to_world)
-            type_labels.append('ion{}'.format(i))
+            type_labels.append('ion{}'.format(i+1))
             property_labels.append('temperature')
             unit_labels.append('eV')
 
