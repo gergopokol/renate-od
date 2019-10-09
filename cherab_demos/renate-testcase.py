@@ -7,7 +7,7 @@ from raysect.optical import World
 from crm_solver.beamlet import Beamlet
 from cherab.core.math import Interpolate1DCubic
 from cherab.core.math import ConstantVector3D
-from cherab.core import Maxwellian, Plasma
+from cherab.core import Maxwellian, Plasma, Species
 from cherab.core.atomic.elements import deuterium
 from raysect.primitive import Box
 from raysect.optical.observer import PinholeCamera,  SightLine, PowerPipeline0D, SpectralPowerPipeline0D
@@ -21,25 +21,37 @@ renate = Beamlet(data_path='beamlet/acceptancetest/scenario-standard_plasma-H_en
                  solver='disregard')
 grid = renate.profiles['beamlet grid']['distance']['m']
 density = renate.profiles['electron']['density']['m-3']
-temperature = renate.profiles['electron']['temperature']['ev']
+temperature = renate.profiles['electron']['temperature']['eV']
 
-f1d_electron = Interpolate1DCubic(grid, density)
-f1t_electron = Interpolate1DCubic(grid, temperature)
+class F1D_to_F3D():
+    def __init__(self, func):
+        self.func = func
 
-f1d_ion = Interpolate1DCubic(grid, renate.profiles['ion1']['density']['m-3'])
-f1t_ion = Interpolate1DCubic(grid, renate.profiles['ion1']['temperature']['eV'])
+    def __call__(self, x, y, z):
+        return self.func(x)
+
+f1d_electron = Interpolate1DCubic(grid, density, extrapolate=True)
+f3d_electron = F1D_to_F3D(f1d_electron) 
+f1t_electron = Interpolate1DCubic(grid, temperature, extrapolate=True)
+f3t_electron = F1D_to_F3D(f1t_electron) 
+
+f1d_ion = Interpolate1DCubic(grid, renate.profiles['ion1']['density']['m-3'], extrapolate=True)
+f3d_ion = F1D_to_F3D(f1d_ion) 
+f1t_ion = Interpolate1DCubic(grid, renate.profiles['ion1']['temperature']['eV'], extrapolate=True)
+f3t_ion = F1D_to_F3D(f1t_ion)
 
 zero_velocity = ConstantVector3D(Vector3D(0, 0, 0))
 #define electron
-e_distribution = Maxwellian(f1d_electron, f1t_electron, zero_velocity, electron_mass)
+e_distribution = Maxwellian(f3d_electron, f3t_electron, zero_velocity, electron_mass)
 
 #define ion
-ion_distribution = Maxwellian(f1d_ion, f1t_ion, zero_velocity, deuterium.atomic_weight*atomic_mass)
+ion_distribution = Maxwellian(f3d_ion, f3t_ion, zero_velocity, deuterium.atomic_weight*atomic_mass)
+ion_species = Species(deuterium, 1, ion_distribution)
 
 world = World()
-plasma = Plasma(parrent=world)
+plasma = Plasma(parent=world)
 plasma.electron_distribution = e_distribution
-plasma.composition = [ion_distribution]
+plasma.composition = [ion_species]
 
 #plasma geometry
 
@@ -48,7 +60,7 @@ plasma.geometry = Box(Point3D(0, -width/2, -height/2), Point3D(length, width/2, 
 
 # BEAM SETUP ------------------------------------------------------------------
 integration_step = 0.0025
-beam_transform = translate(-0.5, 0.0, 0) * rotate_basis(Vector3D(1, 0, 0), Vector3D(0, 0, 1))
+beam_transform = translate(0.0, 0.0, 0) * rotate_basis(Vector3D(1, 0, 0), Vector3D(0, 0, 1))
 line = Line(sodium, 0, ('3p', '3s'))
 
 beam = RenateBeam(parent=world, transform=beam_transform)
