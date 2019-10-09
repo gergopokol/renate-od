@@ -18,7 +18,7 @@ world = World()
 
 
 # PLASMA ----------------------------------------------------------------------
-plasma = build_slab_plasma(peak_density=5e19, world=world)
+plasma = build_slab_plasma(peak_density=5e19, parent=world)
 plasma.b_field = ConstantVector3D(Vector3D(0, 0.6, 0))
 
 

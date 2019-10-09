@@ -17,7 +17,7 @@ world = World()
 
 
 # PLASMA ----------------------------------------------------------------------
-plasma = build_slab_plasma(peak_density=5e19, world=world)
+plasma = build_slab_plasma(peak_density=5e19, parent=world)
 
 
 # BEAM SETUP ------------------------------------------------------------------
