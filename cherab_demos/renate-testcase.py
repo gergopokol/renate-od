@@ -72,7 +72,7 @@ beam.temperature = 30
 beam.sigma = 0.03
 beam.divergence_x = 0.5
 beam.divergence_y = 0.5
-beam.length = 3.0
+beam.length = 0.6
 beam.models = [RenateBeamEmissionLine(line)]
 beam.integrator.step = integration_step
 beam.integrator.min_samples = 10
@@ -80,7 +80,7 @@ beam.integrator.min_samples = 10
 
 # line of sight settings
 los_start = Point3D(1.5, -1, 0)
-los_target = Point3D(0.5, 0, 0)
+los_target = Point3D(0.1, 0, 0)
 los_direction = los_start.vector_to(los_target).normalise()
 
 
