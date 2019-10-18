@@ -132,6 +132,16 @@ class CoefficientMatrixTest(unittest.TestCase):
            8.98280964e+02,  9.04980964e+02,  9.07660964e+02],
           [-1.76064337e+03, -1.76349337e+03, -1.76634337e+03, -1.76776837e+03,
            -1.76919337e+03, -1.78344337e+03, -1.78914337e+03]]]
+    EXPECTED_PHOTON_TERM = \
+        [[[0., 0., 0., 0., 0., 0., 0.],
+          [0., 0., 0., 0., 0., 0., 0.],
+          [0., 0., 0., 0., 0., 0., 0.]],
+         [[586.56902347, 586.56902347, 586.56902347, 586.56902347, 586.56902347, 586.56902347, 586.56902347],
+          [-586.56902347, -586.56902347, -586.56902347, -586.56902347, -586.56902347, -586.56902347, -586.56902347],
+          [0., 0., 0., 0., 0., 0., 0.]],
+         [[865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608],
+          [893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434],
+          [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042]]]
 
     def setUp(self):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
@@ -194,3 +204,15 @@ class CoefficientMatrixTest(unittest.TestCase):
         numpy.testing.assert_almost_equal(self.RATE_MATRIX.matrix, self.EXPECTED_RATE_COEFFICIENT_MATRIX,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Rate coefficient matrix assembly '
                                                                                      'and generation failed.')
+
+    def test_spontaneous_rate_term_assemblage(self):
+        self.assertIsInstance(self.RATE_MATRIX.photon_terms, numpy.ndarray,
+                              msg='The spontaneous photon term is not in the expected format.')
+        self.assertTupleEqual(self.RATE_MATRIX.photon_terms.shape, (self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+                              msg='The photon term is not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.photon_terms, self.EXPECTED_PHOTON_TERM,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term assembly failed.')
+
+    def test_spontaneous_term_application(self):
+        pass
