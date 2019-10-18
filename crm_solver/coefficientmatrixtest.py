@@ -50,6 +50,9 @@ class CoefficientMatrixTest(unittest.TestCase):
                                       [[0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031],
                                        [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032],
                                        [0.,     0.,     0.,     0.,     0.,     0.,     0.    ]]]
+    EXPECTED_ELECTRON_LOSS_TERMS = [[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
+                                    [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
+                                    [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]]
 
     def setUp(self):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
@@ -62,10 +65,23 @@ class CoefficientMatrixTest(unittest.TestCase):
             assert hasattr(self.RATE_MATRIX, attr)
 
     def test_electron_impact_transition(self):
-        self.assertIsInstance(self.RATE_MATRIX.electron_impact_trans_np, numpy.ndarray)
+        self.assertIsInstance(self.RATE_MATRIX.electron_impact_trans_np, numpy.ndarray,
+                              msg='The electron impact transition terms are not in the expected format.')
         self.assertTupleEqual(self.RATE_MATRIX.electron_impact_trans_np.shape,
                               (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
-                               self.PROFILES['beamlet grid'].size))
+                               self.PROFILES['beamlet grid'].size), msg='The electron impact transition '
+                                                                        'terms are not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_MATRIX.electron_impact_trans_np,
                                           self.EXPECTED_ELECTRON_IMPACT_TERMS, self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Interpolation failure for electron impact transitions.')
+
+    def test_electron_impact_loss(self):
+        self.assertIsInstance(self.RATE_MATRIX.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
+                              'ionization terms are not in the expected format.')
+        self.assertTupleEqual(self.RATE_MATRIX.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_levels,
+                              self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term are '
+                                                                       'not dimensionally accurate.')
+        print(self.RATE_MATRIX.electron_impact_loss_np)
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.electron_impact_loss_np, self.EXPECTED_ELECTRON_LOSS_TERMS,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Interpolation failure for '
+                                                                                     'electron impact loss.')
