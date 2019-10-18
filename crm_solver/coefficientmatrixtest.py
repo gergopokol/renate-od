@@ -50,3 +50,10 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_all_attributes(self):
         for attr in self.EXPECTED_ATTRIBUTES:
             assert hasattr(self.RATE_MATRIX, attr)
+
+    def test_electron_impact_transition(self):
+        self.assertIsInstance(self.RATE_MATRIX.electron_impact_trans_np, numpy.ndarray)
+        self.assertTupleEqual(self.RATE_MATRIX.electron_impact_trans_np.shape,
+                              (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                               self.PROFILES['beamlet grid'].size))
+        self
