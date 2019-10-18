@@ -216,7 +216,7 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Rate coefficient matrix assembly '
                                                                                      'and generation failed.')
 
-    def test_spontaneous_rate_term_assemblage(self):
+    def test_spontaneous_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.photon_terms, numpy.ndarray,
                               msg='The spontaneous photon term is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.photon_terms.shape, (self.ATOMIC_DB.atomic_levels,
@@ -232,7 +232,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_PHOTON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term application failed.')
 
-    def test_electron_rate_term_assemblage(self):
+    def test_electron_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_terms, numpy.ndarray,
                               msg='The electron rate term is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.electron_terms.shape, (self.ATOMIC_DB.atomic_levels,
@@ -252,7 +252,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Electron term and density application failed.')
 
-    def test_ion_rate_term_assemblage(self):
+    def test_ion_rate_term_assembly(self):
         pass
 
     def test_ion_rate_term_application(self):
