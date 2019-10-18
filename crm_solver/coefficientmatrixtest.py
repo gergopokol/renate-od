@@ -113,6 +113,25 @@ class CoefficientMatrixTest(unittest.TestCase):
                                       [[0.0313, 0.1313, 0.2313, 0.2813, 0.3313, 0.8313, 1.0313],
                                        [0.0323, 0.1323, 0.2323, 0.2823, 0.3323, 0.8323, 1.0323],
                                        [0.,     0.,     0.,     0.,     0.,     0.,     0.]]]]
+    EXPECTED_RATE_COEFFICIENT_MATRIX = \
+        [[[-3.75700000e-01, -3.22570000e+00, -6.07570000e+00, -7.50070000e+00,
+           -8.92570000e+00, -2.31757000e+01, -2.88757000e+01],
+          [+1.67500000e-01,  1.50750000e+00,  2.84750000e+00,  3.51750000e+00,
+           4.18750000e+00,  1.08875000e+01,  1.35675000e+01],
+          [+1.81200000e-01,  1.52120000e+00,  2.86120000e+00,  3.53120000e+00,
+           4.20120000e+00,  1.09012000e+01,  1.35812000e+01]],
+         [[+5.86859823e+02,  5.88199823e+02,  5.89539823e+02,  5.90209823e+02,
+           5.90879823e+02,  5.97579823e+02,  6.00259823e+02],
+          [-5.87225023e+02, -5.90075023e+02, -5.92925023e+02, -5.94350023e+02,
+           -5.95775023e+02, -6.10025023e+02, -6.15725023e+02],
+          [+3.18200000e-01,  1.65820000e+00,  2.99820000e+00,  3.66820000e+00,
+           4.33820000e+00,  1.10382000e+01,  1.37182000e+01]],
+         [[+8.66315406e+02,  8.67655406e+02,  8.68995406e+02,  8.69665406e+02,
+           8.70335406e+02,  8.77035406e+02,  8.79715406e+02],
+          [+8.94260964e+02,  8.95600964e+02,  8.96940964e+02,  8.97610964e+02,
+           8.98280964e+02,  9.04980964e+02,  9.07660964e+02],
+          [-1.76064337e+03, -1.76349337e+03, -1.76634337e+03, -1.76776837e+03,
+           -1.76919337e+03, -1.78344337e+03, -1.78914337e+03]]]
 
     def setUp(self):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
@@ -126,7 +145,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_electron_impact_transition(self):
         self.assertIsInstance(self.RATE_MATRIX.electron_impact_trans_np, numpy.ndarray,
-                              msg='The electron impact transition terms are not in the expected format.')
+                              msg='The electron impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_MATRIX.electron_impact_trans_np.shape,
                               (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
                                self.PROFILES['beamlet grid'].size), msg='The electron impact transition '
@@ -137,7 +156,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_electron_impact_loss(self):
         self.assertIsInstance(self.RATE_MATRIX.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
-                              'ionization terms are not in the expected format.')
+                              'ionization terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_MATRIX.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_levels,
                               self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
                                                                        'not dimensionally accurate.')
@@ -147,7 +166,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_ion_impact_loss(self):
         self.assertIsInstance(self.RATE_MATRIX.electron_impact_loss_np, numpy.ndarray, msg='The ion impact '
-                              'ionization terms are not in the expected format.')
+                              'ionization terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_MATRIX.ion_impact_loss_np.shape, (len(self.COMPONENTS.T.keys())-1,
                               self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size), msg='The ion impact '
                               'ionization term is not dimensionally accurate.')
@@ -157,7 +176,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_ion_impact_transition(self):
         self.assertIsInstance(self.RATE_MATRIX.ion_impact_trans_np, numpy.ndarray,
-                              msg='The ion impact transition terms are not in the expected format.')
+                              msg='The ion impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_MATRIX.ion_impact_trans_np.shape, (len(self.COMPONENTS.T.keys())-1,
                               self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
                               self.PROFILES['beamlet grid'].size), msg='The ion impact transition term is not '
@@ -165,3 +184,13 @@ class CoefficientMatrixTest(unittest.TestCase):
         numpy.testing.assert_almost_equal(self.RATE_MATRIX.ion_impact_trans_np, self.EXPECTED_ION_TRANSITION_TERMS,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Interpolation failure for '
                                                                                      'ion impact transition.')
+
+    def test_rate_matrix(self):
+        self.assertIsInstance(self.RATE_MATRIX.matrix, numpy.ndarray,
+                              msg='The rate coefficient matrix is not in the expected format.')
+        self.assertTupleEqual(self.RATE_MATRIX.matrix.shape, (self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+                              msg='The rate coefficient matrix is not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.matrix, self.EXPECTED_RATE_COEFFICIENT_MATRIX,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Rate coefficient matrix assembly '
+                                                                                     'and generation failed.')
