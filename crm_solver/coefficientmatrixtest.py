@@ -37,9 +37,19 @@ class CoefficientMatrixTest(unittest.TestCase):
     ATOMIC_DB = AtomicDB(data_path=INPUT_DUMMY_PATH, components=COMPONENTS)
     BEAMLET_PARAM = GetData(data_path_name=INPUT_DUMMY_PATH).data
 
+    EXPECTED_DECIMAL_PRECISION_6 = 6
     EXPECTED_ATTRIBUTES = ['matrix', 'electron_terms', 'ion_terms', 'photon_terms', 'beamlet_profiles',
                            'electron_impact_trans_np', 'electron_impact_loss_np', 'ion_impact_trans_np',
                            'ion_impact_loss_np']
+    EXPECTED_ELECTRON_IMPACT_TERMS = [[[0.,     0.,     0.,     0.,     0.,     0.,     0.    ],
+                                       [0.0012, 0.0112, 0.0212, 0.0262, 0.0312, 0.0812, 0.1012],
+                                       [0.0013, 0.0113, 0.0213, 0.0263, 0.0313, 0.0813, 0.1013]],
+                                      [[0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
+                                       [0.,     0.,     0.,     0.,     0.,     0.,     0.    ],
+                                       [0.0023, 0.0123, 0.0223, 0.0273, 0.0323, 0.0823, 0.1023]],
+                                      [[0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031],
+                                       [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032],
+                                       [0.,     0.,     0.,     0.,     0.,     0.,     0.    ]]]
 
     def setUp(self):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
@@ -56,4 +66,6 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertTupleEqual(self.RATE_MATRIX.electron_impact_trans_np.shape,
                               (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
                                self.PROFILES['beamlet grid'].size))
-        self
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.electron_impact_trans_np,
+                                          self.EXPECTED_ELECTRON_IMPACT_TERMS, self.EXPECTED_DECIMAL_PRECISION_6,
+                                          err_msg='Interpolation failure for electron impact transitions.')
