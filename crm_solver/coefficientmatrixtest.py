@@ -45,7 +45,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
 
     def tearDown(self):
-        pass
+        del self.RATE_MATRIX
 
     def test_all_attributes(self):
         for attr in self.EXPECTED_ATTRIBUTES:
