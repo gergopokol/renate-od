@@ -142,6 +142,16 @@ class CoefficientMatrixTest(unittest.TestCase):
          [[865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608],
           [893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434],
           [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042]]]
+    EXPECTED_ELECTRON_TERM = \
+        numpy.array([[[-0.0036, -0.0336, -0.0636, -0.0786, -0.0936, -0.2436, -0.3036],
+                      [0.0012,   0.0112,  0.0212,  0.0262,  0.0312,  0.0812,  0.1012],
+                      [0.0013,   0.0113,  0.0213,  0.0263,  0.0313,  0.0813,  0.1013]],
+                     [[0.0021,   0.0121,  0.0221,  0.0271,  0.0321,  0.0821,  0.1021],
+                      [-0.0065, -0.0365, -0.0665, -0.0815, -0.0965, -0.2465, -0.3065],
+                      [0.0023,   0.0123,  0.0223,  0.0273,  0.0323,  0.0823,  0.1023]],
+                     [[0.0031,   0.0131,  0.0231,  0.0281,  0.0331,  0.0831,  0.1031],
+                      [0.0032,   0.0132,  0.0232,  0.0282,  0.0332,  0.0832,  0.1032],
+                      [-0.0094, -0.0394, -0.0694, -0.0844, -0.0994, -0.2494, -0.3094]]])
 
     def setUp(self):
         self.RATE_MATRIX = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
@@ -222,10 +232,24 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term application failed.')
 
     def test_electron_rate_term_assemblage(self):
-        pass
+        self.assertIsInstance(self.RATE_MATRIX.electron_terms, numpy.ndarray,
+                              msg='The electron rate term is not in the expected format.')
+        self.assertTupleEqual(self.RATE_MATRIX.electron_terms.shape, (self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size), msg='The electron term'
+                                                                                                     'assembly failed.')
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.electron_terms, self.EXPECTED_ELECTRON_TERM,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Electron term assembly failed.')
 
     def test_electron_term_application(self):
-        pass
+        self.RATE_MATRIX.matrix -= self.RATE_MATRIX.matrix
+        actual = numpy.zeros((self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              self.PROFILES['beamlet grid'].size))
+        for step in range(self.PROFILES['beamlet grid'].size):
+            self.RATE_MATRIX.apply_electron_density(step)
+            actual[:, :, step] = self.PROFILES['electron']['density']['m-3'][step] \
+                                 * self.EXPECTED_ELECTRON_TERM[:, :, step]
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
+                                          err_msg='Electron term and density application failed.')
 
     def test_ion_rate_term_assemblage(self):
         pass
