@@ -215,4 +215,20 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term assembly failed.')
 
     def test_spontaneous_term_application(self):
+        self.RATE_MATRIX.matrix -= self.RATE_MATRIX.matrix
+        for step in range(self.PROFILES['beamlet grid'].size):
+            self.RATE_MATRIX.apply_photons(step)
+        numpy.testing.assert_almost_equal(self.RATE_MATRIX.matrix, self.EXPECTED_PHOTON_TERM,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term application failed.')
+
+    def test_electron_rate_term_assemblage(self):
+        pass
+
+    def test_electron_term_application(self):
+        pass
+
+    def test_ion_rate_term_assemblage(self):
+        pass
+
+    def test_ion_rate_term_application(self):
         pass
