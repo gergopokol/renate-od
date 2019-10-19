@@ -31,6 +31,10 @@ class RenateDBTest(unittest.TestCase):
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2']]
     EXPECTED_DECIMAL_PRECISION_4 = 4
+    EXPECTED_DIMENSION_1 = 1
+    EXPECTED_DIMENSION_2 = 2
+    EXPECTED_DIMENSION_3 = 3
+    EXPECTED_DIMENSION_4 = 4
     INPUT_PATH = 'beamlet/testimp0001.xml'
     INPUT_DATA_GETTING = ['temperature', 'spontaneous_transition', 'ionization_terms',
                           'impurity_transition', 'ion_transition', 'electron_transition']
@@ -122,37 +126,46 @@ class RenateDBTest(unittest.TestCase):
 
     def test_renate_temperature(self):
         data = self.renate_db.get_from_renate_atomic('temperature')
-        self.assertEqual(data.ndim, 1)
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_1, msg='Expected dimension of temperature array is 1.')
 
     def test_renate_spontaneous(self):
         data = self.renate_db.get_from_renate_atomic('spontaneous_transition')
-        self.assertEqual(data.ndim, 2)
-        self.assertEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels))
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_2,
+                         msg='Expected dimension for spontaneous transition data is 2.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_electron_transitions(self):
         temp = self.renate_db.get_from_renate_atomic('temperature')
         data = self.renate_db.get_from_renate_atomic('electron_transition')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)))
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3,
+                         msg='Expected dimension for electron transition data is 3.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_ion_transitions(self):
         temp = self.renate_db.get_from_renate_atomic('temperature')
         data = self.renate_db.get_from_renate_atomic('ion_transition')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)))
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3, msg='Expected dimension for ion transition data is 3.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_impurity_transitions(self):
         temp = self.renate_db.get_from_renate_atomic('temperature')
         data = self.renate_db.get_from_renate_atomic('impurity_transition')
-        self.assertEqual(data.ndim, 4)
-        self.assertEqual(data.shape, (len(self.renate_db.charged_states)-1, self.renate_db.atomic_levels,
-                                      self.renate_db.atomic_levels, len(temp)))
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_4,
+                         msg='Expected dimension for impurity transition data is 4.')
+        self.assertTupleEqual(data.shape, (len(self.renate_db.charged_states)-1, self.renate_db.atomic_levels,
+                              self.renate_db.atomic_levels, len(temp)), msg='Data structure size is not in accordance'
+                                                                            ' with atomic physics specifications.')
 
     def test_renate_ionization_terms(self):
         temp = self.renate_db.get_from_renate_atomic('temperature')
         data = self.renate_db.get_from_renate_atomic('ionization_terms')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (len(self.renate_db.charged_states)+1, self.renate_db.atomic_levels, len(temp)))
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3, msg='Expected dimension for ionization data is 3.')
+        self.assertTupleEqual(data.shape, (len(self.renate_db.charged_states)+1,
+                              self.renate_db.atomic_levels, len(temp)), msg='Data structure size is not in accordance '
+                                                                            'with atomic physics specifications.')
 
 
 class AtomicDBTest(unittest.TestCase):
