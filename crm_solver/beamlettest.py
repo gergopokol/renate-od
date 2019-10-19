@@ -22,6 +22,7 @@ class BeamletTest(unittest.TestCase):
                               ('ion2', 'temperature', 'eV')]
     EXPECTED_ATTENUATION_KEY = 'linear_density_attenuation'
     INPUT_TRANSITION = ['2s', '2p', '5s', '5p']
+    EXPECTED_ELEMENTS_3 = 3
 
     def setUp(self):
         self.beamlet = Beamlet()
@@ -49,20 +50,24 @@ class BeamletTest(unittest.TestCase):
                               msg='Expected type for param input is xml elementtree.')
         for param_attribute in self.EXPECTED_PARAM_ATTR:
             self.assertIsInstance(self.beamlet.param.getroot().find('body').find(param_attribute).text, str,
-                                  msg='Failed to load or find attribut '+param_attribute+' in xml file.')
+                                  msg='Failed to load or find attribute '+param_attribute+' in xml file.')
 
     def test_atomic_db(self):
-        self.assertIsInstance(self.beamlet.atomic_db, AtomicDB)
+        self.assertIsInstance(self.beamlet.atomic_db, AtomicDB,
+                              msg='Expected data type for the Atomic database is AtomicDB.')
 
     def test_components(self):
-        self.assertIsInstance(self.beamlet.components, pandas.core.frame.DataFrame)
+        self.assertIsInstance(self.beamlet.components, pandas.core.frame.DataFrame,
+                              msg='Expected data type of components is: pandas DataFrame.')
         description = self.beamlet.components.keys()
         species = self.beamlet.components.T.keys()
-        self.assertEqual(len(description), 3, msg='')
+        self.assertEqual(len(description), self.EXPECTED_ELEMENTS_3,
+                         msg='Three keys are expected for species description: q,Z,A.')
         for key in range(len(description)):
             self.assertEqual(description[key], self.EXPECTED_COMPONENTS_KEYS[key], msg='The index: ' +
                              description[key] + ' is a mismatch for '+self.EXPECTED_COMPONENTS_KEYS[key])
-        self.assertEqual(len(species), len(self.beamlet.atomic_db.ion_impact_loss[0])+1)
+        self.assertEqual(len(species), len(self.beamlet.atomic_db.ion_impact_loss[0])+1,
+                         msg='The same amount of species description have to be present in components as in profiles.')
         for key in range(len(species)):
             self.assertEqual(species[key], self.EXPECTED_COMPONENTS_SPECIES[key],
                              msg='Mismatch of expected plasma species.')
@@ -75,15 +80,18 @@ class BeamletTest(unittest.TestCase):
         actual = Beamlet(solver='disregard')
         self.assertIsInstance(actual.profiles, pandas.core.frame.DataFrame,
                               msg='Expected data type of profiles is: pandas DataFrame.')
-        self.assertEqual(len(actual.profiles), self.EXPECTED_PROFILES_LENGTH)
+        self.assertEqual(len(actual.profiles), self.EXPECTED_PROFILES_LENGTH,
+                         msg='Expected profile length for test case does not match.')
         self.assertTupleEqual(actual.profiles.shape, (self.EXPECTED_PROFILES_LENGTH,
-                                                      2*len(self.EXPECTED_COMPONENTS_KEYS)+1))
+                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1), msg='Plasma description lacks necessary'
+                              ' density and/or temperature profiles for all components.')
         self.assertIsInstance(actual.profiles.axes[0], pandas.Int64Index,
                               msg='Expected data type of X - axis for profiles is Int64Index.')
         self.assertIsInstance(actual.profiles.axes[1], pandas.MultiIndex,
                               msg='Expected data type of Y - axis for profiles is MultiIndex.')
         for key in range(len(actual.profiles.keys())):
-            self.assertTupleEqual(actual.profiles.keys()[key], self.EXPECTED_PROFILES_KEYS[key])
+            self.assertTupleEqual(actual.profiles.keys()[key], self.EXPECTED_PROFILES_KEYS[key],
+                                  msg='Profiles key description fails for test case.')
 
     def test_analytical_solver(self):
         with self.assertRaises(NotImplementedError):
@@ -91,16 +99,20 @@ class BeamletTest(unittest.TestCase):
 
     def test_numerical_solver(self):
         self.assertTupleEqual(self.beamlet.profiles.shape, (self.EXPECTED_PROFILES_LENGTH,
-                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1+self.beamlet.atomic_db.atomic_levels))
+                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1+self.beamlet.atomic_db.atomic_levels),
+                              msg='Numerical solver failed to provide expected output into plasma profiles.')
         for key_index in range(2*len(self.EXPECTED_COMPONENTS_KEYS)+1,
                                len(self.beamlet.profiles.keys())):
             self.assertEqual(self.beamlet.profiles.keys()[key_index][0], 'level '+self.beamlet.atomic_db.inv_atomic_dict
-                             [key_index - 2*len(self.EXPECTED_COMPONENTS_KEYS)-1])
+                             [key_index - 2*len(self.EXPECTED_COMPONENTS_KEYS)-1],
+                             msg='Pandas keys for labeling electron population evolution on atomic levels fails.')
         for level in range(self.beamlet.atomic_db.atomic_levels):
             self.assertIsInstance(self.beamlet.profiles['level '+self.beamlet.atomic_db.inv_atomic_dict[level]],
-                                  pandas.core.series.Series)
+                                  pandas.core.series.Series, msg='Expected data type of beam evolution '
+                                                                 'process are pandas series.')
             self.assertEqual(len(self.beamlet.profiles['level '+self.beamlet.atomic_db.inv_atomic_dict[level]]),
-                             self.EXPECTED_PROFILES_LENGTH)
+                             self.EXPECTED_PROFILES_LENGTH, msg='Beam evolution calculation are expected to return '
+                                                                'atomic state evolution on the input grid.')
 
     def test_not_supported_solver(self):
         with self.assertRaises(Exception):
@@ -108,14 +120,18 @@ class BeamletTest(unittest.TestCase):
 
     def test_attenuation_calculator(self):
         self.beamlet.compute_linear_density_attenuation()
-        self.assertEqual(self.beamlet.profiles.keys()[-1][0], self.EXPECTED_ATTENUATION_KEY)
-        self.assertIsInstance(self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY], pandas.core.series.Series)
-        self.assertEqual(len(self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY]), self.EXPECTED_PROFILES_LENGTH)
+        self.assertEqual(self.beamlet.profiles.keys()[-1][0], self.EXPECTED_ATTENUATION_KEY,
+                         msg='Beam attenuation key mismatch within pandas data frame.')
+        self.assertIsInstance(self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY], pandas.core.series.Series,
+                              msg='Beam attenuation output expected to be stored in pandas series.')
+        self.assertEqual(len(self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY]), self.EXPECTED_PROFILES_LENGTH,
+                         msg='Beam attenuation calculation is expected to be returned on the input grid.')
         test = self.beamlet.profiles['level 2s']
         for level in range(1, self.beamlet.atomic_db.atomic_levels):
             test += self.beamlet.profiles['level ' + self.beamlet.atomic_db.inv_atomic_dict[level]]
         for index in range(self.EXPECTED_PROFILES_LENGTH):
-            self.assertEqual(test[index], self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY][index])
+            self.assertEqual(test[index], self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY][index],
+                             msg='Beam attenuation calculation fails for test case.')
 
     def test_spontaneous_emission_fail(self):
         with self.assertRaises(Exception):
@@ -130,12 +146,21 @@ class BeamletTest(unittest.TestCase):
     def test_emission_calculator(self):
         self.beamlet.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[0],
                                                      from_level=self.INPUT_TRANSITION[1])
+        self.assertEqual(self.beamlet.profiles.keys()[-1][0], self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0],
+                         msg='Beam emission calculation key mismatch within pandas data frame.')
+        self.assertIsInstance(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]],
+                              pandas.core.series.Series, msg='Beam emission output expected to '
+                                                             'be stored in pandas series.')
+        self.assertEqual(len(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]]),
+                         self.EXPECTED_PROFILES_LENGTH, msg='Beam emission calculation is expected to be returned '
+                                                            'on the input grid.')
         test = self.beamlet.profiles['level '+self.INPUT_TRANSITION[1]] * self.beamlet.atomic_db.spontaneous_trans[
             self.beamlet.atomic_db.atomic_dict[self.INPUT_TRANSITION[0]],
             self.beamlet.atomic_db.atomic_dict[self.INPUT_TRANSITION[1]]]
         for index in range(len(test)):
             self.assertEqual(test[index], self.beamlet.profiles[self.INPUT_TRANSITION[1]
-                                                          + '-' + self.INPUT_TRANSITION[0]][index])
+                             + '-' + self.INPUT_TRANSITION[0]][index],
+                             msg='Beam emission calculation fails for test case.')
 
     def test_relative_population_calculator(self):
         self.beamlet.compute_relative_populations(reference_level=self.INPUT_TRANSITION[0])
@@ -146,7 +171,9 @@ class BeamletTest(unittest.TestCase):
             for index in range(len(self.beamlet.profiles)):
                 if self.beamlet.atomic_db.inv_atomic_dict[level] == self.INPUT_TRANSITION[0]:
                     self.assertEqual(self.beamlet.profiles['rel.pop ' +
-                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0)
+                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
+                                     msg='Values on reference level are expected to be 1.')
                 else:
                     self.assertLess(self.beamlet.profiles['rel.pop ' +
-                                                          self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0)
+                                                          self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
+                                    msg='Values on comparative levels are expected to be less than 1.')
