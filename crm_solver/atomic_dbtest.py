@@ -12,8 +12,8 @@ class RenateDBTest(unittest.TestCase):
                      'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization', 'charged_states']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
-    EXPECTED_ENERGY = '60'
-    EXPECTED_VELOCITY = 1291547.1348
+    EXPECTED_ENERGY = 60
+    EXPECTED_VELOCITY = 1291547.13488556
     EXPECTED_MASS = 1.15258e-26
     EXPECTED_ATOMIC_DICT = [{'1': 1, '0': 0, '2': 2},
                             {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8},
@@ -30,119 +30,142 @@ class RenateDBTest(unittest.TestCase):
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2']]
+    EXPECTED_DECIMAL_PRECISION_4 = 4
+    EXPECTED_DIMENSION_1 = 1
+    EXPECTED_DIMENSION_2 = 2
+    EXPECTED_DIMENSION_3 = 3
+    EXPECTED_DIMENSION_4 = 4
     INPUT_PATH = 'beamlet/testimp0001.xml'
     INPUT_DATA_GETTING = ['temperature', 'spontaneous_transition', 'ionization_terms',
                           'impurity_transition', 'ion_transition', 'electron_transition']
 
+    def setUp(self):
+        self.renate_db = RenateDB(None, 'default', self.INPUT_PATH)
+
+    def tearDown(self):
+        del self.renate_db
+
     def test_all_attributes(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
         for attr in self.EXPECTED_ATTR:
-            assert hasattr(actual, attr)
+            assert hasattr(self.renate_db, attr)
 
     def test_projectile_energy(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.energy, str)
-        self.assertEqual(actual.energy, self.EXPECTED_ENERGY)
+        self.assertIsInstance(self.renate_db.energy, str, msg='Energy input is expected to be in str format.')
+        self.assertEqual(int(self.renate_db.energy), self.EXPECTED_ENERGY,
+                         msg='Test energy value is expected to be convertable to int and 60.')
 
     def test_impurity_mass_correction_dictionary(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.impurity_mass_normalization, dict)
-        self.assertDictEqual(actual.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT)
+        self.assertIsInstance(self.renate_db.impurity_mass_normalization, dict,
+                              msg='The impurity mass correction DB is expected to be of dict type.')
+        self.assertDictEqual(self.renate_db.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT,
+                             msg='The implemented mass correction dictionary fails.')
 
     def test_projectile_mass(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.mass, float)
-        self.assertEqual(actual.mass, self.EXPECTED_MASS)
+        self.assertIsInstance(self.renate_db.mass, float, msg='Projectile mass is expected to be of float type.')
+        self.assertEqual(self.renate_db.mass, self.EXPECTED_MASS,
+                         msg='Weight of projectile is expected to match Li for the testcase.')
 
     def test_projectile_velocity(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.velocity, float)
-        self.assertAlmostEqual(actual.velocity, self.EXPECTED_VELOCITY, 3)
+        self.assertIsInstance(self.renate_db.velocity, float,
+                              msg='Projectile velocity is expected to be given as float.')
+        self.assertAlmostEqual(self.renate_db.velocity, self.EXPECTED_VELOCITY, self.EXPECTED_DECIMAL_PRECISION_4,
+                               msg='Projectile velocity is expected to match the velocity of Li @ 60 keV.')
 
     def test_atomic_species(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.species, str)
-        self.assertIn(actual.species, self.EXPECTED_ATOM)
-        self.assertIsInstance(actual.species, str)
+        self.assertIsInstance(self.renate_db.species, str, msg='Atomic species is expected to be given in type of str.')
+        self.assertIn(self.renate_db.species, self.EXPECTED_ATOM,
+                      msg='Projectile atomic species currently supported has to be among: H, D, T, Li and Na.')
 
     def test_atomic_levels(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
         for index in range(len(self.EXPECTED_ATOM)):
-            actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
-            atom = RenateDB(actual.param, 'default', None)
-            self.assertIsInstance(atom.atomic_levels, int)
+            self.renate_db.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
+            atom = RenateDB(self.renate_db.param, 'default', None)
+            self.assertIsInstance(atom.atomic_levels, int,
+                                  msg='Number of atomic levels is expected to be given in type int')
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
-            self.assertIsInstance(atom.atomic_dict, dict)
-            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
-            self.assertIsInstance(atom.inv_atomic_dict, dict)
+            self.assertIsInstance(atom.atomic_dict, dict,
+                                  msg='Data structure labeling atomic levels is expected to be given in type dict.')
+            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index],
+                                 msg='Atomic label dict for '+self.EXPECTED_ATOM[index]+' fails.')
+            self.assertIsInstance(atom.inv_atomic_dict, dict,
+                                  msg='Data structure linking inverting atomic labels is expected to be of type dict.')
 
     def test_default_atomic_levels(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
         for index in range(len(self.EXPECTED_ATOM)):
-            actual.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
-            atom = RenateDB(actual.param, 'default', None)
+            self.renate_db.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
+            atom = RenateDB(self.renate_db.param, 'default', None)
             fr, to, ground, trans = atom.set_default_atomic_levels()
-            self.assertIsInstance(fr, str)
-            self.assertEqual(fr, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][0])
-            self.assertIsInstance(to, str)
-            self.assertEqual(to, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][1])
-            self.assertIsInstance(ground, str)
-            self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2])
-            self.assertIsInstance(trans, str)
-            self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3])
+            self.assertIsInstance(fr, str, msg='From level label is expected to be of type str.')
+            self.assertEqual(fr, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][0],
+                             msg='Returned <from> level label fails for projectile type: ' + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(to, str, msg='To level label is expected to be of type str.')
+            self.assertEqual(to, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][1],
+                             msg='Returned <to> level label fails for projectile type: ' + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(ground, str, msg='Ground level label is expected to be of type str.')
+            self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2],
+                             msg='Returned <ground> level label fails for projectile type: '
+                                 + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(trans, str, msg='Transition label is expected to be of type str.')
+            self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3],
+                             msg='Returned <transition> label fails for projectile type: ' + self.EXPECTED_ATOM[index])
 
     def test_atomic_data_getter(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
         for index in range(len(self.INPUT_DATA_GETTING)):
-            data = actual.get_from_renate_atomic(self.INPUT_DATA_GETTING[index])
-            self.assertIsInstance(data, numpy.ndarray)
+            data = self.renate_db.get_from_renate_atomic(self.INPUT_DATA_GETTING[index])
+            self.assertIsInstance(data, numpy.ndarray, msg='Data type to be returned by getter function is'
+                                                           ' expected to be of type numpy ndarray.')
 
     def test_charged_state_library(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        self.assertIsInstance(actual.charged_states, tuple)
-        for state in range(len(actual.charged_states)):
-            self.assertIsInstance(actual.charged_states[state], str)
-            self.assertEqual(actual.charged_states[state], 'charge-'+str(state+1))
+        self.assertIsInstance(self.renate_db.charged_states, tuple, msg='Data structure containing availability for '
+                              'rates in various charged states is of type tuple.')
+        for state in range(len(self.renate_db.charged_states)):
+            self.assertIsInstance(self.renate_db.charged_states[state], str, msg='Charge state label of plasma '
+                                  'component supported for rate calculations is expected to be of type str.')
+            self.assertEqual(self.renate_db.charged_states[state], 'charge-'+str(state+1),
+                             msg='Data structures containing the maximum number of charged states supported fails.')
 
     def test_renate_temperature(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        data = actual.get_from_renate_atomic('temperature')
-        self.assertEqual(data.ndim, 1)
+        data = self.renate_db.get_from_renate_atomic('temperature')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_1, msg='Expected dimension of temperature array is 1.')
 
     def test_renate_spontaneous(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        data = actual.get_from_renate_atomic('spontaneous_transition')
-        self.assertEqual(data.ndim, 2)
-        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels))
+        data = self.renate_db.get_from_renate_atomic('spontaneous_transition')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_2,
+                         msg='Expected dimension for spontaneous transition data is 2.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_electron_transitions(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        temp = actual.get_from_renate_atomic('temperature')
-        data = actual.get_from_renate_atomic('electron_transition')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels, len(temp)))
+        temp = self.renate_db.get_from_renate_atomic('temperature')
+        data = self.renate_db.get_from_renate_atomic('electron_transition')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3,
+                         msg='Expected dimension for electron transition data is 3.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_ion_transitions(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        temp = actual.get_from_renate_atomic('temperature')
-        data = actual.get_from_renate_atomic('ion_transition')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (actual.atomic_levels, actual.atomic_levels, len(temp)))
+        temp = self.renate_db.get_from_renate_atomic('temperature')
+        data = self.renate_db.get_from_renate_atomic('ion_transition')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3, msg='Expected dimension for ion transition data is 3.')
+        self.assertTupleEqual(data.shape, (self.renate_db.atomic_levels, self.renate_db.atomic_levels, len(temp)),
+                              msg='Data structure size is not in accordance with atomic physics specifications.')
 
     def test_renate_impurity_transitions(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        temp = actual.get_from_renate_atomic('temperature')
-        data = actual.get_from_renate_atomic('impurity_transition')
-        self.assertEqual(data.ndim, 4)
-        self.assertEqual(data.shape, (len(actual.charged_states)-1, actual.atomic_levels,
-                                      actual.atomic_levels, len(temp)))
+        temp = self.renate_db.get_from_renate_atomic('temperature')
+        data = self.renate_db.get_from_renate_atomic('impurity_transition')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_4,
+                         msg='Expected dimension for impurity transition data is 4.')
+        self.assertTupleEqual(data.shape, (len(self.renate_db.charged_states)-1, self.renate_db.atomic_levels,
+                              self.renate_db.atomic_levels, len(temp)), msg='Data structure size is not in accordance'
+                                                                            ' with atomic physics specifications.')
 
     def test_renate_ionization_terms(self):
-        actual = RenateDB(None, 'default', self.INPUT_PATH)
-        temp = actual.get_from_renate_atomic('temperature')
-        data = actual.get_from_renate_atomic('ionization_terms')
-        self.assertEqual(data.ndim, 3)
-        self.assertEqual(data.shape, (len(actual.charged_states)+1, actual.atomic_levels, len(temp)))
+        temp = self.renate_db.get_from_renate_atomic('temperature')
+        data = self.renate_db.get_from_renate_atomic('ionization_terms')
+        self.assertEqual(data.ndim, self.EXPECTED_DIMENSION_3, msg='Expected dimension for ionization data is 3.')
+        self.assertTupleEqual(data.shape, (len(self.renate_db.charged_states)+1,
+                              self.renate_db.atomic_levels, len(temp)), msg='Data structure size is not in accordance '
+                                                                            'with atomic physics specifications.')
 
 
 class AtomicDBTest(unittest.TestCase):
@@ -157,6 +180,7 @@ class AtomicDBTest(unittest.TestCase):
                                   range(len(elements))]).transpose()
     INPUT_DUMMY_PATH = 'beamlet/dummy0001.xml'
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
+    EXPECTED_DECIMAL_PRECISION_5 = 5
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
                                                                [21., 121., 221., 271., 321., 821., 1021.],
@@ -234,103 +258,129 @@ class AtomicDBTest(unittest.TestCase):
                                                              [0., 0., 0., 0., 0., 0., 0.],
                                                              [0., 0., 0., 0., 0., 0., 0.]]]]))
 
+    def setUp(self):
+        self.atomic_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
+
+    def tearDown(self):
+        del self.atomic_db
+
     def test_all_attributes(self):
-        actual = AtomicDB(components=self.COMPONENTS)
         for attr in self.EXPECTED_ATTR:
-            assert hasattr(actual, attr)
+            assert hasattr(self.atomic_db, attr)
 
     def test_inheritance(self):
-        atomic_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        self.assertIsInstance(atomic_db, RenateDB)
+        self.assertIsInstance(self.atomic_db, RenateDB, msg='Default rate library inheritance test failed.')
 
     def test_spontaneous_trans(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.spontaneous_trans, numpy.ndarray)
-        self.assertEqual(actual.spontaneous_trans.ndim, 2)
-        self.assertEqual(actual.atomic_levels, int(actual.spontaneous_trans.size ** 0.5))
-        for to_level in range(actual.atomic_levels):
-            for from_level in range(actual.atomic_levels):
+        self.assertIsInstance(self.atomic_db.spontaneous_trans, numpy.ndarray,
+                              msg='Spontaneous transition data stored in wrong format.')
+        self.assertEqual(self.atomic_db.spontaneous_trans.ndim, 2,
+                         msg='Dimensions of spontaneous transition data is expected to be 2D.')
+        self.assertEqual(self.atomic_db.atomic_levels, int(self.atomic_db.spontaneous_trans.size ** 0.5),
+                         msg='Number of elements in spontaneous transition array is '
+                             'inconsistent with number of atomic levels.')
+        for to_level in range(self.atomic_db.atomic_levels):
+            for from_level in range(self.atomic_db.atomic_levels):
                 if from_level <= to_level:
-                    self.assertEqual(actual.spontaneous_trans[to_level, from_level],
+                    self.assertEqual(self.atomic_db.spontaneous_trans[to_level, from_level],
                                      0.0, msg='Spontaneous transition levels set wrong!!')
 
     def test_electron_impact_loss_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.electron_impact_loss, tuple)
-        self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
-        for index in range(actual.atomic_levels):
-            self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.electron_impact_loss, tuple,
+                              msg='Electron impact loss functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.electron_impact_loss), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for index in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.electron_impact_loss[index], scipy.interpolate.interp1d,
+                                  msg='Provided electron impact loss functions are of wrong type.')
 
     def test_electron_impact_transition_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.electron_impact_trans, tuple)
-        self.assertEqual(len(actual.electron_impact_trans), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.electron_impact_trans[from_level], tuple)
-            self.assertEqual(len(actual.electron_impact_trans[from_level]), actual.atomic_levels)
-            for to_level in range(actual.atomic_levels):
-                self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.electron_impact_trans, tuple,
+                              msg='Electron impact transition functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.electron_impact_trans), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.electron_impact_trans[from_level], tuple,
+                                  msg='Electron impact transition functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.electron_impact_trans[from_level]), self.atomic_db.atomic_levels,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with number of atomic levels.')
+            for to_level in range(self.atomic_db.atomic_levels):
+                self.assertIsInstance(self.atomic_db.electron_impact_trans[from_level][to_level],
+                                      scipy.interpolate.interp1d, msg='Provided electron impact transition '
+                                                                      'functions are of wrong type.')
 
     def test_ion_impact_loss_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.ion_impact_loss, tuple)
-        self.assertEqual(len(actual.ion_impact_loss), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_loss[from_level], tuple)
-            self.assertEqual(len(actual.ion_impact_loss[from_level]), len(actual.components.T.keys())-1)
-            for charge in range(len(actual.components.T.keys())-1):
-                self.assertIsInstance(actual.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.ion_impact_loss, tuple,
+                              msg='Ion impact loss functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.ion_impact_loss), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.ion_impact_loss[from_level], tuple,
+                                  msg='Ion impact loss functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.ion_impact_loss[from_level]), len(self.atomic_db.components.T.keys())-1,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with the number of plasma ions.')
+            for charge in range(len(self.atomic_db.components.T.keys())-1):
+                self.assertIsInstance(self.atomic_db.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d,
+                                      msg='Provided electron impact loss functions are of wrong type.')
 
     def test_ion_impact_transition_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.ion_impact_trans, tuple)
-        self.assertEqual(len(actual.ion_impact_trans), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_trans[from_level], tuple)
-            self.assertEqual(len(actual.ion_impact_trans[from_level]), actual.atomic_levels)
-            for to_level in range(actual.atomic_levels):
-                self.assertIsInstance(actual.ion_impact_trans[from_level][to_level], tuple)
-                self.assertEqual(len(actual.ion_impact_trans[from_level][to_level]), len(actual.components.T.keys())-1)
-                for charge in range(len(actual.components.T.keys())-1):
-                    self.assertIsInstance(actual.ion_impact_trans[from_level][to_level][charge],
-                                          scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.ion_impact_trans, tuple, msg='Ion impact transition functions '
+                                                                          'are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.ion_impact_trans), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level], tuple,
+                                  msg='Ion impact transition functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.ion_impact_trans[from_level]), self.atomic_db.atomic_levels,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with number of atomic levels.')
+            for to_level in range(self.atomic_db.atomic_levels):
+                self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level][to_level], tuple,
+                                      msg='Ion impact transition functions are stored in wrong data format.')
+                self.assertEqual(len(self.atomic_db.ion_impact_trans[from_level][to_level]),
+                                 len(self.atomic_db.components.T.keys())-1,
+                                 msg='Number of expected interpolator functions is '
+                                 'inconsistent with the number of plasma ions.')
+                for charge in range(len(self.atomic_db.components.T.keys())-1):
+                    self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level][to_level][charge],
+                                          scipy.interpolate.interp1d, msg='Provided electron impact loss '
+                                                                          'functions are of wrong type.')
 
     def test_electron_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for level in range(actual.atomic_levels):
-            rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
-            self.assertIsInstance(rates, numpy.ndarray)
-            for element_index in range(len(rates)):
-                self.assertAlmostEqual(self.EXPECTED_ELECTRON_IMPACT_LOSS[level]
-                                       [element_index], rates[element_index], 5)
+        for level in range(self.atomic_db.atomic_levels):
+            rates = self.atomic_db.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
+            self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+            numpy.testing.assert_almost_equal(self.EXPECTED_ELECTRON_IMPACT_LOSS[level], rates,
+                                              self.EXPECTED_DECIMAL_PRECISION_5, err_msg='Electron impact loss '
+                                                                                         'interpolator failure.')
 
     def test_electron_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for from_level in range(actual.atomic_levels):
-            for to_level in range(actual.atomic_levels):
-                rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
-                self.assertIsInstance(rates, numpy.ndarray)
-                for element_index in range(len(rates)):
-                    self.assertAlmostEqual(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level]
-                                           [to_level][element_index], rates[element_index], 5)
+        for from_level in range(self.atomic_db.atomic_levels):
+            for to_level in range(self.atomic_db.atomic_levels):
+                rates = self.atomic_db.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                numpy.testing.assert_almost_equal(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level][to_level], rates,
+                                                  self.EXPECTED_DECIMAL_PRECISION_5,
+                                                  err_msg='Electron impact transition interpolator failure.')
 
     def test_ion_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for level in range(actual.atomic_levels):
-            for target in range(len(actual.components.T.keys())-1):
-                rates = actual.ion_impact_loss[level][target](self.INTERPOLATION_TEST_TEMPERATURE)
-                self.assertIsInstance(rates, numpy.ndarray)
-                for element_index in range(len(rates)):
-                    self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_LOSS[level][target]
-                                           [element_index], rates[element_index], 3)
+        for level in range(self.atomic_db.atomic_levels):
+            for target in range(len(self.atomic_db.components.T.keys())-1):
+                rates = self.atomic_db.ion_impact_loss[level][target](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                numpy.testing.assert_almost_equal(self.EXPECTED_ION_IMPACT_LOSS[level][target], rates,
+                                                  self.EXPECTED_DECIMAL_PRECISION_5,
+                                                  err_msg='Ion impact loss interpolator failure.')
 
     def test_ion_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for from_level in range(actual.atomic_levels):
-            for to_level in range(actual.atomic_levels):
-                for target in range(len(actual.components.T.keys())-1):
-                    rates = actual.ion_impact_trans[from_level][to_level][target](self.INTERPOLATION_TEST_TEMPERATURE)
-                    self.assertIsInstance(rates, numpy.ndarray)
-                    for element_index in range(len(rates)):
-                        self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_TRANS[from_level]
-                                               [to_level][target][element_index], rates[element_index], 3)
+        for from_level in range(self.atomic_db.atomic_levels):
+            for to_level in range(self.atomic_db.atomic_levels):
+                for target in range(len(self.atomic_db.components.T.keys())-1):
+                    rates = self.atomic_db.ion_impact_trans[from_level][to_level][target]\
+                        (self.INTERPOLATION_TEST_TEMPERATURE)
+                    self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                    numpy.testing.assert_almost_equal(self.EXPECTED_ION_IMPACT_TRANS[from_level][to_level][target],
+                                                      rates, self.EXPECTED_DECIMAL_PRECISION_5,
+                                                      err_msg='Ion impact transition interpolator failure.')
