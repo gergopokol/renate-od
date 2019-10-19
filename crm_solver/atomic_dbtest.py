@@ -157,6 +157,7 @@ class AtomicDBTest(unittest.TestCase):
                                   range(len(elements))]).transpose()
     INPUT_DUMMY_PATH = 'beamlet/dummy0001.xml'
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
+    EXPECTED_DECIMAL_PRECISION_5 = 5
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
                                                               [[11., 111., 211., 261., 311., 811., 1011.],
                                                                [21., 121., 221., 271., 321., 821., 1021.],
@@ -234,103 +235,129 @@ class AtomicDBTest(unittest.TestCase):
                                                              [0., 0., 0., 0., 0., 0., 0.],
                                                              [0., 0., 0., 0., 0., 0., 0.]]]]))
 
+    def setUp(self):
+        self.atomic_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
+
+    def tearDown(self):
+        del self.atomic_db
+
     def test_all_attributes(self):
-        actual = AtomicDB(components=self.COMPONENTS)
         for attr in self.EXPECTED_ATTR:
-            assert hasattr(actual, attr)
+            assert hasattr(self.atomic_db, attr)
 
     def test_inheritance(self):
-        atomic_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        self.assertIsInstance(atomic_db, RenateDB)
+        self.assertIsInstance(self.atomic_db, RenateDB, msg='Default rate library inheritance test failed.')
 
     def test_spontaneous_trans(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.spontaneous_trans, numpy.ndarray)
-        self.assertEqual(actual.spontaneous_trans.ndim, 2)
-        self.assertEqual(actual.atomic_levels, int(actual.spontaneous_trans.size ** 0.5))
-        for to_level in range(actual.atomic_levels):
-            for from_level in range(actual.atomic_levels):
+        self.assertIsInstance(self.atomic_db.spontaneous_trans, numpy.ndarray,
+                              msg='Spontaneous transition data stored in wrong format.')
+        self.assertEqual(self.atomic_db.spontaneous_trans.ndim, 2,
+                         msg='Dimensions of spontaneous transition data is expected to be 2D.')
+        self.assertEqual(self.atomic_db.atomic_levels, int(self.atomic_db.spontaneous_trans.size ** 0.5),
+                         msg='Number of elements in spontaneous transition array is '
+                             'inconsistent with number of atomic levels.')
+        for to_level in range(self.atomic_db.atomic_levels):
+            for from_level in range(self.atomic_db.atomic_levels):
                 if from_level <= to_level:
-                    self.assertEqual(actual.spontaneous_trans[to_level, from_level],
+                    self.assertEqual(self.atomic_db.spontaneous_trans[to_level, from_level],
                                      0.0, msg='Spontaneous transition levels set wrong!!')
 
     def test_electron_impact_loss_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.electron_impact_loss, tuple)
-        self.assertEqual(len(actual.electron_impact_loss), actual.atomic_levels)
-        for index in range(actual.atomic_levels):
-            self.assertIsInstance(actual.electron_impact_loss[index], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.electron_impact_loss, tuple,
+                              msg='Electron impact loss functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.electron_impact_loss), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for index in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.electron_impact_loss[index], scipy.interpolate.interp1d,
+                                  msg='Provided electron impact loss functions are of wrong type.')
 
     def test_electron_impact_transition_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.electron_impact_trans, tuple)
-        self.assertEqual(len(actual.electron_impact_trans), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.electron_impact_trans[from_level], tuple)
-            self.assertEqual(len(actual.electron_impact_trans[from_level]), actual.atomic_levels)
-            for to_level in range(actual.atomic_levels):
-                self.assertIsInstance(actual.electron_impact_trans[from_level][to_level], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.electron_impact_trans, tuple,
+                              msg='Electron impact transition functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.electron_impact_trans), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.electron_impact_trans[from_level], tuple,
+                                  msg='Electron impact transition functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.electron_impact_trans[from_level]), self.atomic_db.atomic_levels,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with number of atomic levels.')
+            for to_level in range(self.atomic_db.atomic_levels):
+                self.assertIsInstance(self.atomic_db.electron_impact_trans[from_level][to_level],
+                                      scipy.interpolate.interp1d, msg='Provided electron impact transition '
+                                                                      'functions are of wrong type.')
 
     def test_ion_impact_loss_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.ion_impact_loss, tuple)
-        self.assertEqual(len(actual.ion_impact_loss), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_loss[from_level], tuple)
-            self.assertEqual(len(actual.ion_impact_loss[from_level]), len(actual.components.T.keys())-1)
-            for charge in range(len(actual.components.T.keys())-1):
-                self.assertIsInstance(actual.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.ion_impact_loss, tuple,
+                              msg='Ion impact loss functions are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.ion_impact_loss), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.ion_impact_loss[from_level], tuple,
+                                  msg='Ion impact loss functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.ion_impact_loss[from_level]), len(self.atomic_db.components.T.keys())-1,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with the number of plasma ions.')
+            for charge in range(len(self.atomic_db.components.T.keys())-1):
+                self.assertIsInstance(self.atomic_db.ion_impact_loss[from_level][charge], scipy.interpolate.interp1d,
+                                      msg='Provided electron impact loss functions are of wrong type.')
 
     def test_ion_impact_transition_terms(self):
-        actual = AtomicDB(components=self.COMPONENTS)
-        self.assertIsInstance(actual.ion_impact_trans, tuple)
-        self.assertEqual(len(actual.ion_impact_trans), actual.atomic_levels)
-        for from_level in range(actual.atomic_levels):
-            self.assertIsInstance(actual.ion_impact_trans[from_level], tuple)
-            self.assertEqual(len(actual.ion_impact_trans[from_level]), actual.atomic_levels)
-            for to_level in range(actual.atomic_levels):
-                self.assertIsInstance(actual.ion_impact_trans[from_level][to_level], tuple)
-                self.assertEqual(len(actual.ion_impact_trans[from_level][to_level]), len(actual.components.T.keys())-1)
-                for charge in range(len(actual.components.T.keys())-1):
-                    self.assertIsInstance(actual.ion_impact_trans[from_level][to_level][charge],
-                                          scipy.interpolate.interp1d)
+        self.assertIsInstance(self.atomic_db.ion_impact_trans, tuple, msg='Ion impact transition functions '
+                                                                          'are stored in wrong data format.')
+        self.assertEqual(len(self.atomic_db.ion_impact_trans), self.atomic_db.atomic_levels,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for from_level in range(self.atomic_db.atomic_levels):
+            self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level], tuple,
+                                  msg='Ion impact transition functions are stored in wrong data format.')
+            self.assertEqual(len(self.atomic_db.ion_impact_trans[from_level]), self.atomic_db.atomic_levels,
+                             msg='Number of expected interpolator functions is '
+                                 'inconsistent with number of atomic levels.')
+            for to_level in range(self.atomic_db.atomic_levels):
+                self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level][to_level], tuple,
+                                      msg='Ion impact transition functions are stored in wrong data format.')
+                self.assertEqual(len(self.atomic_db.ion_impact_trans[from_level][to_level]),
+                                 len(self.atomic_db.components.T.keys())-1,
+                                 msg='Number of expected interpolator functions is '
+                                 'inconsistent with the number of plasma ions.')
+                for charge in range(len(self.atomic_db.components.T.keys())-1):
+                    self.assertIsInstance(self.atomic_db.ion_impact_trans[from_level][to_level][charge],
+                                          scipy.interpolate.interp1d, msg='Provided electron impact loss '
+                                                                          'functions are of wrong type.')
 
     def test_electron_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for level in range(actual.atomic_levels):
-            rates = actual.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
-            self.assertIsInstance(rates, numpy.ndarray)
-            for element_index in range(len(rates)):
-                self.assertAlmostEqual(self.EXPECTED_ELECTRON_IMPACT_LOSS[level]
-                                       [element_index], rates[element_index], 5)
+        for level in range(self.atomic_db.atomic_levels):
+            rates = self.atomic_db.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
+            self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+            numpy.testing.assert_almost_equal(self.EXPECTED_ELECTRON_IMPACT_LOSS[level], rates,
+                                              self.EXPECTED_DECIMAL_PRECISION_5, err_msg='Electron impact loss '
+                                                                                         'interpolator failure.')
 
     def test_electron_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for from_level in range(actual.atomic_levels):
-            for to_level in range(actual.atomic_levels):
-                rates = actual.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
-                self.assertIsInstance(rates, numpy.ndarray)
-                for element_index in range(len(rates)):
-                    self.assertAlmostEqual(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level]
-                                           [to_level][element_index], rates[element_index], 5)
+        for from_level in range(self.atomic_db.atomic_levels):
+            for to_level in range(self.atomic_db.atomic_levels):
+                rates = self.atomic_db.electron_impact_trans[from_level][to_level](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                numpy.testing.assert_almost_equal(self.EXPECTED_ELECTRON_IMPACT_TRANS[from_level][to_level], rates,
+                                                  self.EXPECTED_DECIMAL_PRECISION_5,
+                                                  err_msg='Electron impact transition interpolator failure.')
 
     def test_ion_impact_loss_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for level in range(actual.atomic_levels):
-            for target in range(len(actual.components.T.keys())-1):
-                rates = actual.ion_impact_loss[level][target](self.INTERPOLATION_TEST_TEMPERATURE)
-                self.assertIsInstance(rates, numpy.ndarray)
-                for element_index in range(len(rates)):
-                    self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_LOSS[level][target]
-                                           [element_index], rates[element_index], 3)
+        for level in range(self.atomic_db.atomic_levels):
+            for target in range(len(self.atomic_db.components.T.keys())-1):
+                rates = self.atomic_db.ion_impact_loss[level][target](self.INTERPOLATION_TEST_TEMPERATURE)
+                self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                numpy.testing.assert_almost_equal(self.EXPECTED_ION_IMPACT_LOSS[level][target], rates,
+                                                  self.EXPECTED_DECIMAL_PRECISION_5,
+                                                  err_msg='Ion impact loss interpolator failure.')
 
     def test_ion_impact_transition_interpolator(self):
-        actual = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS)
-        for from_level in range(actual.atomic_levels):
-            for to_level in range(actual.atomic_levels):
-                for target in range(len(actual.components.T.keys())-1):
-                    rates = actual.ion_impact_trans[from_level][to_level][target](self.INTERPOLATION_TEST_TEMPERATURE)
-                    self.assertIsInstance(rates, numpy.ndarray)
-                    for element_index in range(len(rates)):
-                        self.assertAlmostEqual(self.EXPECTED_ION_IMPACT_TRANS[from_level]
-                                               [to_level][target][element_index], rates[element_index], 3)
+        for from_level in range(self.atomic_db.atomic_levels):
+            for to_level in range(self.atomic_db.atomic_levels):
+                for target in range(len(self.atomic_db.components.T.keys())-1):
+                    rates = self.atomic_db.ion_impact_trans[from_level][to_level][target]\
+                        (self.INTERPOLATION_TEST_TEMPERATURE)
+                    self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+                    numpy.testing.assert_almost_equal(self.EXPECTED_ION_IMPACT_TRANS[from_level][to_level][target],
+                                                      rates, self.EXPECTED_DECIMAL_PRECISION_5,
+                                                      err_msg='Ion impact transition interpolator failure.')
