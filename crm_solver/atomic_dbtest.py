@@ -12,8 +12,8 @@ class RenateDBTest(unittest.TestCase):
                      'atomic_levels', 'inv_atomic_dict', 'impurity_mass_normalization', 'charged_states']
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
-    EXPECTED_ENERGY = '60'
-    EXPECTED_VELOCITY = 1291547.1348
+    EXPECTED_ENERGY = 60
+    EXPECTED_VELOCITY = 1291547.13488556
     EXPECTED_MASS = 1.15258e-26
     EXPECTED_ATOMIC_DICT = [{'1': 1, '0': 0, '2': 2},
                             {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8},
@@ -30,6 +30,7 @@ class RenateDBTest(unittest.TestCase):
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2'],
                                       ['3', '2', '1', '3-2']]
+    EXPECTED_DECIMAL_PRECISION_4 = 4
     INPUT_PATH = 'beamlet/testimp0001.xml'
     INPUT_DATA_GETTING = ['temperature', 'spontaneous_transition', 'ionization_terms',
                           'impurity_transition', 'ion_transition', 'electron_transition']
@@ -45,60 +46,79 @@ class RenateDBTest(unittest.TestCase):
             assert hasattr(self.renate_db, attr)
 
     def test_projectile_energy(self):
-        self.assertIsInstance(self.renate_db.energy, str)
-        self.assertEqual(self.renate_db.energy, self.EXPECTED_ENERGY)
+        self.assertIsInstance(self.renate_db.energy, str, msg='Energy input is expected to be in str format.')
+        self.assertEqual(int(self.renate_db.energy), self.EXPECTED_ENERGY,
+                         msg='Test energy value is expected to be convertable to int and 60.')
 
     def test_impurity_mass_correction_dictionary(self):
-        self.assertIsInstance(self.renate_db.impurity_mass_normalization, dict)
-        self.assertDictEqual(self.renate_db.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT)
+        self.assertIsInstance(self.renate_db.impurity_mass_normalization, dict,
+                              msg='The impurity mass correction DB is expected to be of dict type.')
+        self.assertDictEqual(self.renate_db.impurity_mass_normalization, self.EXPECTED_MASS_CORRECTION_DICT,
+                             msg='The implemented mass correction dictionary fails.')
 
     def test_projectile_mass(self):
-        self.assertIsInstance(self.renate_db.mass, float)
-        self.assertEqual(self.renate_db.mass, self.EXPECTED_MASS)
+        self.assertIsInstance(self.renate_db.mass, float, msg='Projectile mass is expected to be of float type.')
+        self.assertEqual(self.renate_db.mass, self.EXPECTED_MASS,
+                         msg='Weight of projectile is expected to match Li for the testcase.')
 
     def test_projectile_velocity(self):
-        self.assertIsInstance(self.renate_db.velocity, float)
-        self.assertAlmostEqual(self.renate_db.velocity, self.EXPECTED_VELOCITY, 3)
+        self.assertIsInstance(self.renate_db.velocity, float,
+                              msg='Projectile velocity is expected to be given as float.')
+        self.assertAlmostEqual(self.renate_db.velocity, self.EXPECTED_VELOCITY, self.EXPECTED_DECIMAL_PRECISION_4,
+                               msg='Projectile velocity is expected to match the velocity of Li @ 60 keV.')
 
     def test_atomic_species(self):
-        self.assertIsInstance(self.renate_db.species, str)
-        self.assertIn(self.renate_db.species, self.EXPECTED_ATOM)
-        self.assertIsInstance(self.renate_db.species, str)
+        self.assertIsInstance(self.renate_db.species, str, msg='Atomic species is expected to be given in type of str.')
+        self.assertIn(self.renate_db.species, self.EXPECTED_ATOM,
+                      msg='Projectile atomic species currently supported has to be among: H, D, T, Li and Na.')
 
     def test_atomic_levels(self):
         for index in range(len(self.EXPECTED_ATOM)):
             self.renate_db.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
             atom = RenateDB(self.renate_db.param, 'default', None)
-            self.assertIsInstance(atom.atomic_levels, int)
+            self.assertIsInstance(atom.atomic_levels, int,
+                                  msg='Number of atomic levels is expected to be given in type int')
             self.assertEqual(atom.atomic_levels, self.EXPECTED_ATOMIC_LEVELS[index])
-            self.assertIsInstance(atom.atomic_dict, dict)
-            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index])
-            self.assertIsInstance(atom.inv_atomic_dict, dict)
+            self.assertIsInstance(atom.atomic_dict, dict,
+                                  msg='Data structure labeling atomic levels is expected to be given in type dict.')
+            self.assertDictEqual(atom.atomic_dict, self.EXPECTED_ATOMIC_DICT[index],
+                                 msg='Atomic label dict for '+self.EXPECTED_ATOM[index]+' fails.')
+            self.assertIsInstance(atom.inv_atomic_dict, dict,
+                                  msg='Data structure linking inverting atomic labels is expected to be of type dict.')
 
     def test_default_atomic_levels(self):
         for index in range(len(self.EXPECTED_ATOM)):
             self.renate_db.param.getroot().find('body').find('beamlet_species').text = self.EXPECTED_ATOM[index]
             atom = RenateDB(self.renate_db.param, 'default', None)
             fr, to, ground, trans = atom.set_default_atomic_levels()
-            self.assertIsInstance(fr, str)
-            self.assertEqual(fr, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][0])
-            self.assertIsInstance(to, str)
-            self.assertEqual(to, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][1])
-            self.assertIsInstance(ground, str)
-            self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2])
-            self.assertIsInstance(trans, str)
-            self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3])
+            self.assertIsInstance(fr, str, msg='From level label is expected to be of type str.')
+            self.assertEqual(fr, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][0],
+                             msg='Returned <from> level label fails for projectile type: ' + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(to, str, msg='To level label is expected to be of type str.')
+            self.assertEqual(to, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][1],
+                             msg='Returned <to> level label fails for projectile type: ' + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(ground, str, msg='Ground level label is expected to be of type str.')
+            self.assertEqual(ground, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][2],
+                             msg='Returned <ground> level label fails for projectile type: '
+                                 + self.EXPECTED_ATOM[index])
+            self.assertIsInstance(trans, str, msg='Transition label is expected to be of type str.')
+            self.assertEqual(trans, self.EXPECTED_DEFAULT_ATOMIC_STATES[index][3],
+                             msg='Returned <transition> label fails for projectile type: ' + self.EXPECTED_ATOM[index])
 
     def test_atomic_data_getter(self):
         for index in range(len(self.INPUT_DATA_GETTING)):
             data = self.renate_db.get_from_renate_atomic(self.INPUT_DATA_GETTING[index])
-            self.assertIsInstance(data, numpy.ndarray)
+            self.assertIsInstance(data, numpy.ndarray, msg='Data type to be returned by getter function is'
+                                                           ' expected to be of type numpy ndarray.')
 
     def test_charged_state_library(self):
-        self.assertIsInstance(self.renate_db.charged_states, tuple)
+        self.assertIsInstance(self.renate_db.charged_states, tuple, msg='Data structure containing availability for '
+                              'rates in various charged states is of type tuple.')
         for state in range(len(self.renate_db.charged_states)):
-            self.assertIsInstance(self.renate_db.charged_states[state], str)
-            self.assertEqual(self.renate_db.charged_states[state], 'charge-'+str(state+1))
+            self.assertIsInstance(self.renate_db.charged_states[state], str, msg='Charge state label of plasma '
+                                  'component supported for rate calculations is expected to be of type str.')
+            self.assertEqual(self.renate_db.charged_states[state], 'charge-'+str(state+1),
+                             msg='Data structures containing the maximum number of charged states supported fails.')
 
     def test_renate_temperature(self):
         data = self.renate_db.get_from_renate_atomic('temperature')
