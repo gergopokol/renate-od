@@ -2,6 +2,20 @@ import unittest
 from crm_solver.beamlet import Beamlet
 
 
+class RenateODTestCase(unittest.TestCase):
+    def assertRenateODBenchmark(self, actual, reference, precision, error_msg=''):
+        pass
+
+    def assertRenateODNotBenchmark(self, actual, reference, precision, error_msg=''):
+        pass
+
+    def assertRenateBenchmark(self, actual, reference, precision, error_msg=''):
+        pass
+
+    def assertRenateNotBenchmark(self, actual, reference, precision, error_msg=''):
+        pass
+
+
 class CrmSystemTest(unittest.TestCase):
 
     RELATIVE_PRECISION = 0.001
