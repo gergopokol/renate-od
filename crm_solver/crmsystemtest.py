@@ -2,7 +2,7 @@ import unittest
 from crm_solver.beamlet import Beamlet
 
 
-class CrmAcceptanceTest(unittest.TestCase):
+class CrmSystemTest(unittest.TestCase):
 
     RELATIVE_PRECISION = 0.001
     lithium_testcase = 'beamlet/acceptancetest/scenario-standard_plasma-H_energy-100_beam-Li_profile.xml'
