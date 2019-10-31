@@ -1,22 +1,13 @@
 import unittest
 from crm_solver.beamlet import Beamlet
+from crm_solver.crmtestcase import CrmTestCase
 
 
-class RenateODTestCase(unittest.TestCase):
-    def assertRenateODBenchmark(self, actual, reference, precision, error_msg=''):
-        pass
-
-    def assertRenateODNotBenchmark(self, actual, reference, precision, error_msg=''):
-        pass
-
-    def assertRenateBenchmark(self, actual, reference, precision, error_msg=''):
-        pass
-
-    def assertRenateNotBenchmark(self, actual, reference, precision, error_msg=''):
-        pass
+class CrmSystemTest(CrmTestCase):
+    pass
 
 
-class CrmSystemTest(unittest.TestCase):
+class CrmAcceptanceTest(unittest.TestCase):
 
     RELATIVE_PRECISION = 0.001
     lithium_testcase = 'beamlet/acceptancetest/scenario-standard_plasma-H_energy-100_beam-Li_profile.xml'
