@@ -8,7 +8,11 @@ class CrmTestCase(unittest.TestCase):
         else:
             normalization_factor = 1.
         for level_index in range(actual.atomic_db.atomic_levels):
-
+            for index in range(len(actual.profiles)):
+                if actual.profiles['level '+actual.atomic_db.inv_atomic_dict[level_index]][index] != 0:
+                    self.assertTrue(abs(actual.profiles['level '+actual.atomic_db.inv_atomic_dict[level_index]][index] -
+                                        reference.profiles['level ' + actual.atomic_db.inv_atomic_dict[level_index]][index])/
+                                    reference.profiles['level ' + actual.atomic_db.inv_atomic_dict[level_index]][index] <= precision)
 
     def assertNotAlmostEqualRateEvolution(self, actual, reference, precision=1E-3, msg=''):
         pass
