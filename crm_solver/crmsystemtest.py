@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 class CrmSystemTest(CrmTestCase):
-    path = 'test_dataset/crm_systemtests/renate_idl/scenario-standard_plasma-H_energy-100_beam-Na_profile.xml'
+    path = 'test_dataset/crm_systemtests/1.2.0/scenario-standard_plasma-H_energy-100_beam-Na_profile.xml'
 
     def test(self):
         reference = Beamlet(data_path=self.path, solver='disregard')
