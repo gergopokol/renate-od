@@ -1,31 +1,59 @@
 import unittest
+from unittest.util import safe_repr
 
 
 class CrmTestCase(unittest.TestCase):
 
-    @staticmethod
-    def _areSeriesEqual(series1, series2, precision):
-        booleans = abs(series1[1:] - series2[1:])/series1[1:] <= precision
-        if False in booleans:
-            return False
+    def _areSeriesAlmostEqual(self, series1, series2, precision):
+        statement = True
+        status_message = 'Value Series 1, Value Series 2, Almost Equal'
+        if len(series2) != len(series1):
+            self.failureException('First series has %s elements whereas second series %s elements \n' %
+                                  (safe_repr(len(series1)), safe_repr(len(series2))))
+        for i in range(1, len(series1)):
+            if not abs(series1[i] - series2[i])/series1[i] <= precision:
+                statement = False
+            status_message += '\n %s, %s, %s' % (safe_repr(series1[i]), safe_repr(series2[i]),
+                                                 safe_repr(abs(series1[i] - series2[i])/series1[i] <= precision))
+        if statement:
+            return True, status_message
         else:
-            return True
+            return False, status_message
+
+    @staticmethod
+    def _getNormalization(actual, reference):
+        if reference.profiles['level '+reference.atomic_db.inv_atomic_dict[0]][0] == 1:
+            return actual.profiles['level '+actual.atomic_db.inv_atomic_dict[0]][0]
+        else:
+            return 1.
 
     def assertAlmostEqualRateEvolution(self, actual, reference, precision=1E-3, msg=''):
-        if reference.profiles['level '+actual.atomic_db.inv_atomic_dict[0]][0] == 1:
-            normalization_factor = actual.profiles['level '+actual.atomic_db.inv_atomic_dict[0]][0]
-        else:
-            normalization_factor = 1.
         for level_index in range(actual.atomic_db.atomic_levels):
             level = 'level ' + actual.atomic_db.inv_atomic_dict[level_index]
-            self.assertTrue(self._areSeriesEqual(actual.profiles[level]/normalization_factor,
-                                                 reference.profiles[level], precision))
+            statement, status = self._areSeriesAlmostEqual(actual.profiles[level]/self._getNormalization(actual, reference),
+                                                           reference.profiles[level], precision)
+            if not statement:
+                standardMsg = 'Population evolution on %s are not within relative error of %s. Series 1 = actual, ' \
+                              'Series 2 = reference \n' % (level, safe_repr(precision)) + status
+                msg = self._formatMessage(msg, standardMsg)
+                self.fail(msg)
 
     def assertNotAlmostEqualRateEvolution(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        for level_index in range(actual.atomic_db.atomic_levels):
+            level = 'level ' + actual.atomic_db.inv_atomic_dict[level_index]
+            statement, status = self._areSeriesAlmostEqual(actual.profiles[level] / self._getNormalization(actual, reference),
+                                                           reference.profiles[level], precision)
+            if statement:
+                standardMsg = 'Population evolution on %s are within relative error of %s. This is NOT expected ' \
+                              'Series 1 = actual, Series 2 = reference \n' % (level, safe_repr(precision)) + status
+                msg = self._formatMessage(msg, standardMsg)
+                self.fail(msg)
 
     def assertAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        default_level_vals = actual.atomic_db.set_default_atomic_levels()
+        #if not self._areSeriesAlmostEqual(actual.profiles[default_level_vals], reference.profiles[default_level_vals],
+        #                                  precision):
+
 
     def assertNotAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
         pass
