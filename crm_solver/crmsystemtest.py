@@ -1,10 +1,18 @@
 import unittest
 from crm_solver.beamlet import Beamlet
 from crm_solver.crmtestcase import CrmTestCase
+from copy import deepcopy
 
 
 class CrmSystemTest(CrmTestCase):
-    pass
+    path = 'test_dataset/crm_systemtests/renate_idl/scenario-standard_plasma-H_energy-100_beam-Na_profile.xml'
+
+    def test(self):
+        reference = Beamlet(data_path=self.path, solver='disregard')
+        actual_source = deepcopy(reference)
+        actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles, components=actual_source.components,
+                         atomic_db=actual_source.atomic_db)
+        self.assertAlmostEqualRateEvolution(actual, reference)
 
 
 class CrmAcceptanceTest(unittest.TestCase):
