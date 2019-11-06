@@ -51,12 +51,26 @@ class CrmTestCase(unittest.TestCase):
 
     def assertAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
         default_level_vals = actual.atomic_db.set_default_atomic_levels()
-        #if not self._areSeriesAlmostEqual(actual.profiles[default_level_vals], reference.profiles[default_level_vals],
-        #                                  precision):
-
+        statement, status = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
+                                                       reference.profiles[default_level_vals[3]], precision)
+        if not statement:
+            standardMsg = 'Linear emission density values for transition: %s are not within relative error of %s.' \
+                          'Series 1 = actual, Series 2 = reference \n' % (default_level_vals[3], safe_repr(precision)) \
+                          + status
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
     def assertNotAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        default_level_vals = actual.atomic_db.set_default_atomic_levels()
+        statement, status = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
+                                                       reference.profiles[default_level_vals[3]], precision)
+        if statement:
+            standardMsg = 'Linear emission density values for transition: %s are within relative error of %s. ' \
+                          'This is not expected. Series 1 = actual, Series 2 = reference \n' % (default_level_vals[3],
+                                                                                                safe_repr(precision)) \
+                                                                                                + status
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
     def assertAlmostEqualBeamAttenuation(self, actual, reference, precision=1E-3, msg=''):
         pass
