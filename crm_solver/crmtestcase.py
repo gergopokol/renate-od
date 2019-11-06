@@ -73,10 +73,22 @@ class CrmTestCase(unittest.TestCase):
             self.fail(msg)
 
     def assertAlmostEqualBeamAttenuation(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        status, statement = self._areSeriesAlmostEqual(actual.profiles['linear_density_attenuation'],
+                                                       reference.profiles['linear_density_attenuation'], precision)
+        if not status:
+            standardMsg = 'Beam attenuation is not within relative error of %s. ' \
+                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + status
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
     def assertNotAlmostEqualBeamAttenuation(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        status, statement = self._areSeriesAlmostEqual(actual.profiles['linear_density_attenuation'],
+                                                       reference.profiles['linear_density_attenuation'], precision)
+        if status:
+            standardMsg = 'Beam attenuation is within relative error of %s. This is not expected.' \
+                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + status
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
     def assertAlmostEqualRelativePopulation(self, actual, reference, precision=1E-3, msg=''):
         pass
