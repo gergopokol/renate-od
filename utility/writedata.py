@@ -14,11 +14,15 @@ class WriteData:
         try:
             beamlet.profiles.to_hdf(path_or_buf=self.root_path + h5_output_path, key="profiles")
             beamlet.components.to_hdf(path_or_buf=self.root_path + h5_output_path, key="components")
-            if not isinstance(beamlet.param.getroot().find('body').find('beamlet_profiles'), etree._Element):
-                new_element = etree.Element('beamlet_profiles')
-                new_element.text = h5_output_path
+            if not isinstance(beamlet.param.getroot().find('body').find('beamlet_history'), etree._Element):
+                new_element = etree.Element('beamlet_history')
+                new_element.text = beamlet.param.getroot().find('body').find('beamlet_source').text
                 new_element.set('unit', '-')
                 beamlet.param.getroot().find('body').append(new_element)
+            else:
+                beamlet.param.getroo().find('body').find('beamlet_history').text = \
+                    beamlet.param.getroo().find('body').find('beamlet_source').text
+            beamlet.param.getroot().find('body').find('beamlet_source').text = h5_output_path
             beamlet.param.write(self.root_path + xml_output_path)
             print('Beamlet profile data written to file: ' + subdir + output_path)
         except:
