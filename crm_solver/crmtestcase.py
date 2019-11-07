@@ -91,7 +91,24 @@ class CrmTestCase(unittest.TestCase):
             self.fail(msg)
 
     def assertAlmostEqualRelativePopulation(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        for level_index in range(actual.atomic_db.atomic_levels):
+            level = 'rel.pop ' + actual.atomic_db.inv_atomic_dict[level_index]
+            status, statement = self._areSeriesAlmostEqual(actual.profiles[level], reference.profiles[level], precision)
+            if not status:
+                standardMsg = 'Relative population evolution on level %s are not within relative error of %s. ' \
+                              'Series 1 = actual, Series 2 = reference. \n' % (safe_repr(level), safe_repr(precision)) \
+                              + statement
+                msg = self._formatMessage(msg, standardMsg)
+                self.fail(msg)
 
     def assertNotAlmostEqualRelativePopulation(self, actual, reference, precision=1E-3, msg=''):
-        pass
+        for level_index in range(actual.atomic_db.atomic_levels):
+            level = 'rel.pop ' + actual.atomic_db.inv_atomic_dict[level_index]
+            status, statement = self._areSeriesAlmostEqual(actual.profiles[level], reference.profiles[level], precision)
+            if status:
+                standardMsg = 'Relative population evolution on level %s are within relative error of %s. ' \
+                              'This is not expected. Series 1 = actual, Series 2 = reference. \n' % \
+                              (safe_repr(level), safe_repr(precision)) + statement
+                msg = self._formatMessage(msg, standardMsg)
+                self.fail(msg)
+
