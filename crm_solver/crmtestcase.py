@@ -6,15 +6,15 @@ class CrmTestCase(unittest.TestCase):
 
     def _areSeriesAlmostEqual(self, series1, series2, precision):
         statement = True
-        status_message = 'Value Series 1, Value Series 2, Almost Equal'
+        status_message = 'Value Series 1, \t Value Series 2, \t Almost Equal'
         if len(series2) != len(series1):
             self.failureException('First series has %s elements whereas second series %s elements \n' %
                                   (safe_repr(len(series1)), safe_repr(len(series2))))
         for i in range(1, len(series1)):
             if not abs(series1[i] - series2[i])/series1[i] <= precision:
                 statement = False
-            status_message += '\n %s, %s, %s' % (safe_repr(series1[i]), safe_repr(series2[i]),
-                                                 safe_repr(abs(series1[i] - series2[i])/series1[i] <= precision))
+            status_message += '\n %s, \t %s, \t %s' % (safe_repr(series1[i]), safe_repr(series2[i]),
+                                                       safe_repr(abs(series1[i] - series2[i])/series1[i] <= precision))
         if statement:
             return True, status_message
         else:
@@ -77,7 +77,7 @@ class CrmTestCase(unittest.TestCase):
                                                        reference.profiles['linear_density_attenuation'], precision)
         if not status:
             standardMsg = 'Beam attenuation is not within relative error of %s. ' \
-                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + status
+                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
@@ -86,7 +86,7 @@ class CrmTestCase(unittest.TestCase):
                                                        reference.profiles['linear_density_attenuation'], precision)
         if status:
             standardMsg = 'Beam attenuation is within relative error of %s. This is not expected.' \
-                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + status
+                          'Series 1 = actual, Series 2 = reference \n' % (safe_repr(precision)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
@@ -111,4 +111,3 @@ class CrmTestCase(unittest.TestCase):
                               (safe_repr(level), safe_repr(precision)) + statement
                 msg = self._formatMessage(msg, standardMsg)
                 self.fail(msg)
-
