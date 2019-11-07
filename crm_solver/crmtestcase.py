@@ -30,45 +30,45 @@ class CrmTestCase(unittest.TestCase):
     def assertAlmostEqualRateEvolution(self, actual, reference, precision=1E-3, msg=''):
         for level_index in range(actual.atomic_db.atomic_levels):
             level = 'level ' + actual.atomic_db.inv_atomic_dict[level_index]
-            statement, status = self._areSeriesAlmostEqual(actual.profiles[level]/self._getNormalization(actual, reference),
+            status, statement = self._areSeriesAlmostEqual(actual.profiles[level]/self._getNormalization(actual, reference),
                                                            reference.profiles[level], precision)
-            if not statement:
+            if not status:
                 standardMsg = 'Population evolution on %s are not within relative error of %s. Series 1 = actual, ' \
-                              'Series 2 = reference \n' % (level, safe_repr(precision)) + status
+                              'Series 2 = reference \n' % (level, safe_repr(precision)) + statement
                 msg = self._formatMessage(msg, standardMsg)
                 self.fail(msg)
 
     def assertNotAlmostEqualRateEvolution(self, actual, reference, precision=1E-3, msg=''):
         for level_index in range(actual.atomic_db.atomic_levels):
             level = 'level ' + actual.atomic_db.inv_atomic_dict[level_index]
-            statement, status = self._areSeriesAlmostEqual(actual.profiles[level] / self._getNormalization(actual, reference),
+            status, statement = self._areSeriesAlmostEqual(actual.profiles[level] / self._getNormalization(actual, reference),
                                                            reference.profiles[level], precision)
-            if statement:
+            if status:
                 standardMsg = 'Population evolution on %s are within relative error of %s. This is NOT expected ' \
-                              'Series 1 = actual, Series 2 = reference \n' % (level, safe_repr(precision)) + status
+                              'Series 1 = actual, Series 2 = reference \n' % (level, safe_repr(precision)) + statement
                 msg = self._formatMessage(msg, standardMsg)
                 self.fail(msg)
 
     def assertAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
         default_level_vals = actual.atomic_db.set_default_atomic_levels()
-        statement, status = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
+        status, statement = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
                                                        reference.profiles[default_level_vals[3]], precision)
-        if not statement:
+        if not status:
             standardMsg = 'Linear emission density values for transition: %s are not within relative error of %s.' \
                           'Series 1 = actual, Series 2 = reference \n' % (default_level_vals[3], safe_repr(precision)) \
-                          + status
+                          + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
     def assertNotAlmostEqualEmissionDensity(self, actual, reference, precision=1E-3, msg=''):
         default_level_vals = actual.atomic_db.set_default_atomic_levels()
-        statement, status = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
+        status, statement = self._areSeriesAlmostEqual(actual.profiles[default_level_vals[3]],
                                                        reference.profiles[default_level_vals[3]], precision)
-        if statement:
+        if status:
             standardMsg = 'Linear emission density values for transition: %s are within relative error of %s. ' \
                           'This is not expected. Series 1 = actual, Series 2 = reference \n' % (default_level_vals[3],
                                                                                                 safe_repr(precision)) \
-                                                                                                + status
+                                                                                                + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
