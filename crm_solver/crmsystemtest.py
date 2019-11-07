@@ -13,6 +13,9 @@ class CrmSystemTest(CrmTestCase):
         actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles, components=actual_source.components,
                          atomic_db=actual_source.atomic_db)
         self.assertAlmostEqualRateEvolution(actual, reference)
+        self.assertAlmostEqualBeamAttenuation(actual, reference)
+        self.assertAlmostEqualRelativePopulation(actual, reference)
+        self.assertAlmostEqualEmissionDensity(actual, reference)
 
 
 class CrmAcceptanceTest(unittest.TestCase):
