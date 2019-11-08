@@ -5,35 +5,14 @@ from copy import deepcopy
 
 
 class CrmSystemTest(CrmTestCase):
-    path = 'test_dataset/crm_systemtests/1.2.0/scenario-standard_plasma-H_energy-100_beam-Na_profile.xml'
-
-    @staticmethod
-    def _clearTag(beamlet, tag):
-        try:
-            beamlet.profiles.drop(tag, axis=1)
-        except KeyError:
-            print('Tag: '+tag+' is missing from profiles.')
-            return beamlet
-        return beamlet
-
-    def _clearProfiles(self, beamlet):
-        for level_index in range(beamlet.atomic_db.atomic_levels):
-            beamlet = self._clearTag(beamlet, 'level '+beamlet.atomic_db.inv_atomic_dict[level_index])
-            beamlet = self._clearTag(beamlet, 'rel.pop '+beamlet.atomic_db.inv_atomic_dict[level_index])
-        beamlet = self._clearTag(beamlet, 'linear_density_attenuation')
-        default = beamlet.atomic_db.set_default_atomic_levels()
-        beamlet = self._clearTag(beamlet, default[3])
-        return beamlet
+    path = 'test_dataset/crm_systemtests/renate_idl/scenario-standard_plasma-H_energy-100_beam-Na_profile.xml'
 
     def test(self):
         reference = Beamlet(data_path=self.path, solver='disregard')
-        actual_source = self._clearProfiles(deepcopy(reference))
-        actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles, components=actual_source.components,
-                         atomic_db=actual_source.atomic_db)
+        actual_source = deepcopy(reference)
+        actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
+                         components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
         self.assertAlmostEqualRateEvolution(actual, reference)
-        self.assertAlmostEqualBeamAttenuation(actual, reference)
-        self.assertAlmostEqualRelativePopulation(actual, reference)
-        self.assertAlmostEqualEmissionDensity(actual, reference)
 
 
 class CrmAcceptanceTest(unittest.TestCase):
