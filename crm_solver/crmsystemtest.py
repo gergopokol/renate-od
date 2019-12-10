@@ -40,8 +40,8 @@ class CrmAcceptanceTest(CrmTestCase):
                            'scenario-standard_plasma-H_energy-100_beam-Na_profile']
 
     def tearDown(self):
-        public_folder = os.path.join(os.getcwd(), '..', 'data', 'dummy', 'test_dataset')
-        private_folder = os.path.join(os.getcwd(), '..', 'data', 'test_dataset')
+        public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
+        private_folder = os.path.join(os.getcwd(), 'data', 'test_dataset')
         rmtree(public_folder)
         rmtree(private_folder)
 
