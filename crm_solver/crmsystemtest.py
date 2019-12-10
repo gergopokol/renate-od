@@ -1,6 +1,8 @@
 from crm_solver.beamlet import Beamlet
 from crm_solver.crmtestcase import CrmTestCase
 from copy import deepcopy
+from shutil import rmtree
+import os
 
 
 class CrmRegressionTest(CrmTestCase):
@@ -8,7 +10,13 @@ class CrmRegressionTest(CrmTestCase):
     def setUp(self):
         self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
 
-    def test_crm_regression(self):
+    def tearDown(self):
+        public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
+        private_folder = os.path.join(os.getcwd(), 'data', 'test_dataset')
+        rmtree(public_folder)
+        rmtree(private_folder)
+
+    def test_actual_to_previous_release(self):
         for test_case in self.test_cases:
             path = 'test_dataset/crm_systemtests/actual/'+test_case+'.xml'
             reference = Beamlet(data_path=path, solver='disregard')
@@ -31,7 +39,13 @@ class CrmAcceptanceTest(CrmTestCase):
                            'scenario-standard_plasma-H_energy-100_beam-Li_profile',
                            'scenario-standard_plasma-H_energy-100_beam-Na_profile']
 
-    def test_crm_regression(self):
+    def tearDown(self):
+        public_folder = os.path.join(os.getcwd(), '..', 'data', 'dummy', 'test_dataset')
+        private_folder = os.path.join(os.getcwd(), '..', 'data', 'test_dataset')
+        rmtree(public_folder)
+        rmtree(private_folder)
+
+    def test_actual_to_renate_idl(self):
         for test_case in self.test_cases:
             path = 'test_dataset/crm_systemtests/archive/renate_idl/'+test_case+'.xml'
             reference = Beamlet(data_path=path, solver='disregard')
