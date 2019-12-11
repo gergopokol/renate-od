@@ -138,16 +138,15 @@ class GetData(AccessData):
             return False
 
     def get_private_data(self):
-        server_private_path = self.server_private_address + '/' + self.data_path_name
         self.ensure_dir(self.user_local_data_path)
-        print('Attempting to download from server: ' + server_private_path)
+        print('Attempting to download from server: ' + self.server_private_path)
         try:
             if os.name == 'posix':
                 scp_answer = os.system('scp -i "%s" -o "BatchMode yes" "%s" "%s"' % (self.private_key,
-                                                                                     server_private_path,
+                                                                                     self.server_private_path,
                                                                                      self.user_local_data_path))
             else:
-                scp_answer = os.system('pscp -batch -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
+                scp_answer = os.system('pscp -batch -scp -i "%s" "%s" "%s"' % (self.private_key, self.server_private_path,
                                                                                self.user_local_data_path))
         except:
             scp_answer = 1
@@ -156,7 +155,7 @@ class GetData(AccessData):
             print('Data has been downloaded from the server to the user local directory: ' + self.user_local_data_path)
             return True
         else:
-            print('Warning: Could not read data from server: ' + server_private_path)
+            print('Warning: Could not read data from server: ' + self.server_private_path)
             return False
 
     def get_public_data(self):

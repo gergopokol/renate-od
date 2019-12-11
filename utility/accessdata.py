@@ -37,6 +37,7 @@ class AccessData(object):
         self.user_local_dummy_path = os.path.join(self.user_local_data_directory,
                                                   self.dummy_directory, self.data_path_name)
         self.server_public_path = self.server_public_address + '/' + self.data_path_name
+        self.server_private_path = self.server_private_address + '/' + self.data_path_name
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
