@@ -176,8 +176,3 @@ class GetData(AccessData):
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-
-
-def locate_rates_dir(beamlet_species, rate_type):
-    return 'atomic_data/' + beamlet_species + '/rates/' + rate_type + '/'
-
