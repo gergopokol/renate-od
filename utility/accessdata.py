@@ -7,9 +7,10 @@ DEFAULT_SETUP = 'getdata_setup.xml'
 class AccessData(object):
     def __init__(self, data_key, data_path_name):
         self.data_key = data_key
+        self.access_path = ''
         self.read_setup()
 
-        if not isinstance(data_path_name, None):
+        if data_path_name is not None:
             self.data_path_name = data_path_name
             self.path_setup()
 
@@ -45,9 +46,6 @@ class AccessData(object):
             print('Data is NOT present in the user local dummy directory: ' + self.user_local_dummy_path)
             return False
 
-    def contact_us(self):
-        print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
-
     def check_common_local_data_path(self):
         if os.path.isfile(self.common_local_data_path):
             self.access_path = self.common_local_data_path
@@ -65,3 +63,6 @@ class AccessData(object):
         else:
             print('Data is NOT present in the user local directory: ' + self.user_local_data_path)
             return False
+
+    def contact_us(self):
+        print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
