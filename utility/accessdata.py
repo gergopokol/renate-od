@@ -1,5 +1,6 @@
 import os
 from lxml import etree
+import urllib
 
 DEFAULT_SETUP = 'getdata_setup.xml'
 
@@ -35,6 +36,7 @@ class AccessData(object):
         self.user_local_data_path = os.path.join(self.user_local_data_directory, self.data_path_name)
         self.user_local_dummy_path = os.path.join(self.user_local_data_directory,
                                                   self.dummy_directory, self.data_path_name)
+        self.server_public_path = self.server_public_address + '/' + self.data_path_name
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
@@ -62,6 +64,17 @@ class AccessData(object):
         else:
             print('Data is NOT present in the user local directory: ' + self.user_local_data_path)
             return False
+
+    def check_public_server_data_path(self):
+        request = urllib.request.Request(self.server_public_path)
+        try:
+            response = urllib.request.urlopen(request)
+            return True
+        except urllib.error.HTTPError:
+            return False
+
+    def check_private_server_data_path(self):
+        pass
 
     def contact_us(self):
         print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)

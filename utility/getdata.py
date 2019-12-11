@@ -59,7 +59,7 @@ class GetData(AccessData):
             else:
                 print('NO data read from file: ' + self.access_path)
         else:
-            raise OSError
+            raise FileNotFoundError('The requested file: ' + self.data_path_name + ' does not exist! Check input!')
 
     def read_h5_to_pandas(self):
         try:
@@ -160,16 +160,15 @@ class GetData(AccessData):
             return False
 
     def get_public_data(self):
-        server_public_path = self.server_public_address + '/' + self.data_path_name
-        print('Attempting to download dummy data from public server: ' + server_public_path)
-        try:
+        print('Attempting to download dummy data from public server: ' + self.server_public_path)
+        if self.check_public_server_data_path():
             self.ensure_dir(self.user_local_dummy_path)
-            urllib.request.urlretrieve(server_public_path, self.user_local_dummy_path)
+            urllib.request.urlretrieve(self.server_public_path, self.user_local_dummy_path)
             self.access_path = self.user_local_dummy_path
             print('Warning: Dummy data has been downloaded to the user local directory: ' + self.user_local_dummy_path)
             return True
-        except:
-            print('Warning: Could NOT read data from: ' + server_public_path)
+        else:
+            print('Warning: Could NOT read data from: ' + self.server_public_path)
             return False
 
     @staticmethod
