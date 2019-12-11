@@ -5,8 +5,7 @@ DEFAULT_SETUP = 'getdata_setup.xml'
 
 
 class AccessData(object):
-    def __init__(self, data_key, data_path_name):
-        self.data_key = data_key
+    def __init__(self, data_path_name):
         self.access_path = ''
         self.read_setup()
 

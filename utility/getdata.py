@@ -32,10 +32,11 @@ class GetData(AccessData):
         :param data_key: List of keys specifying the groups at the subsequent levels of the hierarchy
         :param data_format: Specifies output data format if ambiguous for the given file type
         """
-        AccessData.__init__(self, data_key, data_path_name)
+        AccessData.__init__(self, data_path_name)
         self.data_format = data_format
         if self.data_path_name is None:
             raise ValueError('Variable: data_path_name is not defined!')
+        self.data_key = data_key
         self.data = ''
         self.read_data()
 
