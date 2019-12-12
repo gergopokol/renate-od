@@ -32,12 +32,26 @@ class AccessData(object):
         self.contact_address = body.find('contact_address').text
 
     def path_setup(self):
-        self.common_local_data_path = os.path.join(self.common_local_data_directory, self.data_path_name)
-        self.user_local_data_path = os.path.join(self.user_local_data_directory, self.data_path_name)
+        self.local_path_setup()
+        self.server_path_setup()
+
+    def local_path_setup(self, local_path=None):
+        if local_path is None:
+            local_path = self.data_path_name
+        elif not isinstance(local_path, str):
+            raise TypeError('File local path input is expected to be of str type.')
+        self.common_local_data_path = os.path.join(self.common_local_data_directory, local_path)
+        self.user_local_data_path = os.path.join(self.user_local_data_directory, local_path)
         self.user_local_dummy_path = os.path.join(self.user_local_data_directory,
-                                                  self.dummy_directory, self.data_path_name)
-        self.server_public_path = self.server_public_address + '/' + self.data_path_name
-        self.server_private_path = self.server_private_address + '/' + self.data_path_name
+                                                  self.dummy_directory, local_path)
+
+    def server_path_setup(self, server_path=None):
+        if server_path is None:
+            server_path = self.data_path_name
+        elif not isinstance(server_path, str):
+            raise TypeError('File local path input is expected to be of str type.')
+        self.server_public_path = self.server_public_address + '/' + server_path
+        self.server_private_path = self.server_private_address + '/' + server_path
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
