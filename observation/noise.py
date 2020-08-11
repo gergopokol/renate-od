@@ -8,6 +8,9 @@ class RenateSyntheticDiagnostic:
         if self.signals is None:
             self._load_synthetic_signals()
 
+    def _check_synthetic_signals(self):
+        pass
+
     def _load_synthetic_signals(self):
         pass
 
