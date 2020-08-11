@@ -3,8 +3,9 @@ import scipy
 
 
 class RenateSyntheticDiagnostic:
-    def __init__(self, synthetic_signals=None, data_path='signals/test.txt'):
+    def __init__(self, frequency=1e6, synthetic_signals=None, data_path='signals/test.txt'):
         self.signals = synthetic_signals
+        self.frequency = frequency
         if self.signals is None:
             self._load_synthetic_signals()
 
