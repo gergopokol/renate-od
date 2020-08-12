@@ -2,7 +2,7 @@ import numpy
 import scipy
 
 
-class RenateSyntheticDiagnostic:
+class SynthSignals:
     def __init__(self, frequency=1e6, synthetic_signals=None, data_path='signals/test.txt'):
         self.signals = synthetic_signals
         self.frequency = frequency
