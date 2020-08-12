@@ -1,18 +1,17 @@
 import numpy
 import scipy
+import utility.getdata as ut
 
 
 class SynthSignals:
     def __init__(self, frequency=1e6, synthetic_signals=None, data_path='signals/test.txt'):
-        self.signals = synthetic_signals
-        self.frequency = frequency
-        if self.signals is None:
-            self._load_synthetic_signals()
+        if isinstance(frequency, int):
+            self.frequency = frequency
+        else:
+            raise TypeError('Expected data type for <frequency> is <int>.')
+        self._check_synthetic_signals(synthetic_signals)
 
-    def _check_synthetic_signals(self):
-        pass
-
-    def _load_synthetic_signals(self):
+    def _check_synthetic_signals(self, synthetic_signals):
         pass
 
 
