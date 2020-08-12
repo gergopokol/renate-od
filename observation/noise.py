@@ -6,7 +6,7 @@ import pandas
 
 class SynthSignals:
     def __init__(self, frequency=1e6, synthetic_signals=None, data_path='signals/test.txt'):
-        if isinstance(frequency, int):
+        if isinstance(frequency, float):
             self.frequency = frequency
         else:
             raise TypeError('Expected data type for <frequency> is <int>.')
@@ -21,7 +21,7 @@ class SynthSignals:
             raise TypeError('The expected data type for <synthetic signals> is <pandas.DataFrame or pandas.Series>')
 
     def _load_synthetic_signals(self, path):
-        pass
+        self.signals = ut.GetData(data_path_name=path, data_format="array").data
 
 
 class Noise:
