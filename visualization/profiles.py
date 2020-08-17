@@ -9,7 +9,7 @@ class BeamletProfiles:
     def __init__(self, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
         self.param_path = param_path
         self.param = utility.getdata.GetData(data_path_name=self.param_path).data
-        self.access_path = self.param.getroot().find('body').find('beamlet_profiles').text
+        self.access_path = self.param.getroot().find('body').find('beamlet_source').text
         self.key = key
         self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key)
         self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
