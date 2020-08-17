@@ -2,6 +2,7 @@ import os
 import urllib.request
 import pandas
 import h5py
+import numpy
 from lxml import etree
 from utility import convert
 
@@ -132,7 +133,8 @@ class GetData:
             print('Data read to string from: ' + self.access_path)
 
     def read_txt_to_array(self):
-        pass
+        self.data = numpy.loadtxt(self.access_path)
+        print('Data read to numpy array from : ' + self.access_path)
 
     def read_xml(self):
         if not self.data_key:
