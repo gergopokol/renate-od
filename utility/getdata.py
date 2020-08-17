@@ -79,7 +79,10 @@ class GetData:
                 else:
                     self.read_h5_to_array()
             elif self.data_path_name.endswith('.txt'):
-                self.read_txt_to_str()
+                if self.data_format == "array":
+                    self.read_txt_to_array()
+                else:
+                    self.read_txt_to_str()
             elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
@@ -127,6 +130,9 @@ class GetData:
         with open(self.access_path, 'r') as file:
             self.data = file.read()
             print('Data read to string from: ' + self.access_path)
+
+    def read_txt_to_array(self):
+        pass
 
     def read_xml(self):
         if not self.data_key:
