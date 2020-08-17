@@ -2,6 +2,7 @@ import numpy
 import scipy
 import utility.getdata as ut
 import pandas
+import utility.constants as const
 
 
 class SynthSignals:
@@ -54,24 +55,18 @@ class Parameters:
         self.Temperature = Temperature
         self.VoltageNoise = VoltageNoise
         self.InternalCapacities = InternalCapacities
-    pass
 
-class Constants:
-    def __init__(self, Boltzmanns=1.380649e-23, Electroncharge=1.60217662e-19):
-        self.Boltzmanns = Boltzmanns
-        self.Electroncharge = Electroncharge
-    pass
 
-class Noise(Generator, Parameters, Constants):
+class Noise(Generator, Parameters):
     def __init__(self, NoiseType):
         self.NoiseType = NoiseType
 
     def NoiseGeneration(self):
         p = Parameters()
-        c = Constants()
+        c = const.Constants()
         if self.NoiseType == "Johnson":
             Mean = 0
-            Deviation = scipy.sqrt(4 * c.Boltzmanns * p.Temperature * p.Bandwidth * p.LoadResistance)
+            Deviation = scipy.sqrt(4 * c.Boltzmanns_constant * p.Temperature * p.Bandwidth * p.LoadResistance)
             g = Generator("Gaussian", Mean, Deviation)
             Johnsonnoise = g.Generate()
             return Johnsonnoise
@@ -84,7 +79,7 @@ class Noise(Generator, Parameters, Constants):
             return Voltagenoise
         if self.NoiseType == "Dark":
             Mean = 0
-            Deviation = scipy.sqrt(2 * c.Electroncharge * p.DarkCurrent * p.Bandwidth) * p.LoadResistance
+            Deviation = scipy.sqrt(2 * c.charge_electron * p.DarkCurrent * p.Bandwidth) * p.LoadResistance
             g = Generator("Gaussian", Mean, Deviation)
             Darknoise = g.Generate()
             return Darknoise
