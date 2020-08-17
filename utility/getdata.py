@@ -79,7 +79,7 @@ class GetData:
                 else:
                     self.read_h5_to_array()
             elif self.data_path_name.endswith('.txt'):
-                self.read_txt()
+                self.read_txt_to_str()
             elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
@@ -123,7 +123,7 @@ class GetData:
             print("Data could NOT be read to array from HD5 file: " + self.access_path +
                   " with key: " + str(self.data_key) + '. Check if the key sequence fits the groups of the HDF5 file!')
 
-    def read_txt(self):
+    def read_txt_to_str(self):
         with open(self.access_path, 'r') as file:
             self.data = file.read()
             print('Data read to string from: ' + self.access_path)
