@@ -26,60 +26,87 @@ class SynthSignals:
 
 
 class Generator:
-    def __init__(self, DispersionType, Mean, Deviation):
-        self.DispersionType = DispersionType
-        self.Mean = Mean
+    def __init__(self, Data=0, Deviation=0):
+        self.Data = Data
         self.Deviation = Deviation
 
-    def Generate(self):
-        if self.DispersionType == "Poisson":
-            PoissonRandNumb = numpy.random.poisson(self.Mean)
-            return PoissonRandNumb
+    def GeneratePoisson(self):
+        if isinstance(self.Data, pandas.Series):
+            Temporary = numpy.random.poisson(self.Data)
+            NoisedSignal = pandas.Series(Temporary)
+            return NoisedSignal
 
-        if self.DispersionType == "Gaussian":
-            GaussianRandNumb = numpy.random.normal(loc=self.Mean, scale=self.Deviation)
-            return GaussianRandNumb
+        elif isinstance(self.Data, pandas.DataFrame):
+            Temporary = numpy.random.poisson(self.Data)
+            NoisedSignal = pandas.DataFrame(Temporary)
+            return NoisedSignal
+
+        else:
+            raise TypeError('The expected data type for <GeneratePoisson> is <pandas.DataFrame or pandas.Series>')
+
+    def GenerateGaussian(self):
+        if isinstance(self.Data, pandas.Series):
+            Temporary = numpy.random.normal(loc=self.Data, scale=self.Deviation)
+            NoisedSignal = pandas.Series(Temporary)
+            return NoisedSignal
+
+        elif isinstance(self.Data, pandas.DataFrame):
+            Temporary = numpy.random.normal(self.Data, scale=self.Deviation)
+            NoisedSignal = pandas.DataFrame(Temporary)
+            return NoisedSignal
+
+        else:
+            raise TypeError('The expected data type for <GenerateGaussian> is <pandas.DataFrame or pandas.Series>')
 
     pass
 
+
 class Parameters:
-    def __init__(self, Gain, QuantumEfficiency, NoiseIndex, Bandwidth, LoadResistance, LoadCapacity, DarkCurrent,
-                 Temperature, VoltageNoise, InternalCapacities):
-        self.Gain = Gain
-        self.QuantumEfficiency = QuantumEfficiency
-        self.NoiseIndex = NoiseIndex
-        self.Bandwidth = Bandwidth
-        self.LoadResistance = LoadResistance
-        self.LoadCapacity = LoadCapacity
-        self.DarkCurrent = DarkCurrent
-        self.Temperature = Temperature
-        self.VoltageNoise = VoltageNoise
-        self.InternalCapacities = InternalCapacities
+    def __init__(self):
+        self._read_parameter_data
+
+    def _read_parameter_data(self):
+        parameters = numpy.loadtxt(fname="parameters/parameters.txt")
+        self.Gain = parameters[0]
+        self.QuantumEfficiency = parameters[1]
+        self.NoiseIndex = parameters[2]
+        self.Bandwidth = parameters[3]
+        self.LoadResistance = parameters[4]
+        self.LoadCapacity = parameters[5]
+        self.DarkCurrent = parameters[6]
+        self.Temperature = parameters[7]
+        self.VoltageNoise = parameters[8]
+        self.InternalCapacities = parameters[9]
 
 
-class Noise(Generator, Parameters):
-    def __init__(self, NoiseType):
-        self.NoiseType = NoiseType
+class Noise(Generator):
+    def __init__(self, Parameters, Constants):
+        self.Parameters = Parameters
+        self.Constants = Constants
 
-    def NoiseGeneration(self):
-        p = Parameters()
-        c = const.Constants()
-        if self.NoiseType == "Johnson":
-            Mean = 0
-            Deviation = scipy.sqrt(4 * c.Boltzmanns_constant * p.Temperature * p.Bandwidth * p.LoadResistance)
-            g = Generator("Gaussian", Mean, Deviation)
-            Johnsonnoise = g.Generate()
-            return Johnsonnoise
-        if self.NoiseType == "Voltage":
-            Mean = 0
-            Deviation = p.VoltageNoise * scipy.sqrt(1 / (2 * scipy.pi * p.LoadResistance * (p.LoadCapacity + p.InternalCapacities))) + p.VoltageNoise * (
-                        1 + p.InternalCapacities / p.LoadCapacity) * scipy.sqrt(1.57 * 1 / (2 * scipy.pi * p.LoadResistance* p.LoadCapacity))
-            g = Generator("Gaussian", Mean, Deviation)
-            Voltagenoise = g.Generate()
-            return Voltagenoise
-        if self.NoiseType == "Dark":
-            Mean = 0
-            Deviation = scipy.sqrt(2 * c.charge_electron * p.DarkCurrent * p.Bandwidth) * p.LoadResistance
-            g = Generator("Gaussian", Mean, Deviation)
-            Darknoise = g.Generate()
-            return Darknoise
+    def PhotonNoiseGenerator(self, Signal):
+        g = Generator(Signal)
+        Signal = g.GeneratePoisson()
+
+    def ShotNoiseGenerator(self, Signal):
+        Mean = Signal * self.Constants.charge_electron * self.Parameters.Gain * self.Parameters.QuantumEfficiency * self.Parameters.LoadResistance
+        Deviation = numpy.sqrt(2 * self.Constants.charge_electron * Signal * self.Constants.charge_electron * self.Parameters.QuantumEfficiency * self.Parameters.Gain * self.Parameters.Gain * self. Parameters.Gain^self.Parameters.NoiseIndex *self.Parameters.Bandwidth) * self.Parameters.LoadResistance
+        g = Generator(Mean, Deviation)
+        Signal = g.GenerateGaussian()
+
+    def JohnsonNoiseGenerator(self, Signal):
+        Deviation = numpy.sqrt(4 * self.Constants.Boltzmanns_constant * self.Parameters.Temperature * self.Parameters.Bandwidth * self.Parameters.LoadResistance)
+        g = Generator(Signal, Deviation)
+        Signal = g.GenerateGaussian()
+
+    def VoltageNoiseGenerator(self, Signal):
+        Deviation = self.Parameters.VoltageNoise * numpy.sqrt(1 / (2 * numpy.pi * self.Parameters.LoadResistance * (self.Parameters.LoadCapacity + self.Parameters.InternalCapacities))) + self.Parameters.VoltageNoise * (1 + self.Parameters.InternalCapacities / self.Parameters.LoadCapacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * self.Parameters.LoadResistance* self.Parameters.LoadCapacity))
+        g = Generator(Signal, Deviation)
+        Signal = g.GenerateGaussian()
+
+    def DarkNoiseGenerator(self, Signal):
+        Deviation = numpy.sqrt(2 * self.Constants.charge_electron * self.Parameters.DarkCurrent * self.Parameters.Bandwidth) * self.Parameters.LoadResistance
+        g = Generator(Signal, Deviation)
+        Signal = g.GenerateGaussian()
+
+    pass
