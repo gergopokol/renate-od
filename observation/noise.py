@@ -25,29 +25,29 @@ class SynthSignals:
 
 
 class Generator:
-    def __init__(self, signal=0):
+    def __init__(self, signal):
         self.signal = signal
 
     def _generate_poisson(self):
         if isinstance(self.signal, pandas.Series):
-            noised_signal = pandas.Series(numpy.random.poisson(self.signal))
-            return noised_signal
+            self.signal = pandas.Series(numpy.random.poisson(self.signal))
+            return self.signal
 
         elif isinstance(self.signal, pandas.DataFrame):
-            noised_signal = pandas.DataFrame(numpy.random.poisson(self.signal))
-            return noised_signal
+            self.signal = pandas.DataFrame(numpy.random.poisson(self.signal))
+            return self.signal
 
         else:
             raise TypeError('The expected data type for <_generate_poisson> is <pandas.DataFrame or pandas.Series>')
 
     def _generate_gaussian(self, deviation):
         if isinstance(self.signal, pandas.Series):
-            noised_signal = pandas.Series(numpy.random.normal(loc=self.signal, scale=deviation))
-            return noised_signal
+            self.signal = pandas.Series(numpy.random.normal(loc=self.signal, scale=deviation))
+            return self.signal
 
         elif isinstance(self.signal, pandas.DataFrame):
-            noised_signal = pandas.DataFrame(numpy.random.normal(self.signal, scale=deviation))
-            return noised_signal
+            self.signal = pandas.DataFrame(numpy.random.normal(loc=self.signal, scale=deviation))
+            return self.signal
 
         else:
             raise TypeError('The expected data type for <_generate_gaussian> is <pandas.DataFrame or pandas.Series>')
@@ -72,32 +72,35 @@ class Parameters:
 
 
 class Noise(Generator):
-    def __init__(self, parameters, constants):
-        self.parameters = parameters
-        self.constants = constants
+    def __init__(self, signal):
+        self.signal = signal
 
-    def _photon_noise_generator(self, signal):
-        g = Generator(signal)
-        signal = g._generate_poisson()
+    def _photon_noise_generator(self):
+        g = Generator(self.signal)
+        self.signal = g._generate_poisson()
+        return self.signal
 
-    def _shot_noise_generator(self, signal):
-        mean = signal * self.constants.charge_electron * self.parameters.gain * self.parameters.quantum_efficiency * self.parameters.load_resistance
-        deviation = numpy.sqrt(2 * self.constants.charge_electron * signal * self.constants.charge_electron * self.parameters.quantum_efficiency * self.parameters.gain * self.parameters.gain * self. parameters.gain ^self.parameters.noise_index *self.parameters.bandwidth) * self.parameters.load_resistance
+    def _shot_noise_generator(self, parameters, constants):
+        mean = self.signal * constants.charge_electron * parameters.gain * parameters.quantum_efficiency * parameters.load_resistance
+        deviation = numpy.array(numpy.sqrt(2 * constants.charge_electron * constants.charge_electron * parameters.quantum_efficiency * parameters.gain * parameters.gain * parameters.gain ^ parameters.noise_index * parameters.bandwidth) * parameters.load_resistance * numpy.sqrt(self.signal))
         g = Generator(mean)
-        signal = g._generate_gaussian(deviation)
+        self.signal = g._generate_gaussian(deviation)
+        return self.signal
 
-    def _johnson_noise_generator(self, signal):
-        deviation = numpy.sqrt(4 * self.constants.boltzmanns_constant * self.parameters.temperature * self.parameters.bandwidth * self.parameters.load_resistance)
-        g = Generator(signal)
-        signal = g._generate_gaussian(deviation)
+    def _johnson_noise_generator(self, parameters, constants):
+        deviation = numpy.sqrt(4 * constants.boltzmanns_constant * parameters.temperature * parameters.bandwidth * parameters.load_resistance)
+        g = Generator(self.signal)
+        self.signal = g._generate_gaussian(deviation)
+        return self.signal
 
-    def _voltage_noise_generator(self, signal):
-        deviation = self.parameters.voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * self.parameters.load_resistance * (self.parameters.load_capacity + self.parameters.internal_capacities))) + self.parameters.voltage_noise * (1 + self.parameters.internal_capacities / self.parameters.load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * self.parameters.load_resistance* self.parameters.load_capacity))
-        g = Generator(signal)
-        signal = g._generate_gaussian(deviation)
+    def _voltage_noise_generator(self, parameters):
+        deviation = parameters.voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * parameters.load_resistance * (parameters.load_capacity + parameters.internal_capacities))) + parameters.voltage_noise * (1 + parameters.internal_capacities / parameters.load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * parameters.load_resistance * parameters.load_capacity))
+        g = Generator(self.signal)
+        self.signal = g._generate_gaussian(deviation)
+        return self.signal
 
-    def _dark_noise_generator(self, signal):
-        deviation = numpy.sqrt(2 * self.constants.charge_electron * self.parameters.dark_current * self.parameters.bandwidth) * self.parameters.load_resistance
-        g = Generator(signal)
-        signal = g._generate_gaussian(deviation)
-
+    def _dark_noise_generator(self, parameters, constants):
+        deviation = numpy.sqrt(2 * constants.charge_electron * parameters.dark_current * parameters.bandwidth) * parameters.load_resistance
+        g = Generator(self.signal)
+        self.signal = g._generate_gaussian(deviation)
+        return self.signal
