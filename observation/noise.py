@@ -1,4 +1,5 @@
 import numpy
+from numpy.random import RandomState
 import scipy
 import utility.getdata as ut
 import pandas
@@ -42,9 +43,7 @@ class Parameters:
         self.internal_capacities = parameters[9]
 
 
-class Noise:
-    def __init__(self, signal):
-        self.signal = signal
+class Noise(RandomState):
 
     def _photon_noise_generator(self):
         return self.signal
