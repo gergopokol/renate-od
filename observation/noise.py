@@ -82,3 +82,20 @@ class PP(Noise):
 
     def add_noise_to_signal(self):
         pass
+
+
+class Detector(APD, PMT, PP):
+    def __init__(self, detector_type='apd', parameters=None, data_path=None):
+        assert isinstance(type, str), 'Expected data type for <detector_type> is str.'
+        self.detector_type = detector_type
+        if self.detector_type is 'apd':
+            APD.__init__(self)
+        elif self.detector_type is 'pmt':
+            PMT.__init__(self)
+        elif self.detector_type is 'pp':
+            PP.__init__(self)
+        else:
+            raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
+
+    def get_detector_parameters(self):
+        pass
