@@ -76,3 +76,9 @@ class PMT(Noise):
 
     def add_noise_to_signal(self):
         pass
+
+
+class PP(Noise):
+
+    def add_noise_to_signal(self):
+        pass
