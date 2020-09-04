@@ -42,36 +42,26 @@ class Parameters:
         self.internal_capacities = parameters[9]
 
 
-class Noise(Generator):
+class Noise:
     def __init__(self, signal):
         self.signal = signal
 
     def _photon_noise_generator(self):
-        g = Generator(self.signal)
-        self.signal = g._generate_poisson()
         return self.signal
 
     def _shot_noise_generator(self, parameters, constants):
         mean = self.signal * constants.charge_electron * parameters.gain * parameters.quantum_efficiency * parameters.load_resistance
         deviation = numpy.array(numpy.sqrt(2 * constants.charge_electron * constants.charge_electron * parameters.quantum_efficiency * parameters.gain * parameters.gain * parameters.gain ^ parameters.noise_index * parameters.bandwidth) * parameters.load_resistance * numpy.sqrt(self.signal))
-        g = Generator(mean)
-        self.signal = g._generate_gaussian(deviation)
         return self.signal
 
     def _johnson_noise_generator(self, parameters, constants):
         deviation = numpy.sqrt(4 * constants.boltzmanns_constant * parameters.temperature * parameters.bandwidth * parameters.load_resistance)
-        g = Generator(self.signal)
-        self.signal = g._generate_gaussian(deviation)
         return self.signal
 
     def _voltage_noise_generator(self, parameters):
         deviation = parameters.voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * parameters.load_resistance * (parameters.load_capacity + parameters.internal_capacities))) + parameters.voltage_noise * (1 + parameters.internal_capacities / parameters.load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * parameters.load_resistance * parameters.load_capacity))
-        g = Generator(self.signal)
-        self.signal = g._generate_gaussian(deviation)
         return self.signal
 
     def _dark_noise_generator(self, parameters, constants):
         deviation = numpy.sqrt(2 * constants.charge_electron * parameters.dark_current * parameters.bandwidth) * parameters.load_resistance
-        g = Generator(self.signal)
-        self.signal = g._generate_gaussian(deviation)
         return self.signal
