@@ -24,35 +24,6 @@ class SynthSignals:
         self.signals = ut.GetData(data_path_name=path, data_format="array").data
 
 
-class Generator:
-    def __init__(self, signal):
-        self.signal = signal
-
-    def _generate_poisson(self):
-        if isinstance(self.signal, pandas.Series):
-            self.signal = pandas.Series(numpy.random.poisson(self.signal))
-            return self.signal
-
-        elif isinstance(self.signal, pandas.DataFrame):
-            self.signal = pandas.DataFrame(numpy.random.poisson(self.signal))
-            return self.signal
-
-        else:
-            raise TypeError('The expected data type for <_generate_poisson> is <pandas.DataFrame or pandas.Series>')
-
-    def _generate_gaussian(self, deviation):
-        if isinstance(self.signal, pandas.Series):
-            self.signal = pandas.Series(numpy.random.normal(loc=self.signal, scale=deviation))
-            return self.signal
-
-        elif isinstance(self.signal, pandas.DataFrame):
-            self.signal = pandas.DataFrame(numpy.random.normal(loc=self.signal, scale=deviation))
-            return self.signal
-
-        else:
-            raise TypeError('The expected data type for <_generate_gaussian> is <pandas.DataFrame or pandas.Series>')
-
-
 class Parameters:
     def __init__(self):
         self._read_parameter_data
