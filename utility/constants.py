@@ -5,6 +5,7 @@ class Constants:
     def __init__(self):
         try:
             import imas
+            self.__setup_imas_constants_db()
         except ImportError:
             self.__setup_standalone_constants_db()
 
