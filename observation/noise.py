@@ -86,6 +86,12 @@ class PMT(Noise):
 
 
 class PP(Noise):
+    def __init__(self, detector_parameters):
+        Noise.__init__(self)
+        self.__setup_detector_parameters(detector_parameters)
+
+    def __setup_detector_parameters(self, detector_parameters):
+        pass
 
     def add_noise_to_signal(self):
         pass
