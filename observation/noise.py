@@ -41,9 +41,9 @@ class Noise(RandomState):
                                            gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(signal))
         return signal
 
-    def _johnson_noise_generator(self, parameters, constants):
-        deviation = numpy.sqrt(4 * constants.boltzmanns_constant * parameters.temperature * parameters.bandwidth * parameters.load_resistance)
-        return self.signal
+    def johnson_noise_generator(self, signal, temperature, bandwidth, load_resistance):
+        deviation = numpy.sqrt(4 * self.constants.Boltzmann * temperature * bandwidth * load_resistance)
+        return signal
 
     def _voltage_noise_generator(self, parameters):
         deviation = parameters.voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * parameters.load_resistance * (parameters.load_capacity + parameters.internal_capacities))) + parameters.voltage_noise * (1 + parameters.internal_capacities / parameters.load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * parameters.load_resistance * parameters.load_capacity))
