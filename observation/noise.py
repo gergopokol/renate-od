@@ -35,10 +35,11 @@ class Noise(RandomState):
     def photon_noise_generator(self, signal):
         return self.poisson(signal)
 
-    def _shot_noise_generator(self, parameters, constants):
-        mean = self.signal * constants.charge_electron * parameters.gain * parameters.quantum_efficiency * parameters.load_resistance
-        deviation = numpy.array(numpy.sqrt(2 * constants.charge_electron * constants.charge_electron * parameters.quantum_efficiency * parameters.gain * parameters.gain * parameters.gain ^ parameters.noise_index * parameters.bandwidth) * parameters.load_resistance * numpy.sqrt(self.signal))
-        return self.signal
+    def shot_noise_generator(self, signal, gain, qe, load_resistance, noise_index, bandwidth):
+        mean = signal * self.constants.charge_electron * gain * qe * load_resistance
+        deviation = numpy.array(numpy.sqrt(2 * self.constants.charge_electron ^ 2 * qe * gain ^ 2 *
+                                           gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(signal))
+        return signal
 
     def _johnson_noise_generator(self, parameters, constants):
         deviation = numpy.sqrt(4 * constants.boltzmanns_constant * parameters.temperature * parameters.bandwidth * parameters.load_resistance)
