@@ -7,6 +7,8 @@ import os
 
 class CrmRegressionTest(CrmTestCase):
 
+    EXPECTED_PRECISION = 1E-2
+
     def setUp(self):
         self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
 
@@ -24,10 +26,10 @@ class CrmRegressionTest(CrmTestCase):
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
                              components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
             msg = 'Failure for following test case: '+test_case+'\n'
-            self.assertAlmostEqualRateEvolution(actual, reference, msg=msg)
-            self.assertAlmostEqualBeamAttenuation(actual, reference, msg=msg)
-            self.assertAlmostEqualEmissionDensity(actual, reference, msg=msg)
-            self.assertAlmostEqualRelativePopulation(actual, reference, msg=msg)
+            self.assertAlmostEqualRateEvolution(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)
+            self.assertAlmostEqualBeamAttenuation(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)
+            self.assertAlmostEqualEmissionDensity(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)
+            self.assertAlmostEqualRelativePopulation(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)
 
 
 class CrmAcceptanceTest(CrmTestCase):
@@ -53,4 +55,4 @@ class CrmAcceptanceTest(CrmTestCase):
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
                              components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
             msg = 'Failure for following test case: '+test_case+'\n'
-            self.assertAlmostEqualRateEvolution(actual, reference, msg=msg)
+            self.assertAlmostEqualRateEvolution(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)
