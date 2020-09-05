@@ -52,9 +52,9 @@ class Noise(RandomState):
                                                                                        load_capacity))
         return signal
 
-    def _dark_noise_generator(self, parameters, constants):
-        deviation = numpy.sqrt(2 * constants.charge_electron * parameters.dark_current * parameters.bandwidth) * parameters.load_resistance
-        return self.signal
+    def dark_noise_generator(self, signal, dark_current, bandwidth, load_resistance):
+        deviation = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
+        return signal
 
 
 class APD(Noise):
