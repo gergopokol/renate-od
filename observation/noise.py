@@ -73,7 +73,20 @@ class APD(Noise):
         self.__setup_detector_parameters(detector_parameters)
 
     def __setup_detector_parameters(self, detector_parameters):
-        pass
+        assert isinstance(detector_parameters, etree._ElementTree), 'Expected data type for <detector_parameters> ' \
+                                                                    'is etree._ElementTree.'
+        assert detector_parameters.getroot().find('head').find('type').text is 'apd', \
+            'The detector type to be set is APD. Please check input data.'
+        self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
+        self.detector_gain = float(detector_parameters.getroot().find('body').find('gain').text)
+        self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
+        self.noise_index = float(detector_parameters.getroot().find('body').find('noise_index').text)
+        self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
+        self.dark_voltage = float(detector_parameters.getroot().find('body').find('dark_voltage').text)
+        self.load_resistance = float(detector_parameters.getroot().find('body').find('load_resistance').text)
+        self.load_capacity = float(detector_parameters.getroot().find('body').find('load_capacity').text)
+        self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
+        self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
 
     def add_noise_to_signal(self):
         pass
