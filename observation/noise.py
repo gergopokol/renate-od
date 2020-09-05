@@ -1,5 +1,6 @@
 import numpy
 from numpy.random import RandomState
+from lxml import etree
 import scipy
 import utility.getdata as ut
 import pandas
@@ -45,8 +46,8 @@ class Parameters:
 
 class Noise(RandomState):
 
-    def _photon_noise_generator(self):
-        return self.signal
+    def photon_noise_generator(self, signal):
+        return self.poisson(signal)
 
     def _shot_noise_generator(self, parameters, constants):
         mean = self.signal * constants.charge_electron * parameters.gain * parameters.quantum_efficiency * parameters.load_resistance
@@ -86,16 +87,24 @@ class PP(Noise):
 
 class Detector(APD, PMT, PP):
     def __init__(self, detector_type='apd', parameters=None, data_path=None):
+        assert isinstance(data_path, str), 'Expected data type for data_path is str.'
+        if not isinstance(parameters, etree._ElementTree):
+            self.data_path = data_path
+            parameters = self.__get_detector_parameters()
+        else:
+            self.data_path = 'From external workflows.'
         assert isinstance(type, str), 'Expected data type for <detector_type> is str.'
         self.detector_type = detector_type
         if self.detector_type is 'apd':
-            APD.__init__(self)
+            APD.__init__(self, parameters)
         elif self.detector_type is 'pmt':
-            PMT.__init__(self)
+            PMT.__init__(self, parameters)
         elif self.detector_type is 'pp':
-            PP.__init__(self)
+            PP.__init__(self, parameters)
         else:
             raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
 
-    def get_detector_parameters(self):
-        pass
+    def __get_detector_parameters(self):
+        parameters = ut.GetData(data_path_name=self.data_path).data
+        assert isinstance(parameters, etree._ElementTree)
+        return parameters
