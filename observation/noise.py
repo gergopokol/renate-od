@@ -1,10 +1,9 @@
 import numpy
+import pandas
+import utility.getdata as ut
+from utility.constants import Constants
 from numpy.random import RandomState
 from lxml import etree
-import scipy
-import utility.getdata as ut
-import pandas
-from utility.constants import Constants
 
 
 class SynthSignals:
