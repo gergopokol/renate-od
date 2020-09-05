@@ -87,24 +87,23 @@ class PP(Noise):
 
 class Detector(APD, PMT, PP):
     def __init__(self, detector_type='apd', parameters=None, data_path=None):
-        assert isinstance(data_path, str), 'Expected data type for data_path is str.'
-        if not isinstance(parameters, etree._ElementTree):
-            self.data_path = data_path
-            parameters = self.__get_detector_parameters()
-        else:
-            self.data_path = 'From external workflows.'
-        assert isinstance(type, str), 'Expected data type for <detector_type> is str.'
+        assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
         self.detector_type = detector_type
         if self.detector_type is 'apd':
-            APD.__init__(self, parameters)
+            APD.__init__(self, self.__get_detector_parameters(parameters, data_path))
         elif self.detector_type is 'pmt':
-            PMT.__init__(self, parameters)
+            PMT.__init__(self, self.__get_detector_parameters(parameters, data_path))
         elif self.detector_type is 'pp':
-            PP.__init__(self, parameters)
+            PP.__init__(self, self.__get_detector_parameters(parameters, data_path))
         else:
             raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
 
-    def __get_detector_parameters(self):
+    def __get_detector_parameters(self, parameters, data_path):
+        assert isinstance(data_path, str), 'Expected data type for data_path is str.'
+        if not isinstance(parameters, etree._ElementTree):
+            self.data_path = data_path
+        else:
+            self.data_path = 'From external workflows.'
         parameters = ut.GetData(data_path_name=self.data_path).data
         assert isinstance(parameters, etree._ElementTree)
         return parameters
