@@ -4,6 +4,7 @@ from lxml import etree
 import scipy
 import utility.getdata as ut
 import pandas
+from utility.constants import Constants
 
 
 class SynthSignals:
@@ -24,9 +25,12 @@ class SynthSignals:
 
     def _load_synthetic_signals(self, path):
         self.signals = ut.GetData(data_path_name=path, data_format="array").data
-        
+
 
 class Noise(RandomState):
+    def __init__(self):
+        RandomState.__init__(self)
+        self.constants = Constants()
 
     def photon_noise_generator(self, signal):
         return self.poisson(signal)
