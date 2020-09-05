@@ -24,25 +24,7 @@ class SynthSignals:
 
     def _load_synthetic_signals(self, path):
         self.signals = ut.GetData(data_path_name=path, data_format="array").data
-
-
-class Parameters:
-    def __init__(self):
-        self._read_parameter_data
-
-    def _read_parameter_data(self, data_path="parameters/parameters.txt"):
-        parameters = numpy.loadtxt(fname=data_path)
-        self.gain = parameters[0]
-        self.quantum_efficiency = parameters[1]
-        self.noise_index = parameters[2]
-        self.bandwidth = parameters[3]
-        self.load_resistance = parameters[4]
-        self.load_capacity = parameters[5]
-        self.dark_current = parameters[6]
-        self.temperature = parameters[7]
-        self.voltage_noise = parameters[8]
-        self.internal_capacities = parameters[9]
-
+        
 
 class Noise(RandomState):
 
