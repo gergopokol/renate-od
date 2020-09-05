@@ -34,6 +34,8 @@ class CrmRegressionTest(CrmTestCase):
 
 class CrmAcceptanceTest(CrmTestCase):
 
+    EXPECTED_PRECISION = 1E-2
+
     def setUp(self):
         self.test_cases = ['scenario-standard_plasma-H_energy-100_beam-H_profile',
                            'scenario-standard_plasma-H_energy-100_beam-D_profile',
