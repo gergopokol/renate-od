@@ -99,11 +99,16 @@ class Detector(APD, PMT, PP):
             raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
 
     def __get_detector_parameters(self, parameters, data_path):
-        assert isinstance(data_path, str), 'Expected data type for data_path is str.'
-        if not isinstance(parameters, etree._ElementTree):
+        if isinstance(parameters, etree._ElementTree):
+            self.data_path = 'From external workflow.'
+        elif data_path is None:
+            self.data_path = 'detector/'+self.detector_type+'_default.xml'
+            parameters = ut.GetData(data_path_name=self.data_path).data
+        elif isinstance(data_path, str):
             self.data_path = data_path
+            parameters = ut.GetData(data_path_name=self.data_path).data
         else:
-            self.data_path = 'From external workflows.'
-        parameters = ut.GetData(data_path_name=self.data_path).data
-        assert isinstance(parameters, etree._ElementTree)
+            raise ValueError('Expected data type for <data_path> is str or None, '
+                             'in which case default values will be loaded')
+        assert isinstance(parameters, etree._ElementTree), 'Expected data type for parameters is etree._ElementTree.'
         return parameters
