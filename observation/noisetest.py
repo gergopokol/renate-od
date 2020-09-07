@@ -7,7 +7,7 @@ from observation.noise import Noise, APD, PMT, PP, Detector
 
 class NoiseBasicTestCase(unittest.TestCase):
     @staticmethod
-    def _WithinPrecision(actual, reference, precision):
+    def _WithinRelativePrecision(actual, reference, precision):
         if abs(actual - reference)/reference <= precision:
             return True, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
                                                                                             / reference), precision)
@@ -17,7 +17,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
     def assertDistributionVariance(self, series, reference_variance, precision=1E-2, msg=''):
         actual = series.var()
-        status, statement = self._WithinPrecision(actual, reference_variance, precision)
+        status, statement = self._WithinRelativePrecision(actual, reference_variance, precision)
         if not status:
             standardMsg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_variance)) + statement
@@ -26,7 +26,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
     def assertDistributionMean(self, series, reference_mean, precision=1E-2, msg=''):
         actual = series.mean()
-        status, statement = self._WithinPrecision(actual, reference_mean, precision)
+        status, statement = self._WithinRelativePrecision(actual, reference_mean, precision)
         if not status:
             standardMsg = '\n Actual distribution function mean: \t %s and \n reference mean: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_mean)) + statement
@@ -35,7 +35,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
     def assertDistributionStandardDeviation(self, series, reference_std, precision=1E-2, msg=''):
         actual = series.std()
-        status, statement = self._WithinPrecision(actual, reference_std, precision)
+        status, statement = self._WithinRelativePrecision(actual, reference_std, precision)
         if not status:
             standardMsg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_std)) + statement
