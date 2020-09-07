@@ -10,10 +10,19 @@ class NoiseBasicTestCase(unittest.TestCase):
     def _WithinRelativePrecision(actual, reference, precision):
         if abs(actual - reference)/reference <= precision:
             return True, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
-                                                                                            / reference), precision)
+                                                                                      / reference), precision)
         else:
             return False, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
-                                                                                             / reference), precision)
+                                                                                       / reference), precision)
+
+    @staticmethod
+    def _WithinAbsolutePrecision(actual, reference, precision):
+        if abs(actual - reference) <= precision:
+            return True, 'Actual precision: \t %s, Reference precision: \t %s. \n' % \
+                   (safe_repr(abs(actual - reference)), precision)
+        else:
+            return False, 'Actual precision: \t %s, Reference precision: \t %s. \n' % \
+                   (safe_repr(abs(actual - reference)), precision)
 
     def assertDistributionVariance(self, series, reference_variance, precision=1E-2, msg=''):
         actual = series.var()
@@ -44,7 +53,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
     def assertDistributionSkewness(self, series, reference_skewness, precision=1E-2, msg=''):
         actual = st.skew(series)
-        status, statement = self._WithinPrecision(actual, reference_skewness, precision)
+        status, statement = self._WithinAbsolutePrecision(actual, reference_skewness, precision)
         if not status:
             standardMsg = '\n Actual distribution function skewness: \t %s and \n reference skewness: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_skewness)) + statement
@@ -53,7 +62,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
     def assertDistributionKurtosis(self, series, reference_kurtosis, precision=1E-2, msg=''):
         actual = st.kurtosis(series)
-        status, statement = self._WithinPrecision(actual, reference_kurtosis, precision)
+        status, statement = self._WithinAbsolutePrecision(actual, reference_kurtosis, precision)
         if not status:
             standardMsg = '\n Actual distribution function kurtosis: \t %s and \n reference kurtosis: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_kurtosis)) + statement
