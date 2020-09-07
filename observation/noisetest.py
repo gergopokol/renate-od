@@ -39,14 +39,26 @@ class NoiseBasicTestCase(unittest.TestCase):
         if not status:
             standardMsg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_std)) + statement
-            msg = self._WithinPrecision(msg, standardMsg)
+            msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionSkewness(self):
-        pass
+    def assertDistributionSkewness(self, series, reference_skewness, precision=1E-2, msg=''):
+        actual = st.skew(series)
+        status, statement = self._WithinPrecision(actual, reference_skewness, precision)
+        if not status:
+            standardMsg = '\n Actual distribution function skewness: \t %s and \n reference skewness: \t %s are not ' \
+                          'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_skewness)) + statement
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
-    def assertDistributionKurtosis(self):
-        pass
+    def assertDistributionKurtosis(self, series, reference_kurtosis, precision=1E-2, msg=''):
+        actual = st.kurtosis(series)
+        status, statement = self._WithinPrecision(actual, reference_kurtosis, precision)
+        if not status:
+            standardMsg = '\n Actual distribution function kurtosis: \t %s and \n reference kurtosis: \t %s are not ' \
+                          'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_kurtosis)) + statement
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
 
 class NoiseGeneratorTest(NoiseBasicTestCase):
