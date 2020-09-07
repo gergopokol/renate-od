@@ -65,6 +65,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
+    INPUT_SEED = 20
+    INPUT_STD = 100
 
     def setUp(self):
         self.noise_gen = Noise()
@@ -80,7 +82,10 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                  msg='Poisson generator std test FAIL.')
 
     def test_gaussian_generator(self):
-        pass
+        test_data = self.noise_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
+        self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Normal generator mean test FAIL.')
+        self.assertDistributionVariance(test_data, self.INPUT_STD**2, msg='Normal generator variance FAIL.')
+        self.assertDistributionStandardDeviation(test_data, self.INPUT_STD, msg='Normal generator std test FAIL.')
 
     def test_seeded_generator(self):
         pass
