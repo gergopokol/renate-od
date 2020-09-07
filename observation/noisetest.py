@@ -9,23 +9,29 @@ class NoiseBasicTestCase(unittest.TestCase):
     @staticmethod
     def _WithinPrecision(actual, reference, precision):
         if abs(actual - reference)/reference <= precision:
-            return True, 'Actual precision: \t %s, Reference precision: \t %s' % (safe_repr(abs(actual - reference)
+            return True, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
                                                                                             / reference), precision)
         else:
-            return False, 'Actual precision: \t %s, Reference precision: \t %s' % (safe_repr(abs(actual - reference)
+            return False, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
                                                                                              / reference), precision)
 
     def assertDistributionVariance(self, series, reference, precision=1E-2, msg=''):
         actual = series.var()
         status, statement = self._WithinPrecision(actual, reference, precision)
         if not status:
-            standardMsg = ' \n Actual distribution function variance: %s and reference variance: %s are not within ' \
-                          'precision margin. \n' % (safe_repr(actual), safe_repr(reference)) + statement
+            standardMsg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
+                          'within precision margin. \n' % (safe_repr(actual), safe_repr(reference)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionMean(self):
-        pass
+    def assertDistributionMean(self, series, reference_mean, precision=1E-2, msg=''):
+        actual = series.mean()
+        status, statement = self._WithinPrecision(actual, reference_mean, precision)
+        if not status:
+            standardMsg = '\n Actual distribution function mean: \t %s and \n reference mean: \t %s are not within ' \
+                          'precision margin. \n' % (safe_repr(actual), safe_repr(reference_mean)) + statement
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
 
     def assertDistributionStandardDeviation(self):
         pass
@@ -51,9 +57,10 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     def test_poisson_generator(self):
         test_data = self.noise_gen.poisson(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE))
         self.assertDistributionVariance(test_data, self.INPUT_VALUE, msg='Poisson generator variance test FAIL.')
+        self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Poisson generator mean test FAIL.')
 
     def test_gaussian_generator(self):
-        passgit 
+        pass
 
     def test_seeded_generator(self):
         pass
