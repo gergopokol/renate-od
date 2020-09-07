@@ -89,6 +89,9 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Poisson generator mean test FAIL.')
         self.assertDistributionStandardDeviation(test_data, numpy.sqrt(self.INPUT_VALUE),
                                                  msg='Poisson generator std test FAIL.')
+        self.assertDistributionSkewness(test_data, 1/numpy.sqrt(self.INPUT_VALUE),
+                                        msg='Poisson generator skewness test FAIL')
+        self.assertDistributionKurtosis(test_data, 1/self.INPUT_VALUE, msg='Poisson generator kurtosis test FAIL.')
 
     def test_gaussian_generator(self):
         test_data = self.noise_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
