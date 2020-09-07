@@ -98,6 +98,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Normal generator mean test FAIL.')
         self.assertDistributionVariance(test_data, self.INPUT_STD**2, msg='Normal generator variance FAIL.')
         self.assertDistributionStandardDeviation(test_data, self.INPUT_STD, msg='Normal generator std test FAIL.')
+        self.assertDistributionSkewness(test_data, 0, msg='Normal generator skewness test FAIL.')
+        self.assertDistributionKurtosis(test_data, 0, precision=1.5E-2, msg='Normal generator kurtosis test FAIL.')
 
     def test_seeded_generator(self):
         pass
