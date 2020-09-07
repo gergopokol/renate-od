@@ -33,8 +33,14 @@ class NoiseBasicTestCase(unittest.TestCase):
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionStandardDeviation(self):
-        pass
+    def assertDistributionStandardDeviation(self, series, reference_std, precision=1E-2, msg=''):
+        actual = series.std()
+        status, statement = self._WithinPrecision(actual, reference_std, precision)
+        if not status:
+            standardMsg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
+                          'precision margin. \n' % (safe_repr(actual), safe_repr(reference_std)) + statement
+            msg = self._WithinPrecision(msg, standardMsg)
+            self.fail(msg)
 
     def assertDistributionSkewness(self):
         pass
@@ -58,6 +64,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         test_data = self.noise_gen.poisson(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE))
         self.assertDistributionVariance(test_data, self.INPUT_VALUE, msg='Poisson generator variance test FAIL.')
         self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Poisson generator mean test FAIL.')
+        self.assertDistributionStandardDeviation(test_data, numpy.sqrt(self.INPUT_VALUE),
+                                                 msg='Poisson generator std test FAIL.')
 
     def test_gaussian_generator(self):
         pass
