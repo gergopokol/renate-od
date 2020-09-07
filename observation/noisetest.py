@@ -91,7 +91,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                  msg='Poisson generator std test FAIL.')
         self.assertDistributionSkewness(test_data, 1/numpy.sqrt(self.INPUT_VALUE),
                                         msg='Poisson generator skewness test FAIL')
-        self.assertDistributionKurtosis(test_data, 1/self.INPUT_VALUE, msg='Poisson generator kurtosis test FAIL.')
+        self.assertDistributionKurtosis(test_data, 1/self.INPUT_VALUE, precision=2E-2,
+                                        msg='Poisson generator kurtosis test FAIL.')
 
     def test_gaussian_generator(self):
         test_data = self.noise_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
@@ -99,7 +100,20 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionVariance(test_data, self.INPUT_STD**2, msg='Normal generator variance FAIL.')
         self.assertDistributionStandardDeviation(test_data, self.INPUT_STD, msg='Normal generator std test FAIL.')
         self.assertDistributionSkewness(test_data, 0, msg='Normal generator skewness test FAIL.')
-        self.assertDistributionKurtosis(test_data, 0, precision=1.5E-2, msg='Normal generator kurtosis test FAIL.')
+        self.assertDistributionKurtosis(test_data, 0, precision=2E-2, msg='Normal generator kurtosis test FAIL.')
 
-    def test_seeded_generator(self):
-        pass
+    def test_seeded_poisson_generator(self):
+        reference_gen = Noise(seed=self.INPUT_SEED)
+        self.noise_gen.seed(self.INPUT_SEED)
+        actual_data = self.noise_gen.poisson(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE))
+        reference_data = reference_gen.poisson(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE))
+        self.assertListEqual(list(actual_data), list(reference_data),
+                             msg='Generator seed test fail for Poisson distribution.')
+
+    def test_seeded_normal_generator(self):
+        reference_gen = Noise(seed=self.INPUT_SEED)
+        self.noise_gen.seed(self.INPUT_SEED)
+        actual_data = self.noise_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
+        reference_data = reference_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
+        self.assertListEqual(list(actual_data), list(reference_data),
+                             msg='Generator seed test fail for Normal distribution.')
