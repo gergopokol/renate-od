@@ -15,12 +15,12 @@ class NoiseBasicTestCase(unittest.TestCase):
             return False, 'Actual precision: \t %s, Reference precision: \t %s. \n' % (safe_repr(abs(actual - reference)
                                                                                              / reference), precision)
 
-    def assertDistributionVariance(self, series, reference, precision=1E-2, msg=''):
+    def assertDistributionVariance(self, series, reference_variance, precision=1E-2, msg=''):
         actual = series.var()
-        status, statement = self._WithinPrecision(actual, reference, precision)
+        status, statement = self._WithinPrecision(actual, reference_variance, precision)
         if not status:
             standardMsg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
-                          'within precision margin. \n' % (safe_repr(actual), safe_repr(reference)) + statement
+                          'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_variance)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
