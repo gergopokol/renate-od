@@ -27,8 +27,8 @@ class SynthSignals:
 
 
 class Noise(RandomState):
-    def __init__(self):
-        RandomState.__init__(self)
+    def __init__(self, seed=None):
+        RandomState.__init__(self, seed)
         self.constants = Constants()
 
     def photon_noise_generator(self, signal):
