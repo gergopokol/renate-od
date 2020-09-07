@@ -3,10 +3,14 @@ import numpy
 from observation.noise import Noise, APD, PMT, PP, Detector
 
 
-class NoiseTest(unittest.TestCase):
+class NoiseBasicTestCase(unittest.TestCase):
+    pass
 
-    INPUT_SIGNAL_CONSTANT = numpy.full(100, 10000)
-    INSTANCE_NR = 100000
+
+class NoiseGeneratorTest(NoiseBasicTestCase):
+
+    INPUT_VALUE = 100
+    INPUT_INSTANCE = 100000
 
     def setUp(self):
         self.noise_gen = Noise()
