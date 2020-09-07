@@ -63,8 +63,8 @@ class NoiseBasicTestCase(unittest.TestCase):
 
 class NoiseGeneratorTest(NoiseBasicTestCase):
 
-    INPUT_VALUE = 100
-    INPUT_INSTANCE = 100000
+    INPUT_VALUE = 1000
+    INPUT_INSTANCE = 1000000
 
     def setUp(self):
         self.noise_gen = Noise()
