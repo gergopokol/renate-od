@@ -179,3 +179,40 @@ class PPGeneratorTest(NoiseBasicTestCase):
 
     def test_class_inheritance(self):
         self.assertIsInstance(self.PP, Noise)
+
+
+class DetectorGeneratorTest(NoiseBasicTestCase):
+
+    INPUT_APD_TYPE = 'apd'
+    INPUT_PMT_TYPE = 'pmt'
+    INPUT_PP_TYPE = 'pp'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.APD = Detector(detector_type=cls.INPUT_APD_TYPE)
+        cls.PMT = Detector(detector_type=cls.INPUT_PMT_TYPE)
+        cls.PP = Detector(detector_type=cls.INPUT_PP_TYPE)
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.APD
+        del cls.PMT
+        del cls.PP
+
+    def test_APD_inheritance(self):
+        self.assertIsInstance(self.APD.detector_type, str, msg='Expected type for <detector_type> is <str>.')
+        self.assertEqual(self.APD.detector_type, 'apd', msg='The detector type for the <Detector> '
+                                                            'class is expected to be <apd>')
+        self.assertIsInstance(self.APD, APD, msg='<Detector> class is expected to be a child of the <APD> class.')
+
+    def test_PMT_inheritance(self):
+        self.assertIsInstance(self.PMT.detector_type, str, msg='Expected type for <detector_type> is <str>.')
+        self.assertEqual(self.PMT.detector_type, 'pmt', msg='The detector type for the <Detector> '
+                                                            'class is expected to be <pmt>')
+        self.assertIsInstance(self.PMT, PMT, msg='<Detector> class is expected to be a child of the <PMT> class.')
+
+    def test_PP_inheritance(self):
+        self.assertIsInstance(self.PP.detector_type, str, msg='Expected type for <detector_type> is <str>.')
+        self.assertEqual(self.PP.detector_type, 'pp', msg='The detector type for the <Detector> '
+                                                            'class is expected to be <pp>')
+        self.assertIsInstance(self.PP, PP, msg='<Detector> class is expected to be a child of the <PP> class.')
