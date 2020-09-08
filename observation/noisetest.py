@@ -151,3 +151,17 @@ class APDGeneratorTest(NoiseBasicTestCase):
 
     def test_parameter_attributes(self):
         self.assertHasAttributes(self.APD, self.EXPECTED_ATTRIBUTES)
+
+
+class PMTGeneratorTest(NoiseBasicTestCase):
+
+    DEFAULT_APD_PATH = 'detector/pmt_default.xml'
+
+    def setUp(self):
+        self.PMT = PMT(GetData(data_path_name=self.DEFAULT_APD_PATH).data)
+
+    def tearDown(self):
+        del self.PMT
+
+    def test_class_inheritance(self):
+        self.assertIsInstance(self.PMT, Noise)
