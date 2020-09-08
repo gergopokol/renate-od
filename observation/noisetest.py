@@ -70,6 +70,20 @@ class NoiseBasicTestCase(unittest.TestCase):
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
+    def assertHasAttributes(self, actual_class, reference_attributes, msg=''):
+        status = True
+        statement = 'Expected attributes: \t Presence of attributes: \n'
+        for attribute in reference_attributes:
+            if not hasattr(actual_class, attribute):
+                status = False
+                statement += attribute + '\t ' + str(False) + '\n'
+            else:
+                statement += attribute + '\t ' + str(True) + '\n'
+        if not status:
+            standardMsg = '\n Input class does not have all expected attributes. \n' + statement
+            msg = self._formatMessage(msg, standardMsg)
+            self.fail(msg)
+
 
 class NoiseGeneratorTest(NoiseBasicTestCase):
 
@@ -136,5 +150,4 @@ class APDGeneratorTest(NoiseBasicTestCase):
         self.assertIsInstance(self.APD, Noise)
 
     def test_parameter_attributes(self):
-        for attribute in self.EXPECTED_ATTRIBUTES:
-            assert hasattr(self.APD, attribute)
+        self.assertHasAttributes(self.APD, self.EXPECTED_ATTRIBUTES)
