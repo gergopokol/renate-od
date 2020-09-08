@@ -147,10 +147,11 @@ class APDGeneratorTest(NoiseBasicTestCase):
         del self.APD
 
     def test_class_inheritance(self):
-        self.assertIsInstance(self.APD, Noise)
+        self.assertIsInstance(self.APD, Noise, msg='<APD> class is expected to be a child of <Noise>.')
 
     def test_parameter_attributes(self):
-        self.assertHasAttributes(self.APD, self.EXPECTED_ATTRIBUTES)
+        self.assertHasAttributes(self.APD, self.EXPECTED_ATTRIBUTES, msg='<APD> class does not initate will all '
+                                                                         'expected attributes.')
 
 
 class PMTGeneratorTest(NoiseBasicTestCase):
