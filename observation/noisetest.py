@@ -179,7 +179,7 @@ class PPGeneratorTest(NoiseBasicTestCase):
         del self.PP
 
     def test_class_inheritance(self):
-        self.assertIsInstance(self.PP, Noise)
+        self.assertIsInstance(self.PP, Noise, msg='<PP> class is expected to be a child of <Noise>.')
 
 
 class DetectorGeneratorTest(NoiseBasicTestCase):
