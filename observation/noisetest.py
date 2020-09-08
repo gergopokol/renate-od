@@ -165,7 +165,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         del self.PMT
 
     def test_class_inheritance(self):
-        self.assertIsInstance(self.PMT, Noise)
+        self.assertIsInstance(self.PMT, Noise, msg='<PMT> class is expected to be a child of <Noise>.')
 
 
 class PPGeneratorTest(NoiseBasicTestCase):
