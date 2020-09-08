@@ -155,10 +155,10 @@ class APDGeneratorTest(NoiseBasicTestCase):
 
 class PMTGeneratorTest(NoiseBasicTestCase):
 
-    DEFAULT_APD_PATH = 'detector/pmt_default.xml'
+    DEFAULT_PMT_PATH = 'detector/pmt_default.xml'
 
     def setUp(self):
-        self.PMT = PMT(GetData(data_path_name=self.DEFAULT_APD_PATH).data)
+        self.PMT = PMT(GetData(data_path_name=self.DEFAULT_PMT_PATH).data)
 
     def tearDown(self):
         del self.PMT
