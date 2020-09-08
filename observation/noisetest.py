@@ -2,6 +2,7 @@ import unittest
 import numpy
 import scipy.stats as st
 from unittest.util import safe_repr
+from utility.getdata import GetData
 from observation.noise import Noise, APD, PMT, PP, Detector
 
 
@@ -117,3 +118,18 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         reference_data = reference_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
         self.assertListEqual(list(actual_data), list(reference_data),
                              msg='Generator seed test fail for Normal distribution.')
+
+
+class APDGeneratorTest(NoiseBasicTestCase):
+
+    DEFAULT_APD_PATH = 'detector/apd_default.xml'
+
+    def setUp(self):
+        parameters = GetData(data_path_name=self.DEFAULT_APD_PATH).data
+        self.APD = APD(parameters)
+
+    def tearDown(self):
+        del self.APD
+
+    def test_class_inheritance(self):
+        self.assertIsInstance(self.APD, Noise)
