@@ -76,9 +76,9 @@ class NoiseBasicTestCase(unittest.TestCase):
         for attribute in reference_attributes:
             if not hasattr(actual_class, attribute):
                 status = False
-                statement += attribute + '\t ' + str(False) + '\n'
+                statement += '%s, \t %s, \n' % (safe_repr(attribute), safe_repr(False))
             else:
-                statement += attribute + '\t ' + str(True) + '\n'
+                statement += '%s, \t %s, \n' % (safe_repr(attribute), safe_repr(True))
         if not status:
             standardMsg = '\n Input class does not have all expected attributes. \n' + statement
             msg = self._formatMessage(msg, standardMsg)
