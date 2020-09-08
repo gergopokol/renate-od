@@ -165,3 +165,17 @@ class PMTGeneratorTest(NoiseBasicTestCase):
 
     def test_class_inheritance(self):
         self.assertIsInstance(self.PMT, Noise)
+
+
+class PPGeneratorTest(NoiseBasicTestCase):
+
+    DEFAULT_PP_PATH = 'detector/pp_default.xml'
+
+    def setUp(self):
+        self.PP = PP(GetData(data_path_name=self.DEFAULT_PP_PATH).data)
+
+    def tearDown(self):
+        del self.PP
+
+    def test_class_inheritance(self):
+        self.assertIsInstance(self.PP, Noise)
