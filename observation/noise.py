@@ -64,7 +64,7 @@ class APD(Noise):
     def __setup_detector_parameters(self, detector_parameters):
         assert isinstance(detector_parameters, etree._ElementTree), 'Expected data type for <detector_parameters> ' \
                                                                     'is etree._ElementTree.'
-        assert detector_parameters.getroot().find('head').find('type').text is 'apd', \
+        assert detector_parameters.getroot().find('head').find('type').text == 'apd', \
             'The detector type to be set is APD. Please check input data.'
         self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
         self.detector_gain = float(detector_parameters.getroot().find('body').find('gain').text)
