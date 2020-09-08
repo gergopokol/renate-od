@@ -125,8 +125,7 @@ class APDGeneratorTest(NoiseBasicTestCase):
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
 
     def setUp(self):
-        parameters = GetData(data_path_name=self.DEFAULT_APD_PATH).data
-        self.APD = APD(parameters)
+        self.APD = APD(GetData(data_path_name=self.DEFAULT_APD_PATH).data)
 
     def tearDown(self):
         del self.APD
