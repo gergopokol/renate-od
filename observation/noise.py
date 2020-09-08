@@ -71,7 +71,7 @@ class APD(Noise):
         self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
         self.noise_index = float(detector_parameters.getroot().find('body').find('noise_index').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
-        self.dark_voltage = float(detector_parameters.getroot().find('body').find('dark_voltage').text)
+        self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
         self.load_resistance = float(detector_parameters.getroot().find('body').find('load_resistance').text)
         self.load_capacity = float(detector_parameters.getroot().find('body').find('load_capacity').text)
         self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
