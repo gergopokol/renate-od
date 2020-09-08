@@ -123,6 +123,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 class APDGeneratorTest(NoiseBasicTestCase):
 
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
+    EXPECTED_ATTRIBUTES = ['detector_temperature', 'detector_gain', 'quantum_efficiency', 'noise_index', 'bandwidth',
+                           'dark_current', 'load_resistance', 'load_capacity', 'voltage_noise', 'internal_capacity']
 
     def setUp(self):
         self.APD = APD(GetData(data_path_name=self.DEFAULT_APD_PATH).data)
@@ -132,3 +134,7 @@ class APDGeneratorTest(NoiseBasicTestCase):
 
     def test_class_inheritance(self):
         self.assertIsInstance(self.APD, Noise)
+
+    def test_parameter_attributes(self):
+        for attribute in self.EXPECTED_ATTRIBUTES:
+            assert hasattr(self.APD, attribute)
