@@ -6,12 +6,13 @@ from utility.accessdata import AccessData
 class AccessDataTest(unittest.TestCase):
 
     TEST_PATH = 'test_dataset/access_tests/'
-    PUBLIC_TEST = 'public_test'
-    PRIVATE_TEST = 'private_test'
+    PUBLIC_TEST = 'public_test.txt'
+    PRIVATE_TEST = 'private_test.txt'
     PRIVATE_SERVES_ADDRESS = 'data@deep.reak.bme.hu:~/private_html/renate-od'
     PUBLIC_SERVER_ADDRESS = 'http://deep.reak.bme.hu/~data/renate-od'
     DUMMY_FOLDER = 'dummy'
     CONTACT_INFO = 'pokol@reak.bme.hu'
+    PRIVATE_KEY = 'data/deep-data.ppk'
 
     def setUp(self):
         self.access = AccessData(None)
@@ -44,6 +45,10 @@ class AccessDataTest(unittest.TestCase):
                          'common_data'), msg='User local common data path does not match expected user local '
                                              'common data path.')
 
+    def test_private_key(self):
+        self.assertEqual(self.access.private_key, self.PRIVATE_KEY, msg='Default private key does not match expected '
+                                                                        'default private key.')
+
     def test_server_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
         self.access.server_path_setup(server_path=path)
@@ -63,3 +68,15 @@ class AccessDataTest(unittest.TestCase):
         self.assertEqual(self.access.user_local_dummy_path, os.path.join(self.access.user_local_data_directory,
                          self.access.dummy_directory, path), msg='Actual user local dummy path does not match expected '
                                                                  'user local dummy path.')
+
+    def test_public_server_data_check(self):
+        self.access.server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
+        self.assertTrue(self.access.check_public_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
+                        ' is supposed to be located on the public server at: ' + self.TEST_PATH)
+        self.access.server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
+        self.assertFalse(self.access.check_public_server_data_path(), msg='The datafile: ' + self.PRIVATE_TEST +
+                         ' is not supposed to be located on the public server at: ' + self.TEST_PATH)
+
+    def test_private_server_data_check(self):
+        pass
+
