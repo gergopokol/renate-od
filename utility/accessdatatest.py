@@ -19,7 +19,7 @@ class AccessDataTest(unittest.TestCase):
     def tearDown(self):
         del self.access
 
-    def test_private_data_path(self):
+    def test_private_server_address(self):
         self.assertEqual(self.access.server_private_address, self.PRIVATE_SERVES_ADDRESS,
                          msg='Server private data address does not match expected server private address.')
 
@@ -43,3 +43,23 @@ class AccessDataTest(unittest.TestCase):
         self.assertEqual(self.access.common_local_data_directory, os.path.join(os.path.dirname(__file__), '..',
                          'common_data'), msg='User local common data path does not match expected user local '
                                              'common data path.')
+
+    def test_server_path_setup(self):
+        path = self.TEST_PATH + '/' + self.PRIVATE_TEST
+        self.access.server_path_setup(server_path=path)
+        self.assertEqual(self.access.server_private_path, self.access.server_private_address + '/' + path,
+                         msg='Server private path does not match expected server private path.')
+        self.assertEqual(self.access.server_public_path, self.access.server_public_address + '/' + path,
+                         msg='Server public path does not match expected server public path.')
+
+    def test_local_path_setup(self):
+        path = self.TEST_PATH + '/' + self.PRIVATE_TEST
+        self.access.local_path_setup(local_path=path)
+        self.assertEqual(self.access.common_local_data_path,
+                         os.path.join(self.access.common_local_data_directory, path),
+                         msg='Actual common local path does not match expected common local path.')
+        self.assertEqual(self.access.user_local_data_path, os.path.join(self.access.user_local_data_directory, path),
+                         msg='Actual user local path does not match expected user local path.')
+        self.assertEqual(self.access.user_local_dummy_path, os.path.join(self.access.user_local_data_directory,
+                         self.access.dummy_directory, path), msg='Actual user local dummy path does not match expected '
+                                                                 'user local dummy path.')
