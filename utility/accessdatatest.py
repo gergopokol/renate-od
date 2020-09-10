@@ -80,3 +80,11 @@ class AccessDataTest(unittest.TestCase):
     def test_private_server_data_check(self):
         pass
 
+    def test_common_local_data_check(self):
+        pass
+
+    def test_user_local_data_check(self):
+        pass
+
+    def test_user_local_dummy_data_check(self):
+        pass
