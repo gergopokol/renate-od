@@ -37,4 +37,9 @@ class AccessDataTest(unittest.TestCase):
 
     def test_user_local_directory(self):
         self.assertEqual(self.access.user_local_data_directory, os.path.join(os.path.dirname(__file__), '..', 'data'),
-                         msg='User local data path does not match expected user local dta path.')
+                         msg='User local data path does not match expected user local data path.')
+
+    def test_user_local_common_directory(self):
+        self.assertEqual(self.access.common_local_data_directory, os.path.join(os.path.dirname(__file__), '..',
+                         'common_data'), msg='User local common data path does not match expected user local '
+                                             'common data path.')
