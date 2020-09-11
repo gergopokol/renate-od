@@ -79,7 +79,9 @@ class AccessDataTest(unittest.TestCase):
                          ' is not supposed to be located on the public server at: ' + self.TEST_PATH)
 
     def test_private_server_data_check(self):
-        pass
+        self.access.local_path_setup(self.access.private_key)
+        if self.access.check_user_local_data_path():
+            pass
 
     def test_common_local_data_check(self):
         self.access.common_local_data_directory = os.path.dirname(__file__)
