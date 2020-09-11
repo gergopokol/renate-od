@@ -104,4 +104,11 @@ class AccessDataTest(unittest.TestCase):
                          msg='PRIVATE_TEST file is expected not to be located in the specified data access path.')
 
     def test_user_local_dummy_data_check(self):
-        pass
+        self.access.user_local_data_directory = os.path.dirname(__file__)
+        self.access.dummy_directory = ''
+        self.access.local_path_setup(local_path=DEFAULT_SETUP)
+        self.assertTrue(self.access.check_user_local_dummy_path(), msg='DEFAULT SETUP file is expected to exist '
+                                                                       'in the location specified.')
+        self.access.local_path_setup(self.PRIVATE_KEY)
+        self.assertFalse(self.access.check_user_local_dummy_path(),
+                         msg='PRIVATE_TEST file is expected not to be located in the specified data access path.')
