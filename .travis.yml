@@ -11,3 +11,4 @@ script:
   - python -m unittest -v crm_solver.beamlettest.BeamletTest
   - python -m unittest -v crm_solver.atomic_dbtest.RenateDBTest
   - python -m unittest -v crm_solver.coefficientmatrixtest.CoefficientMatrixTest
+  - python -m unittest -v utility.accessdata.AccessDataTest
