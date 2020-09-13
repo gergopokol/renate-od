@@ -83,6 +83,13 @@ class APD(Noise):
         self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
 
     def add_noise_to_signal(self, signal):
+        self.photon_noise_generator(signal)
+        self.shot_noise_generator(signal, self.detector_gain, self.quantum_efficiency, self.load_resistance,
+                                  self.noise_index, self.bandwidth)
+        self.dark_noise_generator(signal, self.dark_current, self.bandwidth, self.load_resistance)
+        self.voltage_noise_generator(signal, self.voltage_noise, self.load_resistance, self.load_capacity,
+                                     self.internal_capacity)
+        self.johnson_noise_generator(signal, self.detector_temperature, self.bandwidth, self.load_resistance)
         pass
 
 
