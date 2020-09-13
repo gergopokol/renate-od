@@ -32,27 +32,32 @@ class Noise(RandomState):
         self.constants = Constants()
 
     def photon_noise_generator(self, signal):
-        return self.poisson(signal)
+        signal = self.poisson(signal)
+        return signal
 
-    def shot_noise_generator(self, signal, gain, qe, load_resistance, noise_index, bandwidth):
-        mean = signal * self.constants.charge_electron * gain * qe * load_resistance
-        deviation = numpy.array(numpy.sqrt(2 * self.constants.charge_electron ^ 2 * qe * gain ^ 2 *
+    def shot_noise_generator(self, signal, gain, quantum_efficiency, load_resistance, noise_index, bandwidth):
+        mean = signal * self.constants.charge_electron * gain * quantum_efficiency * load_resistance
+        variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron ^ 2 * quantum_efficiency * gain ^ 2 *
                                            gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(signal))
+        signal = self.normal(mean, variance)
         return signal
 
     def johnson_noise_generator(self, signal, temperature, bandwidth, load_resistance):
-        deviation = numpy.sqrt(4 * self.constants.Boltzmann * temperature * bandwidth * load_resistance)
+        variance = numpy.sqrt(4 * self.constants.Boltzmann * temperature * bandwidth * load_resistance)
+        signal = self.normal(signal, variance)
         return signal
 
-    def voltage_noise_generator(self, signal, voltage_noise, load_resistance, load_capacity, internal_capacities):
-        deviation = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
-                                                    (load_capacity + internal_capacities))) + voltage_noise * \
-                    (1 + internal_capacities / load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance *
+    def voltage_noise_generator(self, signal, voltage_noise, load_resistance, load_capacity, internal_capacity):
+        variance = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
+                                                    (load_capacity + internal_capacity))) + voltage_noise * \
+                    (1 + internal_capacity / load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance *
                                                                                        load_capacity))
+        signal = self.normal(signal, variance)
         return signal
 
     def dark_noise_generator(self, signal, dark_current, bandwidth, load_resistance):
-        deviation = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
+        variance = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
+        signal = self.normal(signal, variance)
         return signal
 
 
@@ -77,7 +82,7 @@ class APD(Noise):
         self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
         self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
 
-    def add_noise_to_signal(self):
+    def add_noise_to_signal(self, signal):
         pass
 
 
