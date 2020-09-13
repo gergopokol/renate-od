@@ -35,11 +35,10 @@ class Noise(RandomState):
         signal = self.poisson(signal)
         return signal
 
-    def shot_noise_generator(self, signal, gain, quantum_efficiency, load_resistance, noise_index, bandwidth):
-        mean = signal * self.constants.charge_electron * gain * quantum_efficiency * load_resistance
-        variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron ^ 2 * quantum_efficiency * gain ^ 2 *
-                                           gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(signal))
-        signal = self.normal(mean, variance)
+    def shot_noise_generator(self, signal, detector_gain, quantum_efficiency, load_resistance, noise_index, bandwidth):
+        variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
+                                           detector_gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(signal))
+        signal = self.normal(signal, variance)
         return signal
 
     def johnson_noise_generator(self, signal, temperature, bandwidth, load_resistance):
@@ -82,8 +81,13 @@ class APD(Noise):
         self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
         self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
 
+    def signal_transfer_function(self, signal, detector_gain, quantum_efficiency, load_resistance):
+        signal = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
+        return signal
+
     def add_noise_to_signal(self, signal):
         self.photon_noise_generator(signal)
+        self.signal_transfer_function(signal, self.detector_gain, self.quantum_efficiency, self.load_resistance)
         self.shot_noise_generator(signal, self.detector_gain, self.quantum_efficiency, self.load_resistance,
                                   self.noise_index, self.bandwidth)
         self.dark_noise_generator(signal, self.dark_current, self.bandwidth, self.load_resistance)
