@@ -1,6 +1,7 @@
 import os
 from lxml import etree
 import urllib
+import paramiko
 
 DEFAULT_SETUP = 'getdata_setup.xml'
 
