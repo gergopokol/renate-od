@@ -1,5 +1,6 @@
 import os
 import unittest
+from paramiko.rsakey import RSAKey
 from utility.accessdata import AccessData
 from utility.accessdata import DEFAULT_SETUP
 
@@ -9,11 +10,11 @@ class AccessDataTest(unittest.TestCase):
     TEST_PATH = 'test_dataset/access_tests/'
     PUBLIC_TEST = 'public_test.txt'
     PRIVATE_TEST = 'private_test.txt'
-    PRIVATE_SERVES_ADDRESS = 'data@deep.reak.bme.hu:~/private_html/renate-od'
+    PRIVATE_SERVES_ADDRESS = 'private_html/renate-od'
     PUBLIC_SERVER_ADDRESS = 'http://deep.reak.bme.hu/~data/renate-od'
     DUMMY_FOLDER = 'dummy'
     CONTACT_INFO = 'pokol@reak.bme.hu'
-    PRIVATE_KEY = 'data/deep-data.ppk'
+    PRIVATE_KEY = 'data/deep_data_key'
 
     def setUp(self):
         self.access = AccessData(None)
@@ -22,7 +23,7 @@ class AccessDataTest(unittest.TestCase):
         del self.access
 
     def test_private_server_address(self):
-        self.assertEqual(self.access.server_private_address, self.PRIVATE_SERVES_ADDRESS,
+        self.assertEqual(self.access.server_private_access, self.PRIVATE_SERVES_ADDRESS,
                          msg='Server private data address does not match expected server private address.')
 
     def test_public_server_address(self):
@@ -47,13 +48,13 @@ class AccessDataTest(unittest.TestCase):
                                              'common data path.')
 
     def test_private_key(self):
-        self.assertEqual(self.access.private_key, self.PRIVATE_KEY, msg='Default private key does not match expected '
-                                                                        'default private key.')
+        self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
+                              'default private key type.')
 
     def test_server_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
         self.access.server_path_setup(server_path=path)
-        self.assertEqual(self.access.server_private_path, self.access.server_private_address + '/' + path,
+        self.assertEqual(self.access.server_private_path, self.access.server_private_access + '/' + path,
                          msg='Server private path does not match expected server private path.')
         self.assertEqual(self.access.server_public_path, self.access.server_public_address + '/' + path,
                          msg='Server public path does not match expected server public path.')
@@ -79,9 +80,13 @@ class AccessDataTest(unittest.TestCase):
                          ' is not supposed to be located on the public server at: ' + self.TEST_PATH)
 
     def test_private_server_data_check(self):
-        self.access.local_path_setup(self.access.private_key)
-        if self.access.check_user_local_data_path():
-            pass
+        if self.access.private_key is not None:
+            self.access.server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
+            self.assertFalse(self.access.check_private_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
+                             'is not supposed to be located on the private server.')
+            self.access.server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
+            self.assertTrue(self.access.check_private_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
+                            'is supposed to be located on the private server.')
 
     def test_common_local_data_check(self):
         self.access.common_local_data_directory = os.path.dirname(__file__)
