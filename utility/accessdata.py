@@ -10,6 +10,7 @@ class AccessData(object):
     def __init__(self, data_path_name):
         self.access_path = ''
         self.read_setup()
+        self.set_private_key()
 
         if data_path_name is not None:
             self.data_path_name = data_path_name
@@ -27,10 +28,20 @@ class AccessData(object):
                                                         body.find('common_local_data_directory').text)
         self.user_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
                                                       body.find('user_local_data_directory').text)
-        self.server_private_address = body.find('server_private_address').text
-        self.private_key = body.find('private_key').text
+        self.server_address = body.find('server_address').text
+        self.server_user = body.find('user_name').text
+        self.server_private_access = body.find('server_private_data').text
+        self.server_public_access = body.find('server_public_data').text
         self.server_public_address = body.find('server_public_address').text
         self.contact_address = body.find('contact_address').text
+        self.private_key_path = body.find('private_key').text
+
+    def set_private_key(self):
+        key_path = os.path.join(os.path.dirname(__file__), '..', self.private_key_path)
+        if os.path.isfile(key_path):
+            self.private_key = paramiko.RSAKey.from_private_key_file(key_path)
+        else:
+            self.private_key = None
 
     def path_setup(self):
         self.local_path_setup()
@@ -52,7 +63,7 @@ class AccessData(object):
         elif not isinstance(server_path, str):
             raise TypeError('File local path input is expected to be of str type.')
         self.server_public_path = self.server_public_address + '/' + server_path
-        self.server_private_path = self.server_private_address + '/' + server_path
+        self.server_private_path = self.server_private_access + '/' + server_path
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
