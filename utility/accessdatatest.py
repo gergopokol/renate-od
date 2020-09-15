@@ -1,5 +1,6 @@
 import os
 import unittest
+from paramiko.client import SSHClient
 from paramiko.rsakey import RSAKey
 from utility.accessdata import AccessData
 from utility.accessdata import DEFAULT_SETUP
@@ -12,6 +13,8 @@ class AccessDataTest(unittest.TestCase):
     PRIVATE_TEST = 'private_test.txt'
     PRIVATE_SERVES_ADDRESS = 'private_html/renate-od'
     PUBLIC_SERVER_ADDRESS = 'http://deep.reak.bme.hu/~data/renate-od'
+    SERVER_ADDRESS = 'deep.reak.bme.hu'
+    SERVER_USER = 'data'
     DUMMY_FOLDER = 'dummy'
     CONTACT_INFO = 'pokol@reak.bme.hu'
     PRIVATE_KEY = 'data/deep_data_key'
@@ -48,8 +51,21 @@ class AccessDataTest(unittest.TestCase):
                                              'common data path.')
 
     def test_private_key(self):
-        self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
-                              'default private key type.')
+        self.assertEqual(self.access.private_key_path, self.PRIVATE_KEY, msg='The default private key path does not '
+                                                                             'match expected private key path.')
+        key_path = os.path.join(os.path.dirname(__file__), '..', self.access.private_key_path)
+        if os.path.isfile(key_path):
+            self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
+                                  'default private key type.')
+
+    def test_server_connection(self):
+        self.assertEqual(self.access.server_address, self.SERVER_ADDRESS, msg='Actual server address does not match '
+                                                                              'expected server address.')
+        self.assertEqual(self.access.server_user, self.SERVER_USER, msg='Actual server user does not match expected '
+                                                                        'server user.')
+        if self.access.private_key is not None:
+            self.assertIsInstance(self.access.ssh_connection, SSHClient, msg='Actual connection type does not match '
+                                                                             'expected connection type.')
 
     def test_server_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
