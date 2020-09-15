@@ -10,7 +10,7 @@ class AccessData(object):
     def __init__(self, data_path_name):
         self.access_path = ''
         self.read_setup()
-        self.set_private_key()
+        self.set_private_connection()
 
         if data_path_name is not None:
             self.data_path_name = data_path_name
@@ -35,6 +35,11 @@ class AccessData(object):
         self.server_public_address = body.find('server_public_address').text
         self.contact_address = body.find('contact_address').text
         self.private_key_path = body.find('private_key').text
+
+    def set_private_connection(self):
+        self.set_private_key()
+        self.ssh_connection = paramiko.SSHClient()
+        self.ssh_connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     def set_private_key(self):
         key_path = os.path.join(os.path.dirname(__file__), '..', self.private_key_path)
@@ -101,7 +106,20 @@ class AccessData(object):
             return False
 
     def check_private_server_data_path(self):
-        pass
+        if self.private_key is not None:
+            try:
+                self.ssh_connection.connect(self.server_address, username=self.server_user, pkey=self.private_key)
+                sftp = self.ssh_connection.open_sftp()
+                message = sftp.stat(self.server_private_path)
+                status = True
+            except FileNotFoundError:
+                status = False
+            finally:
+                sftp.close()
+                self.ssh_connection.close()
+                return status
+        else:
+            return False
 
     def contact_us(self):
         print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
