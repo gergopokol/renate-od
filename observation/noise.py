@@ -35,7 +35,7 @@ class Noise(RandomState):
         signal = self.poisson(signal)
         return signal
 
-    def shot_noise_init (self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+    def shot_noise_init(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
                                           detector_gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(
             signal))
@@ -50,7 +50,7 @@ class Noise(RandomState):
         return variance
 
     def johnson_noise_generator(self, signal, variance):
-        signal = self.normal(signal, variance)
+        signal = signal + self.normal(0, variance)
         return signal
 
     def voltage_noise_init(self, voltage_noise, load_resistance, load_capacity, internal_capacity):
@@ -66,14 +66,15 @@ class Noise(RandomState):
 
     def dark_noise_init(self, dark_current, bandwidth, load_resistance):
         variance = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
-
         return variance
 
     def dark_noise_generator(self, signal, variance):
-        signal = self.normal(signal, variance)
+        signal = signal + self.normal(0, variance)
         return signal
 
+
 class APD(Noise):
+
     def __init__(self, detector_parameters):
         Noise.__init__(self)
         self.__setup_detector_parameters(detector_parameters)
@@ -93,26 +94,18 @@ class APD(Noise):
         self.load_capacity = float(detector_parameters.getroot().find('body').find('load_capacity').text)
         self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
         self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
+        self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
+        self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def signal_transfer_function(self, signal, detector_gain, quantum_efficiency, load_resistance):
         signal = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
         return signal
 
     def add_noise_to_signal(self, signal):
+        signal = signal / self.sampling_frequency
+        signal = signal + (signal / self.signal_to_background)
         self.photon_noise_generator(signal)
-        self.signal_transfer_function(signal, self.detector_gain, self.quantum_efficiency, self.load_resistance)
-
-        variance = self.shot_noise_init(self.detector_gain, self.quantum_efficiency, self.load_resistance,
-                                  self.noise_index, self.bandwidth)
-        self.shot_noise_generator(signal, variance)
-        variance = self.dark_noise_init(self.dark_current, self.bandwidth, self.load_resistance)
-        self.dark_noise_generator(signal, variance)
-        variance = self.voltage_noise_init(self.voltage_noise, self.load_resistance, self.load_capacity,
-                                     self.internal_capacity)
-        self.voltage_noise_generator(signal, variance)
-        variance = self.johnson_noise_init(self.detector_temperature, self.bandwidth, self.load_resistance)
-        self.johnson_noise_generator(signal, variance)
-        pass
+        return signal
 
 
 class PMT(Noise):
