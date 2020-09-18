@@ -69,7 +69,7 @@ class AccessDataTest(unittest.TestCase):
 
     def test_server_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
-        self.access.server_path_setup(server_path=path)
+        self.access._server_path_setup(server_path=path)
         self.assertEqual(self.access.server_private_path, self.access.server_private_access + '/' + path,
                          msg='Server private path does not match expected server private path.')
         self.assertEqual(self.access.server_public_path, self.access.server_public_address + '/' + path,
@@ -77,7 +77,7 @@ class AccessDataTest(unittest.TestCase):
 
     def test_local_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
-        self.access.local_path_setup(local_path=path)
+        self.access._local_path_setup(local_path=path)
         self.assertEqual(self.access.common_local_data_path,
                          os.path.join(self.access.common_local_data_directory, path),
                          msg='Actual common local path does not match expected common local path.')
@@ -88,50 +88,50 @@ class AccessDataTest(unittest.TestCase):
                                                                  'user local dummy path.')
 
     def test_public_server_data_check(self):
-        self.access.server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
+        self.access._server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
         self.assertTrue(self.access.check_public_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
                         ' is supposed to be located on the public server at: ' + self.TEST_PATH)
-        self.access.server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
+        self.access._server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
         self.assertFalse(self.access.check_public_server_data_path(), msg='The datafile: ' + self.PRIVATE_TEST +
                          ' is not supposed to be located on the public server at: ' + self.TEST_PATH)
 
     def test_private_server_data_check(self):
         if self.access.private_key is not None:
-            self.access.server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
+            self.access._server_path_setup(self.TEST_PATH + self.PUBLIC_TEST)
             self.assertFalse(self.access.check_private_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
                              'is not supposed to be located on the private server.')
-            self.access.server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
+            self.access._server_path_setup(self.TEST_PATH + self.PRIVATE_TEST)
             self.assertTrue(self.access.check_private_server_data_path(), msg='The datafile: ' + self.PUBLIC_TEST +
                             'is supposed to be located on the private server.')
 
     def test_common_local_data_check(self):
         self.access.common_local_data_directory = os.path.dirname(__file__)
-        self.access.local_path_setup(local_path=DEFAULT_SETUP)
+        self.access._local_path_setup(local_path=DEFAULT_SETUP)
         self.assertTrue(self.access.check_common_local_data_path(), msg='DEFAULT SETUP file is expected to exist '
                                                                         'in the location specified.')
         self.assertEqual(self.access.access_path, os.path.join(os.path.dirname(__file__), DEFAULT_SETUP),
                          msg='The actual data path to be accessed does not match to the expected access data path.')
-        self.access.local_path_setup(self.PRIVATE_KEY)
+        self.access._local_path_setup(self.PRIVATE_KEY)
         self.assertFalse(self.access.check_common_local_data_path(),
                          msg='PRIVATE_TEST file is expected not to be located in the specified data access path.')
 
     def test_user_local_data_check(self):
         self.access.user_local_data_directory = os.path.dirname(__file__)
-        self.access.local_path_setup(local_path=DEFAULT_SETUP)
+        self.access._local_path_setup(local_path=DEFAULT_SETUP)
         self.assertTrue(self.access.check_user_local_data_path(), msg='DEFAULT SETUP file is expected to exist '
                                                                       'in the location specified.')
         self.assertEqual(self.access.access_path, os.path.join(os.path.dirname(__file__), DEFAULT_SETUP),
                          msg='The actual data path to be accessed does not match to the expected access data path.')
-        self.access.local_path_setup(self.PRIVATE_KEY)
+        self.access._local_path_setup(self.PRIVATE_KEY)
         self.assertFalse(self.access.check_user_local_data_path(),
                          msg='PRIVATE_TEST file is expected not to be located in the specified data access path.')
 
     def test_user_local_dummy_data_check(self):
         self.access.user_local_data_directory = os.path.dirname(__file__)
         self.access.dummy_directory = ''
-        self.access.local_path_setup(local_path=DEFAULT_SETUP)
+        self.access._local_path_setup(local_path=DEFAULT_SETUP)
         self.assertTrue(self.access.check_user_local_dummy_path(), msg='DEFAULT SETUP file is expected to exist '
                                                                        'in the location specified.')
-        self.access.local_path_setup(self.PRIVATE_KEY)
+        self.access._local_path_setup(self.PRIVATE_KEY)
         self.assertFalse(self.access.check_user_local_dummy_path(),
                          msg='PRIVATE_TEST file is expected not to be located in the specified data access path.')
