@@ -38,8 +38,11 @@ class AccessData(object):
 
     def _set_private_connection(self):
         self._set_private_key()
-        self.ssh_connection = paramiko.SSHClient()
-        self.ssh_connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        if self.private_key is not None:
+            self.client = paramiko.SSHClient()
+            self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        else:
+            self.client = None
 
     def _set_private_key(self):
         key_path = os.path.join(os.path.dirname(__file__), '..', self.private_key_path)
