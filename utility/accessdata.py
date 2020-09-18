@@ -9,14 +9,14 @@ DEFAULT_SETUP = 'getdata_setup.xml'
 class AccessData(object):
     def __init__(self, data_path_name):
         self.access_path = ''
-        self.read_setup()
+        self._read_setup()
         self.set_private_connection()
 
         if data_path_name is not None:
             self.data_path_name = data_path_name
-            self.path_setup()
+            self._path_setup()
 
-    def read_setup(self, setup_path_name=None):
+    def _read_setup(self, setup_path_name=None):
 
         if not setup_path_name:
             setup_path_name = os.path.join(os.path.dirname(__file__), DEFAULT_SETUP)
@@ -48,11 +48,11 @@ class AccessData(object):
         else:
             self.private_key = None
 
-    def path_setup(self):
-        self.local_path_setup()
-        self.server_path_setup()
+    def _path_setup(self):
+        self._local_path_setup()
+        self._server_path_setup()
 
-    def local_path_setup(self, local_path=None):
+    def _local_path_setup(self, local_path=None):
         if local_path is None:
             local_path = self.data_path_name
         elif not isinstance(local_path, str):
@@ -62,7 +62,7 @@ class AccessData(object):
         self.user_local_dummy_path = os.path.join(self.user_local_data_directory,
                                                   self.dummy_directory, local_path)
 
-    def server_path_setup(self, server_path=None):
+    def _server_path_setup(self, server_path=None):
         if server_path is None:
             server_path = self.data_path_name
         elif not isinstance(server_path, str):
