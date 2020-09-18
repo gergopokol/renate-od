@@ -10,7 +10,7 @@ class AccessData(object):
     def __init__(self, data_path_name):
         self.access_path = ''
         self._read_setup()
-        self.set_private_connection()
+        self._set_private_connection()
 
         if data_path_name is not None:
             self.data_path_name = data_path_name
@@ -36,15 +36,18 @@ class AccessData(object):
         self.contact_address = body.find('contact_address').text
         self.private_key_path = body.find('private_key').text
 
-    def set_private_connection(self):
-        self.set_private_key()
+    def _set_private_connection(self):
+        self._set_private_key()
         self.ssh_connection = paramiko.SSHClient()
         self.ssh_connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    def set_private_key(self):
+    def _set_private_key(self):
         key_path = os.path.join(os.path.dirname(__file__), '..', self.private_key_path)
         if os.path.isfile(key_path):
-            self.private_key = paramiko.RSAKey.from_private_key_file(key_path)
+            try:
+                self.private_key = paramiko.RSAKey.from_private_key_file(key_path)
+            except paramiko.SSHException:
+                self.private_key = None
         else:
             self.private_key = None
 
