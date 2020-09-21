@@ -58,6 +58,7 @@ class AccessDataTest(unittest.TestCase):
             self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
                                   'default private key type.')
 
+    @unittest.skip
     def test_server_connection(self):
         self.assertEqual(self.access.server_address, self.SERVER_ADDRESS, msg='Actual server address does not match '
                                                                               'expected server address.')
