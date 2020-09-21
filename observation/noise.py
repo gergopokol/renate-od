@@ -35,40 +35,44 @@ class Noise(RandomState):
         signal = self.poisson(signal)
         return signal
 
-    def shot_noise_init(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+    def shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
                                           detector_gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(
             signal))
         return variance
 
-    def shot_noise_generator(self, signal, variance):
+    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        variance = self.shot_noise_setup(detector_gain, load_resistance, noise_index, bandwidth)
         signal = self.normal(signal, variance)
         return signal
 
-    def johnson_noise_init(self, temperature, bandwidth, load_resistance):
+    def johnson_noise_setup(self, temperature, bandwidth, load_resistance):
         variance = numpy.sqrt(4 * self.constants.Boltzmann * temperature * bandwidth * load_resistance)
         return variance
 
-    def johnson_noise_generator(self, signal, variance):
+    def johnson_noise_generator(self, signal, temperature, bandwidth, load_resistance):
+        variance = self.johnson_noise_setup(temperature, bandwidth, load_resistance)
         signal = signal + self.normal(0, variance)
         return signal
 
-    def voltage_noise_init(self, voltage_noise, load_resistance, load_capacity, internal_capacity):
+    def voltage_noise_setup(self, voltage_noise, load_resistance, load_capacity, internal_capacity):
         variance = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
                                                     (load_capacity + internal_capacity))) + voltage_noise * \
                     (1 + internal_capacity / load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance *
                                                                                        load_capacity))
         return variance
 
-    def voltage_noise_generator(self, signal, variance):
+    def voltage_noise_generator(self, signal, voltage_noise, load_resistance, load_capacity, internal_capacity):
+        variance = self.voltage_noise_setup(voltage_noise, load_resistance, load_capacity, internal_capacity)
         signal = self.normal(signal, variance)
         return signal
 
-    def dark_noise_init(self, dark_current, bandwidth, load_resistance):
+    def dark_noise_setup(self, dark_current, bandwidth, load_resistance):
         variance = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
         return variance
 
-    def dark_noise_generator(self, signal, variance):
+    def dark_noise_generator(self, signal, dark_current, bandwidth, load_resistance):
+        variance = self.dark_noise_setup(dark_current, bandwidth, load_resistance)
         signal = signal + self.normal(0, variance)
         return signal
 
