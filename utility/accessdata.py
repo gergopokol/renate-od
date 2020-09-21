@@ -2,6 +2,7 @@ import os
 from lxml import etree
 import urllib
 import paramiko
+from scp import SCPClient
 
 DEFAULT_SETUP = 'getdata_setup.xml'
 
@@ -76,6 +77,46 @@ class AccessData(object):
         self.server_public_path = self.server_public_address + '/' + server_path
         self.server_private_path = self.server_private_access + '/' + server_path
 
+    def connect(self, protocol=None):
+        if self.private_key is not None:
+            try:
+                self.client.connect(self.server_address, username=self.server_user, pkey=self.private_key)
+                self.connection = True
+                self.protocol = protocol
+                if self.protocol is None:
+                    print('No server communication protocol was set.')
+                    self._set_no_communication()
+                elif protocol == 'sftp':
+                    self._set_sftp_communication()
+                elif protocol == 'scp':
+                    self._set_scp_communication()
+                else:
+                    print('Requested communication format does not exit or is not supported.')
+                    self._set_no_communication()
+            except paramiko.SSHException:
+                self.connection = False
+        else:
+            self.connection = False
+
+    def _set_sftp_communication(self):
+        self.sftp = self.client.open_sftp()
+        self.communication = True
+
+    def _set_scp_communication(self):
+        self.scp = SCPClient(self.client.get_transport())
+        self.communication = True
+
+    def _set_no_communication(self):
+        self.communication = False
+
+    def disconnect(self):
+        if self.communication and self.protocol == 'sftp':
+            self.sftp.close()
+        if self.communication and self.protocol == 'scp':
+            self.scp.close()
+        if self.connection:
+            self.client.close()
+
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
             self.access_path = self.user_local_dummy_path
@@ -112,20 +153,14 @@ class AccessData(object):
             return False
 
     def check_private_server_data_path(self):
-        if self.private_key is not None:
-            try:
-                self.ssh_connection.connect(self.server_address, username=self.server_user, pkey=self.private_key)
-                sftp = self.ssh_connection.open_sftp()
-                message = sftp.stat(self.server_private_path)
-                status = True
-            except FileNotFoundError:
-                status = False
-            finally:
-                sftp.close()
-                self.ssh_connection.close()
-                return status
-        else:
-            return False
+        self.connect(protocol='sftp')
+        try:
+            message = self.sftp.stat(self.server_private_path)
+            status = True
+        except FileNotFoundError:
+            status = False
+        finally:
+            return status
 
     def contact_us(self):
         print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
