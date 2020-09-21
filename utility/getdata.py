@@ -131,7 +131,8 @@ class GetData(AccessData):
             return True
         elif self.check_user_local_dummy_path():
             return True
-        elif self.get_public_data():
+        elif self.check_public_server_data_path():
+            self.download_public_data()
             return True
         else:
             print('Error: No data source available!')
@@ -145,18 +146,14 @@ class GetData(AccessData):
         self.scp.get(self.server_private_path, self.user_local_data_path)
         self.disconnect()
         self.access_path = self.user_local_data_path
+        print('Private data was downloaded from private server to: ' + self.access_path)
 
-    def get_public_data(self):
+    def download_public_data(self):
         print('Attempting to download dummy data from public server: ' + self.server_public_path)
-        if self.check_public_server_data_path():
-            self.ensure_dir(self.user_local_dummy_path)
-            urllib.request.urlretrieve(self.server_public_path, self.user_local_dummy_path)
-            self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data has been downloaded to the user local directory: ' + self.user_local_dummy_path)
-            return True
-        else:
-            print('Warning: Could NOT read data from: ' + self.server_public_path)
-            return False
+        self.ensure_dir(self.user_local_dummy_path)
+        urllib.request.urlretrieve(self.server_public_path, self.user_local_dummy_path)
+        self.access_path = self.user_local_dummy_path
+        print('Warning: Dummy data has been downloaded to the user local directory: ' + self.access_path)
 
     @staticmethod
     def ensure_dir(file_path):
