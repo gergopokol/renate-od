@@ -154,6 +154,7 @@ class AccessData(object):
 
     def check_private_server_data_path(self):
         self.connect(protocol='sftp')
+        status = False
         try:
             message = self.sftp.stat(self.server_private_path)
             status = True
