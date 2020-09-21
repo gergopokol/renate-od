@@ -144,6 +144,7 @@ class GetData(AccessData):
         self.connect(protocol='scp')
         self.scp.get(self.server_private_path, self.user_local_data_path)
         self.disconnect()
+        self.access_path = self.user_local_data_path
 
     def get_public_data(self):
         print('Attempting to download dummy data from public server: ' + self.server_public_path)
