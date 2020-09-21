@@ -161,6 +161,7 @@ class AccessData(object):
         except FileNotFoundError:
             status = False
         finally:
+            self.disconnect()
             return status
 
     def contact_us(self):
