@@ -138,7 +138,8 @@ class APDGeneratorTest(NoiseBasicTestCase):
 
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
     EXPECTED_ATTRIBUTES = ['detector_temperature', 'detector_gain', 'quantum_efficiency', 'noise_index', 'bandwidth',
-                           'dark_current', 'load_resistance', 'load_capacity', 'voltage_noise', 'internal_capacity']
+                           'dark_current', 'load_resistance', 'load_capacity', 'voltage_noise', 'internal_capacity',
+                           'sampling_frequency', 'signal_to_background']
 
     def setUp(self):
         self.APD = APD(GetData(data_path_name=self.DEFAULT_APD_PATH).data)
