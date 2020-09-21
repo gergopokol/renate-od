@@ -111,11 +111,11 @@ class AccessData(object):
 
     def disconnect(self):
         if self.connection:
-            self.client.close()
             if self.communication and self.protocol == 'sftp':
                 self.sftp.close()
             if self.communication and self.protocol == 'scp':
                 self.scp.close()
+            self.client.close()
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
