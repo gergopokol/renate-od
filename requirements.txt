@@ -6,3 +6,4 @@ matplotlib==2.1.2
 lxml==4.3.4
 tables==3.4.2
 paramiko==2.4.2
+scp==0.13.2
