@@ -40,14 +40,14 @@ class PutData(AccessData):
                         self.disconnect()
             elif server_type == 'private':
                 if self.check_private_server_data_path():
-                    print('The file: ' + self.server_private_path + ' is already on the public server.')
+                    print('The file: ' + self.server_private_path + ' is already on the private server.')
                 else:
-                    self.connect(protocol='scp')
+                    self.connect(protocol='sftp')
                     try:
-                        self.scp.put(self.user_local_data_path, self.server_private_path, recursive=True)
+                        self.sftp.put(self.user_local_data_path, self.server_private_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to private server location: '
                               + self.server_private_path)
-                    except SCPException:
+                    except FileNotFoundError:
                         print('Could not put file: ' + self.user_local_data_path + ' to private server location: '
                               + self.server_private_path)
                     finally:
@@ -61,7 +61,7 @@ class PutData(AccessData):
     def delete_from_server(self, data_path, server_type='public'):
         if isinstance(data_path, str):
             self.data_path_name = data_path
-            self.path_setup()
+            self._server_path_setup(server_path=data_path)
         else:
             raise TypeError('<data_path> is expected to be of type str. '
                             'The provided data type is: '+str(type(data_path)))
@@ -70,9 +70,21 @@ class PutData(AccessData):
             raise TypeError('The requested server type is a str information. Provided data is: '+str(type(server_type)))
 
         if server_type == 'public':
-            return
+            if self.check_public_server_data_path():
+                self.connect(protocol='sftp')
+                self.sftp.remove(self.server_public_path)
+                self.disconnect()
+                print('Successfully removed: ' + self.server_public_path + ' from public server.')
+            else:
+                print('File to be deleted could not be located on public server: ' + self.server_public_path)
         elif server_type == 'private':
-            return
+            if self.check_private_server_data_path():
+                self.connect(protocol='sftp')
+                self.sftp.remove(self.server_private_path)
+                self.disconnect()
+                print('Successfully removed: ' + self.server_private_path + ' from public server.')
+            else:
+                print('File to be deleted could not be located on private server: ' + self.server_private_path)
         else:
             raise ValueError('The requested server type <'+server_type+'> from which data is to be deleted '
                                                                        'does not exist!')
