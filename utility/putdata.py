@@ -100,8 +100,25 @@ class PutData(AccessData):
             raise ValueError('The requested server type <'+server_type+'> from which data is to be deleted '
                                                                        'does not exist!')
 
-    def move_data(self, old_path, new_path):
-        pass
+    def move_data(self, old_path, new_path, data_migration='private-to-private'):
+        assert isinstance(old_path, str) and isinstance(new_path, str), 'The input data for the old and new paths ' \
+                                                                        'for the data not of <str> format.'
+        source_path, target_path = self._set_path_for_data_move(old_path, new_path, data_migration)
+
+    def _set_path_for_data_move(self, old_path, new_path, transition):
+        assert isinstance(transition, str), 'The expected input type for transition is <str>.'
+        if transition == 'private-to-private':
+            return self.server_private_access + '/' + old_path, self.server_private_access + '/' + new_path
+        elif transition == 'private-to-public':
+            return self.server_private_access + '/' + old_path, self.server_public_access + '/' + new_path
+        elif transition == 'public-to-private':
+            return self.server_public_access + '/' + old_path, self.server_private_access + '/' + new_path
+        elif transition == 'public-to-public':
+            return self.server_public_access + '/' + old_path, self.server_public_access + '/' + new_path
+        else:
+            raise ValueError('The transition type: ' + transition + ' is not supported. The following server '
+                             'transition types are: <private-to-private>, <private-to-public>, <public-to-private> '
+                                                                    'and <public-to-public>')
 
     def _ensure_dir_server(self, path):
         self.sftp.mkdir(os.path.dirname(path))
