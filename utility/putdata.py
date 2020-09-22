@@ -1,5 +1,5 @@
 from utility.accessdata import AccessData
-from scp import SCPException
+import os
 
 
 class PutData(AccessData):
@@ -26,16 +26,23 @@ class PutData(AccessData):
                                 + str(type(server_type)))
             if server_type == 'public':
                 if self.check_public_server_data_path():
-                    print('The file: ' + self.server_public_path + ' is already on the public server.')
+                    print('The file: ' + self.server_to_public_path + ' is already on the public server.')
                 else:
-                    self.connect(protocol='scp')
+                    self.connect(protocol='sftp')
                     try:
-                        self.scp.put(self.user_local_data_path, self.server_public_path, recursive=True)
+                        self.sftp.put(self.user_local_data_path, self.server_to_public_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
-                              + self.server_public_path)
-                    except SCPException:
+                              + self.server_to_public_path)
+                    except FileNotFoundError:
+                        add_server_directory = os.path.dirname(self.server_to_public_path)
+                        self.sftp.mkdir(add_server_directory)
+                        print('Created folders to place the data in.')
+                        self.sftp.put(self.user_local_data_path, self.server_to_public_path)
+                        print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
+                              + self.server_to_public_path)
+                    except:
                         print('Could not put file: ' + self.user_local_data_path + ' to public server location: '
-                              + self.server_public_path)
+                              + self.server_to_public_path)
                     finally:
                         self.disconnect()
             elif server_type == 'private':
@@ -48,6 +55,13 @@ class PutData(AccessData):
                         print('Successfully placed: ' + self.user_local_data_path + ' to private server location: '
                               + self.server_private_path)
                     except FileNotFoundError:
+                        add_server_directory = os.path.dirname(self.server_private_path)
+                        self.sftp.mkdir(add_server_directory)
+                        print('Created folders to place the data in.')
+                        self.sftp.put(self.user_local_data_path, self.server_private_path)
+                        print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
+                              + self.server_private_path)
+                    except:
                         print('Could not put file: ' + self.user_local_data_path + ' to private server location: '
                               + self.server_private_path)
                     finally:
@@ -65,7 +79,6 @@ class PutData(AccessData):
         else:
             raise TypeError('<data_path> is expected to be of type str. '
                             'The provided data type is: '+str(type(data_path)))
-
         if not isinstance(server_type, str):
             raise TypeError('The requested server type is a str information. Provided data is: '+str(type(server_type)))
 
