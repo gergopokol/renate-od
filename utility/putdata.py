@@ -34,8 +34,7 @@ class PutData(AccessData):
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
                               + self.server_to_public_path)
                     except FileNotFoundError:
-                        add_server_directory = os.path.dirname(self.server_to_public_path)
-                        self.sftp.mkdir(add_server_directory)
+                        self._ensure_dir_server(self.server_to_public_path)
                         print('Created folders to place the data in.')
                         self.sftp.put(self.user_local_data_path, self.server_to_public_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
@@ -55,8 +54,7 @@ class PutData(AccessData):
                         print('Successfully placed: ' + self.user_local_data_path + ' to private server location: '
                               + self.server_private_path)
                     except FileNotFoundError:
-                        add_server_directory = os.path.dirname(self.server_private_path)
-                        self.sftp.mkdir(add_server_directory)
+                        self._ensure_dir_server(self.server_private_path)
                         print('Created folders to place the data in.')
                         self.sftp.put(self.user_local_data_path, self.server_private_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
@@ -102,5 +100,8 @@ class PutData(AccessData):
             raise ValueError('The requested server type <'+server_type+'> from which data is to be deleted '
                                                                        'does not exist!')
 
-    def move_file(self, from_path, to_path, server_type='public'):
+    def move_data(self, old_path, new_path):
         pass
+
+    def _ensure_dir_server(self, path):
+        self.sftp.mkdir(os.path.dirname(path))
