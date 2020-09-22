@@ -76,6 +76,7 @@ class AccessData(object):
             raise TypeError('File local path input is expected to be of str type.')
         self.server_public_path = self.server_public_address + '/' + server_path
         self.server_private_path = self.server_private_access + '/' + server_path
+        self.server_to_public_path = self.server_public_access + '/' + server_path
 
     def connect(self, protocol=None):
         if self.private_key is not None:
