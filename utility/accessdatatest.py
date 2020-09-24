@@ -2,6 +2,7 @@ import os
 import unittest
 from paramiko.client import SSHClient
 from paramiko.rsakey import RSAKey
+from paramiko.sftp_client import SFTPClient
 from utility.accessdata import AccessData
 from utility.accessdata import DEFAULT_SETUP
 
@@ -67,13 +68,22 @@ class AccessDataTest(unittest.TestCase):
             self.assertIsInstance(self.access.client, SSHClient, msg='Actual connection type does not match '
                                                                      'expected connection type.')
         else:
-            self.assertIsInstance(self.access.client, None, msg='If no correct host key is provided client is '
-                                                                'expected to be <None>')
+            self.assertIs(self.access.client, None, msg='If no correct host key is provided client is '
+                                                        'expected to be <None>')
 
     def test_server_connection(self):
         if self.access.client is not None:
             self.access.connect()
             self.assertTrue(self.access.connection, msg='The SSH connection is expected to be active.')
+            self.access.disconnect()
+
+    def test_sftp_protocol(self):
+        if self.access.client is not None:
+            self.access.connect(protocol='sftp')
+            self.assertTrue(self.access.communication, msg='The communication protocol is expected to be active.')
+            self.assertEqual(self.access.protocol, 'sftp', msg='Expected protocol for server communication is <sftp>')
+            self.assertIsInstance(self.access.sftp, SFTPClient, msg='Object to instantiate <sftp> protocoll is '
+                                                                    'expected to be of SFTPClient')
             self.access.disconnect()
 
     def test_server_path_setup(self):
