@@ -104,6 +104,9 @@ class PutData(AccessData):
         assert isinstance(old_path, str) and isinstance(new_path, str), 'The input data for the old and new paths ' \
                                                                         'for the data not of <str> format.'
         source_path, target_path = self._set_path_for_data_move(old_path, new_path, data_migration)
+        self.connect(protocol='sftp')
+        self.sftp.posix_rename(source_path, target_path)
+        self.disconnect()
 
     def _set_path_for_data_move(self, old_path, new_path, transition):
         assert isinstance(transition, str), 'The expected input type for transition is <str>.'
