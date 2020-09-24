@@ -123,9 +123,16 @@ class AccessData(object):
         if self.connection:
             if self.communication and self.protocol == 'sftp':
                 self.sftp.close()
+                self.communication = False
+                self.protocol = None
             if self.communication and self.protocol == 'scp':
                 self.scp.close()
+                self.communication = False
+                self.protocol = None
             self.client.close()
+            self.connection = False
+        else:
+            print('Connection to server is already closed.')
 
     def check_user_local_dummy_path(self):
         if os.path.isfile(self.user_local_dummy_path):
