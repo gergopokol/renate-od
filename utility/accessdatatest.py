@@ -13,7 +13,8 @@ class AccessDataTest(unittest.TestCase):
     TEST_PATH = 'test_dataset/access_tests/'
     PUBLIC_TEST = 'public_test.txt'
     PRIVATE_TEST = 'private_test.txt'
-    PRIVATE_SERVES_ADDRESS = 'private_html/renate-od'
+    PRIVATE_SERVES_ACCESS = 'private_html/renate-od'
+    PUBLIC_SERVES_ACCESS = 'public_html/renate-od'
     PUBLIC_SERVER_ADDRESS = 'http://deep.reak.bme.hu/~data/renate-od'
     SERVER_ADDRESS = 'deep.reak.bme.hu'
     SERVER_USER = 'data'
@@ -27,9 +28,13 @@ class AccessDataTest(unittest.TestCase):
     def tearDown(self):
         del self.access
 
+    def test_public_server_access(self):
+        self.assertEqual(self.access.server_public_access, self.PUBLIC_SERVES_ACCESS,
+                         msg='Server public data access does not match expected server public access.')
+
     def test_private_server_address(self):
-        self.assertEqual(self.access.server_private_access, self.PRIVATE_SERVES_ADDRESS,
-                         msg='Server private data address does not match expected server private address.')
+        self.assertEqual(self.access.server_private_access, self.PRIVATE_SERVES_ACCESS,
+                         msg='Server private data access does not match expected server private access.')
 
     def test_public_server_address(self):
         self.assertEqual(self.access.server_public_address, self.PUBLIC_SERVER_ADDRESS,
