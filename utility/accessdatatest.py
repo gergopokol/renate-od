@@ -58,15 +58,23 @@ class AccessDataTest(unittest.TestCase):
             self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
                                   'default private key type.')
 
-    @unittest.skip
-    def test_server_connection(self):
+    def test_client_setup(self):
         self.assertEqual(self.access.server_address, self.SERVER_ADDRESS, msg='Actual server address does not match '
                                                                               'expected server address.')
         self.assertEqual(self.access.server_user, self.SERVER_USER, msg='Actual server user does not match expected '
                                                                         'server user.')
         if self.access.private_key is not None:
-            self.assertIsInstance(self.access.ssh_connection, SSHClient, msg='Actual connection type does not match '
-                                                                             'expected connection type.')
+            self.assertIsInstance(self.access.client, SSHClient, msg='Actual connection type does not match '
+                                                                     'expected connection type.')
+        else:
+            self.assertIsInstance(self.access.client, None, msg='If no correct host key is provided client is '
+                                                                'expected to be <None>')
+
+    def test_server_connection(self):
+        if self.access.client is not None:
+            self.access.connect()
+            self.assertTrue(self.access.connection, msg='The SSH connection is expected to be active.')
+            self.access.disconnect()
 
     def test_server_path_setup(self):
         path = self.TEST_PATH + '/' + self.PRIVATE_TEST
