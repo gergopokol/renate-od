@@ -154,19 +154,24 @@ class AccessData(object):
             print('Data is NOT present in the user local directory: ' + self.user_local_data_path)
             return False
 
-    def check_public_server_data_path(self):
-        request = urllib.request.Request(self.server_public_path)
+    def check_public_server_data_path(self, path=None):
+        if (path is not None) and isinstance(path, str):
+            request = urllib.request.Request(path)
+        else:
+            request = urllib.request.Request(self.server_public_path)
         try:
             response = urllib.request.urlopen(request)
             return True
         except urllib.error.HTTPError:
             return False
 
-    def check_private_server_data_path(self):
+    def check_private_server_data_path(self, path=None):
+        if path is None:
+            path = self.server_private_path
         self.connect(protocol='sftp')
         status = False
         try:
-            message = self.sftp.stat(self.server_private_path)
+            message = self.sftp.stat(path)
             status = True
         except FileNotFoundError:
             status = False
