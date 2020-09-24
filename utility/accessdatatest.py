@@ -1,5 +1,6 @@
 import os
 import unittest
+from scp import SCPClient
 from paramiko.client import SSHClient
 from paramiko.rsakey import RSAKey
 from paramiko.sftp_client import SFTPClient
@@ -82,8 +83,17 @@ class AccessDataTest(unittest.TestCase):
             self.access.connect(protocol='sftp')
             self.assertTrue(self.access.communication, msg='The communication protocol is expected to be active.')
             self.assertEqual(self.access.protocol, 'sftp', msg='Expected protocol for server communication is <sftp>')
-            self.assertIsInstance(self.access.sftp, SFTPClient, msg='Object to instantiate <sftp> protocoll is '
+            self.assertIsInstance(self.access.sftp, SFTPClient, msg='Object to instantiate <sftp> protocol is '
                                                                     'expected to be of SFTPClient')
+            self.access.disconnect()
+
+    def test_scp_protocol(self):
+        if self.access.client is not None:
+            self.access.connect(protocol='scp')
+            self.assertTrue(self.access.communication, msg='The communication protocol is expected to be active.')
+            self.assertEqual(self.access.protocol, 'scp', msg='Expected protocol for server communication is <scp>')
+            self.assertIsInstance(self.access.scp, SCPClient, msg='Object to instantiate <scp> protocol is '
+                                                                  'expected to be of SCPClient')
             self.access.disconnect()
 
     def test_server_path_setup(self):
