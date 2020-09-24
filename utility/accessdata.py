@@ -88,7 +88,7 @@ class AccessData(object):
         return self.server_public_access + '/' + path
 
     def connect(self, protocol=None):
-        if self.private_key is not None:
+        if self.client is not None:
             try:
                 self.client.connect(self.server_address, username=self.server_user, pkey=self.private_key)
                 self.connection = True
