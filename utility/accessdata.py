@@ -74,9 +74,18 @@ class AccessData(object):
             server_path = self.data_path_name
         elif not isinstance(server_path, str):
             raise TypeError('File local path input is expected to be of str type.')
-        self.server_public_path = self.server_public_address + '/' + server_path
-        self.server_private_path = self.server_private_access + '/' + server_path
-        self.server_to_public_path = self.server_public_access + '/' + server_path
+        self.server_public_path = self._set_public_server_path(server_path)
+        self.server_private_path = self._set_private_server_path(server_path)
+        self.server_to_public_path = self._set_public_server_access_path(server_path)
+
+    def _set_private_server_path(self, path):
+        return self.server_private_access + '/' + path
+
+    def _set_public_server_path(self, path):
+        return self.server_public_address + '/' + path
+
+    def _set_public_server_access_path(self, path):
+        return self.server_public_access + '/' + path
 
     def connect(self, protocol=None):
         if self.private_key is not None:
