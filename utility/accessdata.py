@@ -42,18 +42,23 @@ class AccessData(object):
         if self.private_key is not None:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            print('SSHClient successfully configured.')
         else:
             self.client = None
+            print('SSHClient configuration failed. No RSAKey was set.')
 
     def _set_private_key(self):
         key_path = os.path.join(os.path.dirname(__file__), '..', self.private_key_path)
         if os.path.isfile(key_path):
             try:
                 self.private_key = paramiko.RSAKey.from_private_key_file(key_path)
+                print('RSAKey successfully configured.')
             except paramiko.SSHException:
                 self.private_key = None
+                print('RSAKey configuration fail. Provided key is not compatible. Try using Open SSH key.')
         else:
             self.private_key = None
+            print('RSAKey configuration failed. No key was found.')
 
     def _path_setup(self):
         self._local_path_setup()
@@ -104,17 +109,21 @@ class AccessData(object):
                     print('Requested communication format does not exit or is not supported.')
                     self._set_no_communication()
             except paramiko.SSHException:
+                print('Connection establishment FAILED. No server connection.')
                 self.connection = False
         else:
             self.connection = False
+            print('SSH client was not configured. Connection establishment was not possible.')
 
     def _set_sftp_communication(self):
         self.sftp = self.client.open_sftp()
         self.communication = True
+        print('Successfully established SFTP communication protocol with server.')
 
     def _set_scp_communication(self):
         self.scp = SCPClient(self.client.get_transport())
         self.communication = True
+        print('Successfully established SCP communication protocol with server.')
 
     def _set_no_communication(self):
         self.communication = False
@@ -125,12 +134,15 @@ class AccessData(object):
                 self.sftp.close()
                 self.communication = False
                 self.protocol = None
+                print('Successfully terminated SFTP communication protocol with server.')
             if self.communication and self.protocol == 'scp':
                 self.scp.close()
                 self.communication = False
                 self.protocol = None
+                print('Successfully terminated SCP communication protocol with server.')
             self.client.close()
             self.connection = False
+            print('Successfully closed SSH connection to server')
         else:
             print('Connection to server is already closed.')
 
