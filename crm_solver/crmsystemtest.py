@@ -2,6 +2,7 @@ from crm_solver.beamlet import Beamlet
 from crm_solver.crmtestcase import CrmTestCase
 from copy import deepcopy
 from shutil import rmtree
+from utility.accessdata import AccessData
 import os
 
 
@@ -13,8 +14,11 @@ class CrmRegressionTest(CrmTestCase):
     def tearDown(self):
         public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
         private_folder = os.path.join(os.getcwd(), 'data', 'test_dataset')
-        rmtree(public_folder)
-        rmtree(private_folder)
+        access = AccessData(None)
+        if access.private_key is None:
+            rmtree(public_folder)
+        else:
+            rmtree(private_folder)
 
     def test_actual_to_previous_release(self):
         for test_case in self.test_cases:
@@ -42,8 +46,11 @@ class CrmAcceptanceTest(CrmTestCase):
     def tearDown(self):
         public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
         private_folder = os.path.join(os.getcwd(), 'data', 'test_dataset')
-        rmtree(public_folder)
-        rmtree(private_folder)
+        access = AccessData(None)
+        if access.private_key is None:
+            rmtree(public_folder)
+        else:
+            rmtree(private_folder)
 
     def test_actual_to_renate_idl(self):
         for test_case in self.test_cases:

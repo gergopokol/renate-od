@@ -73,7 +73,7 @@ class RenateDB:
     def __set_rates_path(self, rate_type):
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
-        self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
+        self.rates_path = 'atomic_data/'+self.species+'/rates/'+rate_type+'/'+self.file_name
 
     def __set_charge_state_lib(self):
         impact_loss = self.get_from_renate_atomic('ionization_terms')
