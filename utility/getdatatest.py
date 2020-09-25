@@ -1,6 +1,7 @@
 import os
 import unittest
 from shutil import rmtree
+from pandas.core.frame import DataFrame
 from lxml.etree import _ElementTree
 from utility.getdata import GetData
 from utility.accessdata import AccessData
@@ -52,3 +53,8 @@ class GetDataTest(unittest.TestCase):
         self.data = GetData(self.LOAD_TXT_TEST).data
         self.assertIsInstance(self.data, str, msg='The data type for loading .txt type of data is '
                                                   'expected to be of <str>')
+
+    def test_data_loader_from_h5(self):
+        self.data = GetData(self.HDF5_TEST).data
+        self.assertIsInstance(self.data, DataFrame, msg='The data type for loading .h5 data is expected '
+                                                        'to be of pandas DataFrame')
