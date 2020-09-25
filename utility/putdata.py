@@ -129,12 +129,12 @@ class PutData(AccessData):
             source = self._set_private_server_path(old_path)
             if not self.check_private_server_data_path(path=source):
                 raise FileNotFoundError('The file to be copied: ' + source + ' does not exits!')
-            target = self._set_public_server_access_path(new_path)
+            target = self._set_public_server_write_access_path(new_path)
             if self.check_private_server_data_path(path=target):
                 raise FileExistsError('The file location: ' + target + ' is occupied. New target path required!')
             return source, target
         elif transition == 'public-to-private':
-            source = self._set_public_server_access_path(old_path)
+            source = self._set_public_server_write_access_path(old_path)
             if not self.check_private_server_data_path(path=source):
                 raise FileNotFoundError('The file to be copied: ' + source + ' does not exits!')
             target = self._set_private_server_path(new_path)
@@ -142,10 +142,10 @@ class PutData(AccessData):
                 raise FileExistsError('The file location: ' + target + ' is occupied. New target path required!')
             return source, target
         elif transition == 'public-to-public':
-            source = self._set_public_server_access_path(old_path)
+            source = self._set_public_server_write_access_path(old_path)
             if not self.check_private_server_data_path(path=source):
                 raise FileNotFoundError('The file to be copied: ' + source + ' does not exits!')
-            target = self._set_public_server_access_path(new_path)
+            target = self._set_public_server_write_access_path(new_path)
             if self.check_private_server_data_path(path=target):
                 raise FileExistsError('The file location: ' + target + ' is occupied. New target path required!')
             return source, target

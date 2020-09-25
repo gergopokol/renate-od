@@ -57,32 +57,32 @@ class PutDataTest(unittest.TestCase):
                                                                      (self.PRIVATE_DOWNLOAD_TEST)),
                              msg='Test file is expected to be moved from the private data storage: ' +
                                  self.put._set_private_server_path(self.PRIVATE_DOWNLOAD_TEST))
-            self.assertTrue(self.put.check_private_server_data_path(path=self.put._set_public_server_access_path
+            self.assertTrue(self.put.check_private_server_data_path(path=self.put._set_public_server_write_access_path
                                                                     (self.UPLOAD_TEST)),
                             msg='Test file is expected to be moved to the public data storage: ' +
-                                self.put._set_public_server_access_path(self.UPLOAD_TEST))
+                                self.put._set_public_server_write_access_path(self.UPLOAD_TEST))
 
     def test_7_move_public_to_public(self):
         if self.put.private_key is not None:
             self.put.move_data(self.UPLOAD_TEST, self.PRIVATE_DOWNLOAD_TEST,
                                data_migration='public-to-public')
-            self.assertFalse(self.put.check_private_server_data_path(path=self.put._set_public_server_access_path
+            self.assertFalse(self.put.check_private_server_data_path(path=self.put._set_public_server_write_access_path
                                                                      (self.UPLOAD_TEST)),
                              msg='Test file is expected to be moved from the public data storage: ' +
-                                 self.put._set_public_server_access_path(self.UPLOAD_TEST))
-            self.assertTrue(self.put.check_private_server_data_path(path=self.put._set_public_server_access_path
+                                 self.put._set_public_server_write_access_path(self.UPLOAD_TEST))
+            self.assertTrue(self.put.check_private_server_data_path(path=self.put._set_public_server_write_access_path
                                                                     (self.PRIVATE_DOWNLOAD_TEST)),
                             msg='Test file is expected to be moved to the public data storage: ' +
-                                self.put._set_public_server_access_path(self.PRIVATE_DOWNLOAD_TEST))
+                                self.put._set_public_server_write_access_path(self.PRIVATE_DOWNLOAD_TEST))
 
     def test_8_move_public_to_private(self):
         if self.put.private_key is not None:
             self.put.move_data(self.PRIVATE_DOWNLOAD_TEST, self.UPLOAD_TEST,
                                data_migration='public-to-private')
-            self.assertFalse(self.put.check_private_server_data_path(path=self.put._set_public_server_access_path
+            self.assertFalse(self.put.check_private_server_data_path(path=self.put._set_public_server_write_access_path
                                                                      (self.PRIVATE_DOWNLOAD_TEST)),
                              msg='Test file is expected to be moved from the public data storage: ' +
-                                 self.put._set_public_server_access_path(self.PRIVATE_DOWNLOAD_TEST))
+                                 self.put._set_public_server_write_access_path(self.PRIVATE_DOWNLOAD_TEST))
             self.assertTrue(self.put.check_private_server_data_path(path=self.put._set_private_server_path
                                                                     (self.UPLOAD_TEST)),
                             msg='Test file is expected to be moved to the private data storage: ' +
