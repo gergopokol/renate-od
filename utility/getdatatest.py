@@ -1,6 +1,7 @@
 import os
 import unittest
 from shutil import rmtree
+from lxml.etree import _ElementTree
 from utility.getdata import GetData
 from utility.accessdata import AccessData
 
@@ -37,3 +38,8 @@ class GetDataTest(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(os.getcwd(), 'data', 'dummy', self.PUBLIC_DOWNLOAD_TEST)),
                         msg='The public download test case expected public test data to be downloaded in user '
                             'dummy, public data folder.')
+
+    def test_XML_data_loader(self):
+        self.data = GetData(self.PUBLIC_DOWNLOAD_TEST).data
+        self.assertIsInstance(self.data, _ElementTree, msg='The data type for loading .xml type of data is '
+                                                           'expected to be of <_ElementTree>')
