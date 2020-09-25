@@ -76,7 +76,7 @@ class AccessData(object):
             raise TypeError('File local path input is expected to be of str type.')
         self.server_public_path = self._set_public_server_path(server_path)
         self.server_private_path = self._set_private_server_path(server_path)
-        self.server_to_public_path = self._set_public_server_write_access_path(server_path)
+        self.server_public_write_access_path = self._set_public_server_write_access_path(server_path)
 
     def _set_private_server_path(self, path):
         return self.server_private_access + '/' + path

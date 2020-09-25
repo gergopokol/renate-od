@@ -26,22 +26,22 @@ class PutData(AccessData):
                                 + str(type(server_type)))
             if server_type == 'public':
                 if self.check_public_server_data_path():
-                    print('The file: ' + self.server_to_public_path + ' is already on the public server.')
+                    print('The file: ' + self.server_public_write_access_path + ' is already on the public server.')
                 else:
                     self.connect(protocol='sftp')
                     try:
-                        self.sftp.put(self.user_local_data_path, self.server_to_public_path)
+                        self.sftp.put(self.user_local_data_path, self.server_public_write_access_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
-                              + self.server_to_public_path)
+                              + self.server_public_write_access_path)
                     except FileNotFoundError:
-                        self._ensure_dir_server(self.server_to_public_path)
+                        self._ensure_dir_server(self.server_public_write_access_path)
                         print('Created folders to place the data in.')
-                        self.sftp.put(self.user_local_data_path, self.server_to_public_path)
+                        self.sftp.put(self.user_local_data_path, self.server_public_write_access_path)
                         print('Successfully placed: ' + self.user_local_data_path + ' to public server location: '
-                              + self.server_to_public_path)
+                              + self.server_public_write_access_path)
                     except:
                         print('Could not put file: ' + self.user_local_data_path + ' to public server location: '
-                              + self.server_to_public_path)
+                              + self.server_public_write_access_path)
                     finally:
                         self.disconnect()
             elif server_type == 'private':
@@ -83,7 +83,7 @@ class PutData(AccessData):
         if server_type == 'public':
             if self.check_public_server_data_path():
                 self.connect(protocol='sftp')
-                self.sftp.remove(self.server_to_public_path)
+                self.sftp.remove(self.server_public_write_access_path)
                 self.disconnect()
                 print('Successfully removed: ' + self.server_public_path + ' from public server.')
             else:

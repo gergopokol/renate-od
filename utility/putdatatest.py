@@ -38,14 +38,14 @@ class PutDataTest(unittest.TestCase):
         if self.put.private_key is not None:
             download = GetData(data_path_name=self.PRIVATE_DOWNLOAD_TEST)
             self.put.to_server(self.PRIVATE_DOWNLOAD_TEST, server_path=self.UPLOAD_TEST, server_type='public')
-            self.assertTrue(self.put.check_private_server_data_path(self.put.server_to_public_path),
+            self.assertTrue(self.put.check_private_server_data_path(self.put.server_public_write_access_path),
                             msg='Public upload test file expected to be located at: ' +
-                                self.put.server_to_public_path)
+                                self.put.server_public_write_access_path)
 
     def test_5_delete_from_public(self):
         if self.put.private_key is not None:
             self.put.delete_from_server(self.UPLOAD_TEST, server_type='public')
-            self.assertFalse(self.put.check_private_server_data_path(self.put.server_to_public_path),
+            self.assertFalse(self.put.check_private_server_data_path(self.put.server_public_write_access_path),
                              msg='Public server delete routine expected to remove test file from public server '
                                  'location: ' + self.UPLOAD_TEST)
 
