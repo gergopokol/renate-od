@@ -193,8 +193,10 @@ class AccessData(object):
         status = False
         try:
             message = self.sftp.stat(path)
+            print('Data is located on private server.')
             status = True
         except FileNotFoundError:
+            print('Failed to locate data on private server.')
             status = False
         finally:
             self.disconnect()
