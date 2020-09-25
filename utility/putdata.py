@@ -83,7 +83,7 @@ class PutData(AccessData):
         if server_type == 'public':
             if self.check_public_server_data_path():
                 self.connect(protocol='sftp')
-                self.sftp.remove(self.server_public_path)
+                self.sftp.remove(self.server_to_public_path)
                 self.disconnect()
                 print('Successfully removed: ' + self.server_public_path + ' from public server.')
             else:
