@@ -32,7 +32,7 @@ class AccessData(object):
         self.server_address = body.find('server_address').text
         self.server_user = body.find('user_name').text
         self.server_private_access = body.find('server_private_data').text
-        self.server_public_access = body.find('server_public_data').text
+        self.server_public_write_access = body.find('server_public_data').text
         self.server_public_address = body.find('server_public_address').text
         self.contact_address = body.find('contact_address').text
         self.private_key_path = body.find('private_key').text
@@ -85,7 +85,7 @@ class AccessData(object):
         return self.server_public_address + '/' + path
 
     def _set_public_server_access_path(self, path):
-        return self.server_public_access + '/' + path
+        return self.server_public_write_access + '/' + path
 
     def connect(self, protocol=None):
         if self.client is not None:

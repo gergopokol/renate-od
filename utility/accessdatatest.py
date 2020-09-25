@@ -28,8 +28,8 @@ class AccessDataTest(unittest.TestCase):
     def tearDown(self):
         del self.access
 
-    def test_public_server_access(self):
-        self.assertEqual(self.access.server_public_access, self.PUBLIC_SERVES_ACCESS,
+    def test_public_server_write_access(self):
+        self.assertEqual(self.access.server_public_write_access, self.PUBLIC_SERVES_ACCESS,
                          msg='Server public data access does not match expected server public access.')
 
     def test_private_server_address(self):
