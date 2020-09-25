@@ -25,7 +25,8 @@ class GetDataTest(unittest.TestCase):
         if os.path.isdir(private_folder):
             rmtree(private_folder)
         del self.access
-        del self.data
+        if hasattr(self, 'data'):
+            del self.data
 
     def test_parentage(self):
         self.data = GetData(self.PUBLIC_DOWNLOAD_TEST)
