@@ -180,8 +180,10 @@ class AccessData(object):
             request = urllib.request.Request(self.server_public_path)
         try:
             response = urllib.request.urlopen(request)
+            print('Data is located on public server.')
             return True
         except urllib.error.HTTPError:
+            print('Failed to locate data on public server.')
             return False
 
     def check_private_server_data_path(self, path=None):
