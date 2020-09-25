@@ -26,6 +26,10 @@ class GetDataTest(unittest.TestCase):
         del self.access
         del self.data
 
+    def test_parentage(self):
+        self.data = GetData(self.PUBLIC_DOWNLOAD_TEST)
+        self.assertIsInstance(self.data, AccessData, msg='The GetData object is expected to a child of AccessData.')
+
     def test_private_data_download(self):
         if self.access.private_key is not None:
             self.data = GetData(self.PRIVATE_DOWNLOAD_TEST)
@@ -43,3 +47,8 @@ class GetDataTest(unittest.TestCase):
         self.data = GetData(self.PUBLIC_DOWNLOAD_TEST).data
         self.assertIsInstance(self.data, _ElementTree, msg='The data type for loading .xml type of data is '
                                                            'expected to be of <_ElementTree>')
+
+    def test_str_loader_from_txt(self):
+        self.data = GetData(self.LOAD_TXT_TEST).data
+        self.assertIsInstance(self.data, str, msg='The data type for loading .txt type of data is '
+                                                  'expected to be of <str>')
