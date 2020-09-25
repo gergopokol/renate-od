@@ -12,3 +12,4 @@ script:
   - python -m unittest -v crm_solver.atomic_dbtest.RenateDBTest
   - python -m unittest -v crm_solver.coefficientmatrixtest.CoefficientMatrixTest
   - python -m unittest -v utility.accessdatatest.AccessDataTest
+  - python -m unittest -v utility.accessdatatest.GetDataTest
