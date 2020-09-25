@@ -58,8 +58,8 @@ class AccessDataTest(unittest.TestCase):
                                              'common data path.')
 
     def test_private_key(self):
-        self.assertEqual(self.access.private_key_path, self.PRIVATE_KEY, msg='The default private key path does not '
-                                                                             'match expected private key path.')
+        self.assertIsInstance(self.access.private_key_path, str, msg='The default private key path does not '
+                                                                     'match expected private key path.')
         key_path = os.path.join(os.path.dirname(__file__), '..', self.access.private_key_path)
         if os.path.isfile(key_path):
             self.assertIsInstance(self.access.private_key, RSAKey, msg='Default private key does not match expected '
