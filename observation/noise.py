@@ -119,10 +119,6 @@ class APD(Noise):
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
-    def transfer_function(self, signal, detector_gain, quantum_efficiency, load_resistance):
-        signal = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
-        return signal
-
     def add_noise_to_signal(self, signal):
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency, self.signal_to_background)
         shot_noised_signal = self.shot_noise_generator(prepared_signal, self.detector_gain, self.load_resistance,
