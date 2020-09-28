@@ -5,7 +5,7 @@ from libc.math cimport exp, sqrt, M_PI
 cimport cython
 
 from raysect.core cimport Point3D, Vector3D
-from raysect.core.math.function cimport autowrap_function1d, autowrap_function2d
+from raysect.core.math.function.vector3d cimport autowrap_function1d, autowrap_function2d
 
 from cherab.core cimport Plasma, Beam, Element, Spectrum, AtomicData
 from cherab.core.atomic import hydrogen
