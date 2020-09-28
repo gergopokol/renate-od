@@ -54,13 +54,13 @@ class Noise(RandomState):
         signal = self.normal(signal, variance)
         return signal
 
-    def johnson_noise_setup(self, detector_temperature, bandwidth, load_resistance):
+    def _johnson_noise_setup(self, detector_temperature, bandwidth, load_resistance, expected_value=0):
         variance = numpy.sqrt(4 * self.constants.Boltzmann * detector_temperature * bandwidth * load_resistance)
-        return variance
+        return expected_value, variance
 
     def johnson_noise_generator(self, signal, detector_temperature, bandwidth, load_resistance):
-        variance = self.johnson_noise_setup(detector_temperature, bandwidth, load_resistance)
-        signal = signal + self.normal(0, variance)
+        expected_value, variance = self._johnson_noise_setup(detector_temperature, bandwidth, load_resistance)
+        signal = signal + self.normal(expected_value, variance)
         return signal
 
     def voltage_noise_setup(self, voltage_noise, load_resistance, load_capacity, internal_capacity):
