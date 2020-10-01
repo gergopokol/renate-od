@@ -4,7 +4,7 @@ from utility.putdata import PutData
 from utility.getdata import GetData
 
 
-class CodeParameters(object):
+class CodeInfo(object):
     def __init__(self):
         pass
 
@@ -14,4 +14,10 @@ class CodeParameters(object):
 
 class Release(object):
     def __init__(self):
+        pass
+
+    def _execute_all_beam_evolution_benchmarks(self):
+        pass
+
+    def execute_release(self, version):
         pass
