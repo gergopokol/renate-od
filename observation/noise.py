@@ -123,13 +123,13 @@ class APD(Noise):
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency, self.signal_to_background)
         shot_noised_signal = self.shot_noise_generator(prepared_signal, self.detector_gain, self.load_resistance,
                                                        self.noise_index, self.bandwidth, self.quantum_efficiency)
-        dark_noised_signal = self.dark_noise_generator(shot_noised_signal, self.dark_current, self.bandwidth,
+        dark_noised_signal, dark_noise, dark_current = self.dark_noise_generator(shot_noised_signal, self.dark_current, self.bandwidth,
                                                        self.load_resistance)
         voltage_noised_signal = self.voltage_noise_generator(dark_noised_signal, self.voltage_noise,
                                                              self.load_resistance, self.load_capacity,self.internal_capacity)
         johnson_noised_signal = self.johnson_noise_generator(voltage_noised_signal, self.detector_temperature,
                                                              self.bandwidth, self.load_resistance)
-        return prepared_signal, shot_noised_signal, dark_noised_signal, voltage_noised_signal, johnson_noised_signal
+        return johnson_noised_signal
 
 
 class PMT(Noise):
