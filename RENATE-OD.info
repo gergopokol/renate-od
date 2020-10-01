@@ -1,0 +1,19 @@
+<xml lang="en">
+    <head>
+        <name>RENATE Open Diagnostics</name>
+        <abbreviation>renate-od</abbreviation>
+    </head>
+    <body>
+        <license>LGPL-3.0</license>
+        <version>1.2.0</version>>
+        <install_requirements>requirements.txt</install_requirements>
+        <packadge_name>renate</packadge_name>
+        <git>https://github.com/gergopokol/renate-od</git>
+    </body>
+    <classifiers>
+        <audience>Intended Audience :: Science/Research</audience>
+        <natural_language>Natural Language :: English</natural_language>
+        <programming_language>Programming Language :: Python :: 3</programming_language>
+        <topic>"Topic :: Scientific/Engineering :: Physics"</topic>
+    </classifiers>
+</xml>
