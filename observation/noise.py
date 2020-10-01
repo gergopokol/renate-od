@@ -129,7 +129,7 @@ class APD(Noise):
                                                              self.load_resistance, self.load_capacity,self.internal_capacity)
         johnson_noised_signal = self.johnson_noise_generator(voltage_noised_signal, self.detector_temperature,
                                                              self.bandwidth, self.load_resistance)
-        return johnson_noised_signal
+        return prepared_signal, shot_noised_signal, dark_noised_signal, voltage_noised_signal, johnson_noised_signal
 
 
 class PMT(Noise):
