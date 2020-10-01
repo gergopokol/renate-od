@@ -5,6 +5,7 @@ from utility.writedata import WriteData
 from utility.putdata import PutData
 from utility.getdata import GetData
 from utility.accessdata import AccessData
+from utility.exceptions import RenateAuthorizedUserError
 
 
 class CodeInfo(object):
@@ -35,7 +36,10 @@ class CodeInfo(object):
             self.authorization = True
 
     def update_data(self, attribute, value):
-        pass
+        if self.authorization:
+            pass
+        else:
+            raise RenateAuthorizedUserError('You are not an authorized user to perform changes on Code information!')
 
 
 class Release(object):
