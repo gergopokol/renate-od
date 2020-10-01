@@ -122,7 +122,7 @@ class APD(Noise):
     def add_noise_to_signal(self, signal):
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency, self.signal_to_background)
         shot_noised_signal = self.shot_noise_generator(prepared_signal, self.detector_gain, self.load_resistance,
-                                                       self.noise_index, self.bandwidth)
+                                                       self.noise_index, self.bandwidth, self.quantum_efficiency)
         dark_noised_signal = self.dark_noise_generator(shot_noised_signal, self.dark_current, self.bandwidth,
                                                        self.load_resistance)
         voltage_noised_signal = self.voltage_noise_generator(dark_noised_signal, self.voltage_noise,
