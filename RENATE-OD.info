@@ -7,7 +7,7 @@
         <license>LGPL-3.0</license>
         <version>1.2.0</version>>
         <install_requirements>requirements.txt</install_requirements>
-        <packadge_name>renate</packadge_name>
+        <package_name>renate</package_name>
         <git>https://github.com/gergopokol/renate-od</git>
     </body>
     <classifiers>
