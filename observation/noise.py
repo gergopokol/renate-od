@@ -51,7 +51,7 @@ class Noise(RandomState):
     def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth, quantum_efficiency,
                           expected_value=0):
         variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
-                                          detector_gain ^ noise_index * bandwidth) * load_resistance * numpy.sqrt(
+                                          numpy.power(detector_gain, noise_index) * bandwidth) * load_resistance * numpy.sqrt(
             signal))
         expected_value = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
         return expected_value, variance
