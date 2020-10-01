@@ -36,8 +36,14 @@ class CodeInfo(object):
             self.authorization = True
 
     def update_data(self, attribute, value):
+        if not isinstance(attribute, str):
+            raise TypeError('The <attribute> input is expected to be a str.')
         if self.authorization:
-            pass
+            if hasattr(self, attribute):
+                setattr(self, 'old_'+attribute, getattr(self, attribute))
+                setattr(self, attribute, value)
+            else:
+                raise AttributeError('The CodeInfo object has no attribute: ' + attribute)
         else:
             raise RenateAuthorizedUserError('You are not an authorized user to perform changes on Code information!')
 
