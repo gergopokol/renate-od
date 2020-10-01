@@ -8,6 +8,46 @@ from utility.accessdata import AccessData
 from utility.exceptions import RenateAuthorizedUserError
 
 
+class Version(object):
+    def __init__(self, value):
+        if not isinstance(value, str):
+            raise TypeError('The expected variable type for Version control is str.')
+        version = value.split(sep='.')
+        if not version.__len__() == 3:
+            raise ValueError('The expected data value is point delimited with 3 expressions. Ex: 1.1.0 ')
+        for val in version:
+            assert isinstance(int(val), int), 'Delimited values are expected to be convertible to <int>.'
+        self.major_version = int(version[0])
+        self.minor_version = int(version[1])
+        self.bugfix_version = int(version[2])
+        self.version = version
+
+    def __repr__(self):
+        return 'Version: ' + self.version[0] + '.' + self.version[1] + '.' + self.version[2]
+
+    def __eq__(self, other):
+        return (self.major_version == other.major_version) and (self.minor_version == other.minor_version) and \
+               (self.bugfix_version == other.bugfix_version)
+
+    def __lt__(self, other):
+        for i in range(self.version.__len__()):
+            if self.version[i] < other.version[i]:
+                return True
+            elif self.version[i] < other.version[i]:
+                return False
+            elif i+1 == self.version.__len__():
+                return False
+
+    def __gt__(self, other):
+        for i in range(self.version.__len__()):
+            if self.version[i] > other.version[i]:
+                return True
+            elif self.version[i] < other.version[i]:
+                return False
+            elif i+1 == self.version.__len__():
+                return False
+
+
 class CodeInfo(object):
     def __init__(self):
         self.code_info_path = os.path.join(os.path.dirname(__file__), '..', 'RENATE-OD.info')
