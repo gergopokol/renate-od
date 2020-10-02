@@ -90,10 +90,11 @@ class CodeInfo(object):
 
 class Release(object):
     def __init__(self):
-        pass
+        self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
 
     def _execute_all_beam_evolution_benchmarks(self):
-        pass
+        for test_case in self.test_cases:
+            test_path = 'test_dataset/crm_systemtests/actual/' + test_case + '.xml'
 
     def execute_release(self, version):
         pass
