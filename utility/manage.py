@@ -29,6 +29,10 @@ class Version(object):
         return (self.major_version == other.major_version) and (self.minor_version == other.minor_version) and \
                (self.bugfix_version == other.bugfix_version)
 
+    def __ne__(self, other):
+        return (self.major_version != other.major_version) or (self.minor_version != other.minor_version) or \
+               (self.bugfix_version != other.bugfix_version)
+
     def __lt__(self, other):
         for i in range(self.version.__len__()):
             if self.version[i] < other.version[i]:
@@ -46,6 +50,22 @@ class Version(object):
                 return False
             elif i+1 == self.version.__len__():
                 return False
+
+    def release_major_version(self):
+        self.major_version += 1
+        self.minor_version = 0
+        self.bugfix_version = 0
+        self.version = [str(self.major_version), str(self.minor_version), str(self.bugfix_version)]
+
+    def release_minor_version(self):
+        self.minor_version += 1
+        self.bugfix_version = 0
+        self.version[1] = str(self.minor_version)
+        self.version[2] = str(self.bugfix_version)
+
+    def release_bugfix_version(self):
+        self.bugfix_version += 1
+        self.version[2] = str(self.bugfix_version)
 
 
 class CodeInfo(object):
