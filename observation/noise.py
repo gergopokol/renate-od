@@ -128,22 +128,25 @@ class APD(Noise):
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def add_noise_to_signal(self, signal):
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency, self.signal_to_background)
-        detector_voltage = self.detector_transfer(prepared_signal, self.detector_gain, self.quantum_efficiency,
+        size = self.signal_size(signal)
+        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        background = self.background_noise_generator(prepared_signal, self.signal_to_background)
+        background_noised_signal = signal + background
+        detector_voltage = self.detector_transfer(background_noised_signal, self.detector_gain, self.quantum_efficiency,
                                                   self.load_resistance)
-        shot_noised_signal = self.shot_noise_generator(prepared_signal, self.detector_gain, self.load_resistance,
+        shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
                                                        self.noise_index, self.bandwidth, self.quantum_efficiency)
         shot_noise = shot_noised_signal - detector_voltage
-        dark_noise = self.dark_noise_generator(shot_noised_signal, self.dark_current, self.bandwidth,
-                                                       self.load_resistance)
+        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth,
+                                                       self.load_resistance, size)
         dark_noised_signal = shot_noised_signal + dark_noise
-        voltage_noise = self.voltage_noise_generator(dark_noised_signal, self.voltage_noise,
-                                                             self.load_resistance, self.load_capacity,self.internal_capacity)
+        voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
+                                                     self.load_capacity,self.internal_capacity, size)
         voltage_noised_signal = dark_noised_signal + voltage_noise
-        johnson_noise = self.johnson_noise_generator(voltage_noised_signal, self.detector_temperature,
-                                                             self.bandwidth, self.load_resistance)
+        johnson_noise = self.johnson_noise_generator(self.detector_temperature,
+                                                             self.bandwidth, self.load_resistance, size)
         johnson_noised_signal = voltage_noised_signal + johnson_noise
-        return johnson_noised_signal
+        return johnson_noised_signal, johnson_noise, voltage_noise, dark_noise, shot_noise, size
 
 
 class PMT(Noise):
