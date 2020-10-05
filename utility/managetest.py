@@ -95,8 +95,29 @@ class VersionTest(TestCase):
 
 class CodeInfoTest(TestCase):
 
+    EXPECTED_ATTRIBUTES = ['code_name', 'code_abbreviation', 'code_license', 'code_version',
+                           'code_install_requirements_path', 'code_package', 'code_git_link',
+                           'classifiers', 'code_requirements']
+
     def setUp(self):
         self.info = CodeInfo()
 
     def tearDown(self):
         del self.info
+
+    def test_expected_attributes(self):
+        for attribute in self.EXPECTED_ATTRIBUTES:
+            self.assertTrue(hasattr(self.info, attribute), msg='CodeInfo object is expected to '
+                                                               'have attribute: ' + attribute)
+
+    def test_classifiers(self):
+        self.assertIsInstance(self.info.classifiers, list, msg='Classifiers attribute is '
+                                                               'expected to be of <list> type.')
+
+    def test_code_requirements(self):
+        self.assertIsInstance(self.info.code_requirements, dict, msg='Code requirements attribute is expected '
+                                                                     'to be of <dict> type.')
+
+    def test_code_version(self):
+        self.assertIsInstance(self.info.code_version, Version, msg='Code version attribute is expected to be '
+                                                                   'of <utility.manage.Version> type.')
