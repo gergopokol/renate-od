@@ -7,7 +7,7 @@
         <code_license>LGPL-3.0</code_license>
         <code_version>1.2.0</code_version>>
         <code_install_requirement>requirements.txt</code_install_requirement>
-        <code_packagee>renate</code_packagee>
+        <code_package>renate</code_package>
         <code_git_link>https://github.com/gergopokol/renate-od.git</code_git_link>
         <classifier_audience>Intended Audience :: Science/Research</classifier_audience>
         <classifier_natural_language>Natural Language :: English</classifier_natural_language>
