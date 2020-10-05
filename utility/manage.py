@@ -51,6 +51,9 @@ class Version(object):
             elif i+1 == self.version.__len__():
                 return False
 
+    def __str__(self):
+        return self.version[0] + '.' + self.version[1] + '.' + self.version[2]
+
     def release_major_version(self):
         self.major_version += 1
         self.minor_version = 0
@@ -79,7 +82,7 @@ class CodeInfo(object):
         self.code_name = code_info_tree.find('head').find('code_name').text
         self.code_abbreviation = code_info_tree.find('head').find('code_abbreviation').text
         self.code_license = code_info_tree.find('body').find('code_license').text
-        self.code_version = code_info_tree.find('body').find('code_version').text
+        self.code_version = Version(code_info_tree.find('body').find('code_version').text)
         self.code_install_requirements = code_info_tree.find('body').find('code_install_requirement').text
         self.code_package = code_info_tree.find('body').find('code_package').text
         self.code_git_link = code_info_tree.find('body').find('code_git_link').text
