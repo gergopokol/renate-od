@@ -79,24 +79,23 @@ class CodeInfo(object):
         self._check_authorised_user()
 
     def _load_code_info(self):
-        code_info_tree = etree.parse(self.code_info_path)
-        self.code_name = code_info_tree.find('head').find('code_name').text
-        self.code_abbreviation = code_info_tree.find('head').find('code_abbreviation').text
-        self.code_license = code_info_tree.find('body').find('code_license').text
-        self.code_version = Version(code_info_tree.find('body').find('code_version').text)
-        self.code_install_requirements_path = code_info_tree.find('body').find('code_install_requirement').text
-        self.code_package = code_info_tree.find('body').find('code_package').text
-        self.code_git_link = code_info_tree.find('body').find('code_git_link').text
+        self.code_info_tree = etree.parse(self.code_info_path)
+        self.code_name = self.code_info_tree.find('head').find('code_name').text
+        self.code_abbreviation = self.code_info_tree.find('head').find('code_abbreviation').text
+        self.code_license = self.code_info_tree.find('body').find('code_license').text
+        self.code_version = Version(self.code_info_tree.find('body').find('code_version').text)
+        self.code_install_requirements_path = self.code_info_tree.find('body').find('code_install_requirement').text
+        self.code_package = self.code_info_tree.find('body').find('code_package').text
+        self.code_git_link = self.code_info_tree.find('body').find('code_git_link').text
         self._load_classifiers()
         self._load_install_requirements()
 
     def _load_classifiers(self):
-        code_info_tree = etree.parse(self.code_info_path)
         list_of_classifiers = ['classifier_audience', 'classifier_natural_language',
                                'classifier_programming_language', 'classifier_topic']
         self.classifiers = []
         for classifier in list_of_classifiers:
-            self.classifiers.append(code_info_tree.find('body').find(classifier).text)
+            self.classifiers.append(self.code_info_tree.find('body').find(classifier).text)
 
     def _load_install_requirements(self):
         requirements_path = os.path.join(os.path.dirname(__file__), '..', self.code_install_requirements_path)
@@ -120,8 +119,11 @@ class CodeInfo(object):
             raise TypeError('The <attribute> input is expected to be a str.')
         if self.authorization:
             if hasattr(self, attribute):
-                setattr(self, 'old_'+attribute, getattr(self, attribute))
                 setattr(self, attribute, value)
+                self.code_info_tree.find('body').find(attribute).text = value
+                self.code_info_tree.write(self.code_info_path)
+                print('Updates XML file by rewriting: ' + attribute + ' with: ' + value)
+                return True
             else:
                 raise AttributeError('The CodeInfo object has no attribute: ' + attribute)
         else:
