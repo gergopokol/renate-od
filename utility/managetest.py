@@ -55,6 +55,9 @@ class VersionTest(TestCase):
             reference = Version(case)
             self.assertFalse(self.version < reference, msg='Object: %s is expected not to be less then %s' %
                                                            (safe_repr(self.version), safe_repr(reference)))
+            
+    def test_str_converion(self):
+        self.assertIsInstance(str(self.version), str, msg='The Version class is expected to be str convertible.')
 
     def test_major_release(self):
         self.version.release_major_version()
