@@ -1,5 +1,6 @@
 from unittest import TestCase
 from utility.manage import Version
+from utility.manage import CodeInfo
 from unittest.util import safe_repr
 
 
@@ -87,3 +88,12 @@ class VersionTest(TestCase):
                         self.version.bugfix_version == self.BUGFIX_RELEASE_TEST[2],
                         msg='Major release of object %s is expected to be %s.' %
                             (safe_repr(self.version), safe_repr(expected_reference)))
+
+
+class CodeInfoTest(TestCase):
+
+    def setUp(self):
+        self.info = CodeInfo()
+
+    def tearDown(self):
+        del self.info
