@@ -76,17 +76,22 @@ class CodeInfo(object):
 
     def _load_code_info(self):
         code_info_tree = etree.parse(self.code_info_path)
-        self.code_name = code_info_tree.find('head').find('name').text
-        self.code_abbr = code_info_tree.find('head').find('abbreviation').text
-        self.code_license = code_info_tree.find('body').find('license').text
-        self.code_version = code_info_tree.find('body').find('version').text
-        self.code_install_requirements = code_info_tree.find('body').find('install_requirements').text
-        self.code_package = code_info_tree.find('body').find('package_name').text
-        self.code_git_link = code_info_tree.find('body').find('git').text
-        self.classifier_audience = code_info_tree.find('classifiers').find('audience').text
-        self.classifier_natural_language = code_info_tree.find('classifiers').find('natural_language').text
-        self.classifier_programming_language = code_info_tree.find('classifiers').find('programming_language').text
-        self.classifier_topic = code_info_tree.find('classifiers').find('topic').text
+        self.code_name = code_info_tree.find('head').find('code_name').text
+        self.code_abbreviation = code_info_tree.find('head').find('code_abbreviation').text
+        self.code_license = code_info_tree.find('body').find('code_license').text
+        self.code_version = code_info_tree.find('body').find('code_version').text
+        self.code_install_requirements = code_info_tree.find('body').find('code_install_requirement').text
+        self.code_package = code_info_tree.find('body').find('code_package').text
+        self.code_git_link = code_info_tree.find('body').find('code_git_link').text
+        self._load_classifiers()
+
+    def _load_classifiers(self):
+        code_info_tree = etree.parse(self.code_info_path)
+        list_of_classifiers = ['classifier_audience', 'classifier_natural_language',
+                               'classifier_programming_language', 'classifier_topic']
+        self.classifiers = []
+        for classifier in list_of_classifiers:
+            self.classifiers.append(code_info_tree.find('body').find(classifier).text)
 
     def _check_authorised_user(self):
         access = AccessData(data_path_name=None)
