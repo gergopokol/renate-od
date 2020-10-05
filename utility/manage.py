@@ -1,4 +1,5 @@
 import os
+import re
 from lxml import etree
 from crm_solver.beamlet import Beamlet
 from utility.writedata import WriteData
@@ -83,10 +84,11 @@ class CodeInfo(object):
         self.code_abbreviation = code_info_tree.find('head').find('code_abbreviation').text
         self.code_license = code_info_tree.find('body').find('code_license').text
         self.code_version = Version(code_info_tree.find('body').find('code_version').text)
-        self.code_install_requirements = code_info_tree.find('body').find('code_install_requirement').text
+        self.code_install_requirements_path = code_info_tree.find('body').find('code_install_requirement').text
         self.code_package = code_info_tree.find('body').find('code_package').text
         self.code_git_link = code_info_tree.find('body').find('code_git_link').text
         self._load_classifiers()
+        self._load_install_requirements()
 
     def _load_classifiers(self):
         code_info_tree = etree.parse(self.code_info_path)
@@ -95,6 +97,16 @@ class CodeInfo(object):
         self.classifiers = []
         for classifier in list_of_classifiers:
             self.classifiers.append(code_info_tree.find('body').find(classifier).text)
+
+    def _load_install_requirements(self):
+        requirements_path = os.path.join(os.path.dirname(__file__), '..', self.code_install_requirements_path)
+        self.code_requirements = {}
+        with open(requirements_path) as requirements_file:
+            lines = requirements_file.readlines()
+
+            for line in lines:
+                line_content = re.split('==|<=|>=', line)
+                self.code_requirements.update({line_content[0]: Version(line_content[1])})
 
     def _check_authorised_user(self):
         access = AccessData(data_path_name=None)
