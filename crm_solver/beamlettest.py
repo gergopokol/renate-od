@@ -146,12 +146,13 @@ class BeamletTest(unittest.TestCase):
     def test_emission_calculator(self):
         self.beamlet.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[0],
                                                      from_level=self.INPUT_TRANSITION[1])
-        self.assertEqual(self.beamlet.profiles.keys()[-1][0], self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0],
+        self.assertEqual(self.beamlet.profiles.keys()[-1][0],
+                         self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0],
                          msg='Beam emission calculation key mismatch within pandas data frame.')
-        self.assertIsInstance(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]],
+        self.assertIsInstance(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0]],
                               pandas.core.series.Series, msg='Beam emission output expected to '
                                                              'be stored in pandas series.')
-        self.assertEqual(len(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]]),
+        self.assertEqual(len(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0]]),
                          self.EXPECTED_PROFILES_LENGTH, msg='Beam emission calculation is expected to be returned '
                                                             'on the input grid.')
         test = self.beamlet.profiles['level '+self.INPUT_TRANSITION[1]] * self.beamlet.atomic_db.spontaneous_trans[
@@ -159,7 +160,7 @@ class BeamletTest(unittest.TestCase):
             self.beamlet.atomic_db.atomic_dict[self.INPUT_TRANSITION[1]]]
         for index in range(len(test)):
             self.assertEqual(test[index], self.beamlet.profiles[self.INPUT_TRANSITION[1]
-                             + '-' + self.INPUT_TRANSITION[0]][index],
+                             + '-->' + self.INPUT_TRANSITION[0]][index],
                              msg='Beam emission calculation fails for test case.')
 
     def test_relative_population_calculator(self):
