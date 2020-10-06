@@ -124,7 +124,7 @@ class Beamlet:
         self._purge_data(self.profiles.filter(like='rel.pop', axis=1))
         self._purge_data(self.profiles.filter(like='linear', axis=1))
         for key in self.atomic_db.atomic_dict.keys():
-            self._purge_data(self.profiles.filter(like=key, axis=1))
+            self._purge_data(self.profiles.filter(like=str(key)+'-', axis=1))
 
     def _purge_data(self, labels):
         try:
