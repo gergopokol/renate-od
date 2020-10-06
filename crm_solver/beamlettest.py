@@ -179,7 +179,7 @@ class BeamletTest(unittest.TestCase):
                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
                                     msg='Values on comparative levels are expected to be less than 1.')
 
-    def test_beamlet_copy(self):
+    def test_beamlet_pandas_copy(self):
         actual = self.beamlet.copy(object_copy='full')
         self.assertTupleEqual(actual.components.shape, self.beamlet.components.shape,
                               msg='Actual and copy Beamlet object components are expected to have same shape.')
@@ -192,5 +192,15 @@ class BeamletTest(unittest.TestCase):
         self.assertTrue(logic_profiles.values.all(), msg='Content of actual and reference Beamlet profiles '
                                                          'objects is required to be equal.')
 
-    def test_beamlet_copy_without_results(self):
+    def test_beamlet_pandas_copy_without_results(self):
         actual = self.beamlet.copy(object_copy='without-results')
+        self.assertTupleEqual(actual.components.shape, self.beamlet.components.shape,
+                              msg='Copy and Actual Beamlet object components are expected to have same shape.')
+        logic_components = actual.components == self.beamlet.components
+        self.assertTrue(logic_components.values.all(), msg='Content of Copy and Actual Beamlet components '
+                                                           'objects is required to be equal.')
+        self.assertEqual(actual.profiles.shape[0], self.beamlet.profiles.shape[0],
+                         msg='Copy and Actual of Beamlet profiles are expected to have the same number of elements.')
+        self.assertEqual(actual.profiles.shape[1], self.beamlet.profiles.shape[1]-self.beamlet.atomic_db.atomic_levels,
+                         msg='Copy of Actual Beamlet object profiles is expected to have nr of atomic levels: ' +
+                             str(self.beamlet.atomic_db.atomic_levels) + ' less columns.')
