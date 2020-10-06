@@ -121,13 +121,17 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
-    def copy(self, data='all'):
-        if data == 'all':
+    def copy(self, object_copy='full'):
+        if not isinstance(object_copy, str):
+            raise TypeError('The expected data type for <object_copy> is str.')
+        if object_copy == 'full':
             return deepcopy(self)
-        elif data == 'input':
+        elif object_copy == 'without-results':
             beamlet = deepcopy(self)
             beamlet.profiles = self._copy_profiles_input()
             return beamlet
+        else:
+            raise ValueError('The <object_copy> variable does not support ' + object_copy)
 
     def _copy_profiles_input(self):
         profiles = numpy.zeros((1 + len(self.components) * 2, len(self.profiles)))
