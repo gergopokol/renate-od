@@ -179,8 +179,18 @@ class BeamletTest(unittest.TestCase):
                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
                                     msg='Values on comparative levels are expected to be less than 1.')
 
-    def test_beamlet_deep_copy(self):
+    def test_beamlet_copy(self):
         actual = self.beamlet.copy(object_copy='full')
+        self.assertTupleEqual(actual.components.shape, self.beamlet.components.shape,
+                              msg='Actual and copy Beamlet object components are expected to have same shape.')
+        logic_components = actual.components == self.beamlet.components
+        self.assertTrue(logic_components.values.all(), msg='Content of actual and reference Beamlet components '
+                                                           'objects is required to be equal.')
+        self.assertTupleEqual(actual.profiles.shape, self.beamlet.profiles.shape,
+                              msg='Actual and copy Beamlet object profiles are expected to have the same shape.')
+        logic_profiles = actual.profiles == self.beamlet.profiles
+        self.assertTrue(logic_profiles.values.all(), msg='Content of actual and reference Beamlet profiles '
+                                                         'objects is required to be equal.')
 
     def test_beamlet_copy_without_results(self):
         actual = self.beamlet.copy(object_copy='without-results')
