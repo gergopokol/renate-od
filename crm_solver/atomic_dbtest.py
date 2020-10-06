@@ -24,12 +24,12 @@ class RenateDBTest(unittest.TestCase):
     EXPECTED_MASS_CORRECTION_DICT = {'charge-1': 1, 'charge-2': 4, 'charge-3': 7, 'charge-4': 9, 'charge-5': 11,
                                      'charge-6': 12, 'charge-7': 14, 'charge-8': 16, 'charge-9': 19, 'charge-10': 20,
                                      'charge-11': 23}
-    EXPECTED_DEFAULT_ATOMIC_STATES = [['1', '0', '0', '1-0'],
-                                      ['2p', '2s', '2s', '2p-2s'],
-                                      ['3p', '3s', '3s', '3p-3s'],
-                                      ['3n', '2n', '1n', '3n-2n'],
-                                      ['3n', '2n', '1n', '3n-2n'],
-                                      ['3n', '2n', '1n', '3n-2n']]
+    EXPECTED_DEFAULT_ATOMIC_STATES = [['1', '0', '0', '1-->0'],
+                                      ['2p', '2s', '2s', '2p-->2s'],
+                                      ['3p', '3s', '3s', '3p-->3s'],
+                                      ['3n', '2n', '1n', '3n-->2n'],
+                                      ['3n', '2n', '1n', '3n-->2n'],
+                                      ['3n', '2n', '1n', '3n-->2n']]
     EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DIMENSION_1 = 1
     EXPECTED_DIMENSION_2 = 2
