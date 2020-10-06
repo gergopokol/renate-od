@@ -118,3 +118,16 @@ class Beamlet:
                     self.profiles['level ' + reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
+
+    def _remove_calculations(self):
+        self._purge_data(self.profiles.filter(like='level', axis=1))
+        self._purge_data(self.profiles.filter(like='rel.pop', axis=1))
+        self._purge_data(self.profiles.filter(like='linear', axis=1))
+        for key in self.atomic_db.atomic_dict.keys():
+            self._purge_data(self.profiles.filter(like=key, axis=1))
+
+    def _purge_data(self, labels):
+        try:
+            self.profiles = self.profiles.drop(labels, axis=1)
+        except KeyError:
+            print('Requested data key is does not exist.')
