@@ -204,3 +204,5 @@ class BeamletTest(unittest.TestCase):
         self.assertEqual(actual.profiles.shape[1], self.beamlet.profiles.shape[1]-self.beamlet.atomic_db.atomic_levels,
                          msg='Copy of Actual Beamlet object profiles is expected to have nr of atomic levels: ' +
                              str(self.beamlet.atomic_db.atomic_levels) + ' less columns.')
+        self.assertEqual(actual.profiles.filter(like='level').shape[1], 0,
+                         msg='The copy without results is expected NOT to contain any columns labeled <level>.')
