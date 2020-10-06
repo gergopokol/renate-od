@@ -56,7 +56,7 @@ class CrmAcceptanceTest(CrmTestCase):
         for test_case in self.test_cases:
             path = 'test_dataset/crm_systemtests/archive/renate_idl/'+test_case+'.xml'
             reference = Beamlet(data_path=path, solver='disregard')
-            actual_source = deepcopy(reference)
+            actual_source = reference.copy(object_copy='without-results')
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
                              components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
             msg = 'Failure for following test case: '+test_case+'\n'
