@@ -93,7 +93,7 @@ class Beamlet:
                             'Bundled-n for H,D,T beam species ex:[1, 2, ... 6]. '
                             'l-n resolved labels for Li ex: [2s, 2p, ... 4f] and Na ex: [3s, 3p, ... 5s]')
         if self.__was_beamevolution_performed():
-            transition_label = from_level + '-' + to_level
+            transition_label = from_level + '-->' + to_level
             self.profiles[transition_label] = \
                 self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[self.atomic_db.atomic_dict
                                                                                       [to_level], self.atomic_db.atomic_dict[from_level]]
