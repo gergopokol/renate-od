@@ -88,13 +88,13 @@ class RenateDB:
 
     def set_default_atomic_levels(self):
         if self.species in ['H', 'D', 'T']:
-            return '3n', '2n', '1n', '3n-2n'
+            return '3n', '2n', '1n', '3n-->2n'
         elif self.species == 'Li':
-            return '2p', '2s', '2s', '2p-2s'
+            return '2p', '2s', '2s', '2p-->2s'
         elif self.species == 'Na':
-            return '3p', '3s', '3s', '3p-3s'
+            return '3p', '3s', '3s', '3p-->3s'
         elif self.species == 'dummy':
-            return '1', '0', '0', '1-0'
+            return '1', '0', '0', '1-->0'
         else:
             raise ValueError('The atomic species: ' + self.species + ' is not supported')
 
