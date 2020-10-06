@@ -177,3 +177,13 @@ class BeamletTest(unittest.TestCase):
                     self.assertLess(self.beamlet.profiles['rel.pop ' +
                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
                                     msg='Values on comparative levels are expected to be less than 1.')
+
+    @unittest.skip('Skipping for the moment.')
+    def test_beamlet_data_purge(self):
+        self.beamlet.compute_relative_populations()
+        self.beamlet.compute_linear_emission_density()
+        self.beamlet.compute_linear_density_attenuation()
+        reference_shape = self.beamlet.profiles.shape
+        self.beamlet._remove_calculations()
+        actual_shape = self.beamlet.profiles.shape
+        self.assertEqual()
