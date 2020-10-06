@@ -57,7 +57,7 @@ class RenateDB:
         if self.species not in ['H', 'D', 'T', 'Li', 'Na', 'dummy']:
             raise Exception(self.species + ' beam atomic data not supported')
         if self.species in ['H', 'D', 'T']:
-            self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
+            self.atomic_dict = {'1n': 0, '2n': 1, '3n': 2, '4n': 3, '5n': 4, '6n': 5}
             self.atomic_levels = 6
         if self.species == 'Li':
             self.atomic_dict = {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8}
@@ -88,7 +88,7 @@ class RenateDB:
 
     def set_default_atomic_levels(self):
         if self.species in ['H', 'D', 'T']:
-            return '3', '2', '1', '3-2'
+            return '3n', '2n', '1n', '3n-2n'
         elif self.species == 'Li':
             return '2p', '2s', '2s', '2p-2s'
         elif self.species == 'Na':
