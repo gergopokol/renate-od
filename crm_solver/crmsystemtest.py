@@ -24,13 +24,16 @@ class CrmRegressionTest(CrmTestCase):
         for test_case in self.test_cases:
             path = 'test_dataset/crm_systemtests/actual/'+test_case+'.xml'
             reference = Beamlet(data_path=path, solver='disregard')
-            actual_source = deepcopy(reference)
+            actual_source = reference.copy(object_copy='without-results')
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
                              components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
             msg = 'Failure for following test case: '+test_case+'\n'
             self.assertAlmostEqualRateEvolution(actual, reference, msg=msg)
+            actual.compute_linear_density_attenuation()
             self.assertAlmostEqualBeamAttenuation(actual, reference, msg=msg)
+            actual.compute_linear_emission_density()
             self.assertAlmostEqualEmissionDensity(actual, reference, msg=msg)
+            actual.compute_relative_populations()
             self.assertAlmostEqualRelativePopulation(actual, reference, msg=msg)
 
 
