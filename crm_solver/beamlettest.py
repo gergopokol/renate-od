@@ -180,7 +180,7 @@ class BeamletTest(unittest.TestCase):
                                     msg='Values on comparative levels are expected to be less than 1.')
 
     def test_beamlet_deep_copy(self):
-        pass
+        actual = self.beamlet.copy(object_copy='full')
 
     def test_beamlet_copy_without_results(self):
-        pass
+        actual = self.beamlet.copy(object_copy='without-results')
