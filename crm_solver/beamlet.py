@@ -1,6 +1,8 @@
 import utility
 from utility.constants import Constants
 import pandas
+import numpy
+from copy import deepcopy
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
@@ -119,15 +121,41 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
-    def _remove_calculations(self):
-        self._purge_data(self.profiles.filter(like='level', axis=1))
-        self._purge_data(self.profiles.filter(like='rel.pop', axis=1))
-        self._purge_data(self.profiles.filter(like='linear', axis=1))
-        for key in self.atomic_db.atomic_dict.keys():
-            self._purge_data(self.profiles.filter(like=str(key)+'-', axis=1))
+    def copy(self, data='all'):
+        if data == 'all':
+            return deepcopy(self)
+        elif data == 'input':
+            beamlet = deepcopy(self)
+            beamlet.profiles = self._copy_profiles_input()
+            return beamlet
 
-    def _purge_data(self, labels):
-        try:
-            self.profiles = self.profiles.drop(labels, axis=1)
-        except KeyError:
-            print('Requested data key is does not exist.')
+    def _copy_profiles_input(self):
+        profiles = numpy.zeros((1 + len(self.components) * 2, len(self.profiles)))
+        type_labels = []
+        property_labels = []
+        unit_labels = []
+
+        profiles[0, :] = self.profiles['beamlet grid']['distance']['m']
+        type_labels.append('beamlet grid')
+        property_labels.append('distance')
+        unit_labels.append('m')
+        count = 1
+
+        for component in self.components.T:
+            type_labels.append(str(component))
+            property_labels.append('density')
+            unit_labels.append('m-3')
+            profiles[count, :] = self.profiles[str(component)]['density']['m-3']
+
+            type_labels.append(str(component))
+            property_labels.append('temperature')
+            unit_labels.append('eV')
+            profiles[count+1, :] = self.profiles[str(component)]['temperature']['eV']
+
+            count += 2
+
+        profiles = numpy.swapaxes(profiles, 0, 1)
+        row_index = [i for i in range(len(self.profiles))]
+        column_index = pandas.MultiIndex.from_arrays([type_labels, property_labels, unit_labels],
+                                                     names=['type', 'property', 'unit'])
+        return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
