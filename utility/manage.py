@@ -134,8 +134,13 @@ class CodeInfo(object):
 class Release(object):
     def __init__(self):
         self.info = CodeInfo()
-        self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
+        self.test_cases = ['scenario-standard_plasma-H_energy-100_beam-H_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-D_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-T_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-Li_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-Na_profile']
         self.test_path = 'test_dataset/crm_systemtests'
+        self.write = WriteData()
 
     def _update_code_version(self, release, version):
         if release is None and version is None:
@@ -165,7 +170,15 @@ class Release(object):
 
     def _compute_all_benchmarks(self):
         for test_case in self.test_cases:
-            test_path = 'test_dataset/crm_systemtests/actual/' + test_case + '.xml'
+            test_path = self.test_path + '/actual/' + test_case + '.xml'
+            reference = Beamlet(data_path=test_path, solver='disregard')
+            actual_source = reference.copy(object_copy='without-results')
+            actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
+                             components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
+            actual.compute_linear_density_attenuation()
+            actual.compute_linear_emission_density()
+            actual.compute_relative_populations()
+            self.write.write_beamlet_profiles(actual, subdir='release/')
 
     def _relocate_benchmarks_from_actual_to_archive_on_server(self):
         pass
