@@ -9,7 +9,11 @@ import os
 class CrmRegressionTest(CrmTestCase):
 
     def setUp(self):
-        self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
+        self.test_cases = ['scenario-standard_plasma-H_energy-100_beam-H_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-D_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-T_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-Li_profile',
+                           'scenario-standard_plasma-H_energy-100_beam-Na_profile']
 
     def tearDown(self):
         public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
