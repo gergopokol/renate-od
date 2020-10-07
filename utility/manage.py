@@ -114,15 +114,16 @@ class CodeInfo(object):
         else:
             self.authorization = True
 
-    def update_data(self, attribute, value):
+    def update_data(self, attribute, value=None):
         if not isinstance(attribute, str):
             raise TypeError('The <attribute> input is expected to be a str.')
         if self.authorization:
             if hasattr(self, attribute):
-                setattr(self, attribute, value)
-                self.code_info_tree.find('body').find(attribute).text = value
+                if value is not None:
+                    setattr(self, attribute, value)
+                self.code_info_tree.find('body').find(attribute).text = str(getattr(self, attribute))
                 self.code_info_tree.write(self.code_info_path)
-                print('Updates XML file by rewriting: ' + attribute + ' with: ' + value)
+                print('Updates XML file by rewriting: ' + attribute + ' with: ' + str(getattr(self, attribute)))
                 return True
             else:
                 raise AttributeError('The CodeInfo object has no attribute: ' + attribute)
@@ -132,11 +133,39 @@ class CodeInfo(object):
 
 class Release(object):
     def __init__(self):
+        self.info = CodeInfo()
         self.test_cases = ['H_test_case', 'D_test_case', 'T_test_case', 'Li_test_case', 'Na_test_case']
+        self.test_path = 'test_dataset/crm_systemtests'
+
+    def _update_code_version(self, release, version):
+        if release is None and version is None:
+            raise ValueError('No input for code Version or Release type was given! Please try again.')
+        if isinstance(release, str):
+            if release == 'major':
+                self.info.code_version.release_major_version()
+                self.info.update_data('code_version')
+            elif release == 'minor':
+                self.info.code_version.release_minor_version()
+                self.info.update_data('code_version')
+            elif release == 'bugfix':
+                self.info.code_version.release_bugfix_version()
+                self.info.update_data('code_version')
+            else:
+                raise ValueError('Requested version release protocol: ' + release + ' is not supported.')
+        elif isinstance(version, str):
+            ver = Version(version)
+            if ver > self.info.code_version:
+                self.info.update_data('code_version', ver)
+            else:
+                raise ValueError('The provided version number: ' + str(ver) + ' is lower or equal to the '
+                                 'actual: ' + str(self.info.code_version) + ' version number.')
+        else:
+            raise TypeError('Neither <version> or <release> variables provided are of '
+                            '<str> type or of supported value')
 
     def _execute_all_beam_evolution_benchmarks(self):
         for test_case in self.test_cases:
             test_path = 'test_dataset/crm_systemtests/actual/' + test_case + '.xml'
 
-    def execute_release(self, version):
-        pass
+    def execute_release(self, release=None, version=None):
+        self._update_code_version(release, version)
