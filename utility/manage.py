@@ -163,9 +163,18 @@ class Release(object):
             raise TypeError('Neither <version> or <release> variables provided are of '
                             '<str> type or of supported value')
 
-    def _execute_all_beam_evolution_benchmarks(self):
+    def _compute_all_benchmarks(self):
         for test_case in self.test_cases:
             test_path = 'test_dataset/crm_systemtests/actual/' + test_case + '.xml'
 
+    def _relocate_benchmarks_from_actual_to_archive_on_server(self):
+        pass
+
+    def _upload_actual_benchmarks(self):
+        pass
+
     def execute_release(self, release=None, version=None):
         self._update_code_version(release, version)
+        self._compute_all_benchmarks()
+        self._relocate_benchmarks_from_actual_to_archive_on_server()
+        self._upload_actual_benchmarks()
