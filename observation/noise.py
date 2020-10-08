@@ -152,7 +152,17 @@ class PMT(Noise):
         self.__setup_detector_parameters(detector_parameters)
 
     def __setup_detector_parameters(self, detector_parameters):
-        pass
+        assert isinstance(detector_parameters, etree._ElementTree), 'Expected data type for <detector_parameters> ' \
+                                                                    'is etree._ElementTree.'
+        assert detector_parameters.getroot().find('head').find('type').text == 'pmt', \
+            'The detector type to be set is PMT. Please check input data.'
+        self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
+        self.dynode_number = float(detector_parameters.getroot().find('body').find('dynode_number').text)
+        self.dynode_gain = float(detector_parameters.getroot().find('body').find('dynode_gain').text)
+        self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
+        self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
+        self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
+        self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
 
     def add_noise_to_signal(self):
         pass
