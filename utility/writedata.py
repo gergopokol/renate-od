@@ -20,11 +20,12 @@ class WriteData:
                 new_element.set('unit', '-')
                 beamlet.param.getroot().find('body').append(new_element)
             else:
-                beamlet.param.getroo().find('body').find('beamlet_history').text = \
-                    beamlet.param.getroo().find('body').find('beamlet_source').text
+                beamlet.param.getroot().find('body').find('beamlet_history').text = \
+                    beamlet.param.getroot().find('body').find('beamlet_source').text
             beamlet.param.getroot().find('body').find('beamlet_source').text = h5_output_path
             beamlet.param.write(self.root_path + xml_output_path)
             print('Beamlet profile data written to file: ' + subdir + output_path)
+            return self.root_path+h5_output_path, self.root_path+xml_output_path
         except:
             raise Exception('Beamlet profile data could NOT be written to file: ' + subdir + output_path)
 
