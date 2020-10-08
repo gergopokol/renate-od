@@ -1,6 +1,7 @@
 import os
 import re
 from lxml import etree
+from shutil import rmtree
 from crm_solver.beamlet import Beamlet
 from utility.writedata import WriteData
 from utility.putdata import PutData
@@ -141,6 +142,12 @@ class Release(object):
                            'scenario-standard_plasma-H_energy-100_beam-Na_profile']
         self.test_path = 'test_dataset/crm_systemtests'
         self.write = WriteData()
+        self.put = PutData()
+        self.release_folder = 'release'
+        self.actual_folder = 'actual'
+        self.archive_folder = 'archive'
+        self.data_type = {'xml': '.xml', 'h5': '.h5'}
+        self.server_type = ['public', 'private']
 
     def _update_code_version(self, release, version):
         if release is None and version is None:
@@ -167,10 +174,11 @@ class Release(object):
         else:
             raise TypeError('Neither <version> or <release> variables provided are of '
                             '<str> type or of supported value')
+        print('Code version was successfully updated. New Version is: ' + str(self.info.code_version))
 
     def _compute_all_benchmarks(self):
         for test_case in self.test_cases:
-            test_path = self.test_path + '/actual/' + test_case + '.xml'
+            test_path = self.test_path + '/' + self.actual_folder + '/' + test_case + '.xml'
             reference = Beamlet(data_path=test_path, solver='disregard')
             actual_source = reference.copy(object_copy='without-results')
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
@@ -178,16 +186,54 @@ class Release(object):
             actual.compute_linear_density_attenuation()
             actual.compute_linear_emission_density()
             actual.compute_relative_populations()
-            self.write.write_beamlet_profiles(actual, subdir='release/')
+            self.write.write_beamlet_profiles(actual, subdir=self.release_folder + '/')
 
     def _relocate_benchmarks_from_actual_to_archive_on_server(self):
-        pass
+        for test_case in self.test_cases:
+            file_location = self.test_path + '/' + self.actual_folder + '/' + test_case
+            file_placement = self.test_path + '/' + self.archive_folder + '/' + \
+                             str(self.info.code_version) + '/' + test_case
+            self._update_xml_beamlet_source(file_location+self.data_type['xml'], file_placement+self.data_type['h5'])
+            for server in self.server_type:
+                for extension in self.data_type.keys():
+                    self._move_to_server(server=server, local_path=file_location+self.data_type[extension],
+                                         server_path=file_placement+self.data_type[extension])
+                    self._delete_from_server(data_path=file_location+self.data_type[extension], server=server)
 
     def _upload_actual_benchmarks(self):
-        pass
+        for test_case in self.test_cases:
+            local_path = self.release_folder + '/' + test_case
+            server_path = self.test_path + '/' + self.actual_folder + '/' + test_case
+            self._update_xml_beamlet_source(local_path + self.data_type['xml'], server_path + self.data_type['h5'])
+            for server in self.server_type:
+                for extension in self.data_type.keys():
+                    self._move_to_server(server=server, local_path=local_path+self.data_type[extension],
+                                         server_path=server_path+self.data_type[extension])
+
+    def _clean_up(self):
+        clean_up_paths = list()
+        clean_up_paths.append(os.path.join(os.getcwd(), 'data', 'test_dataset'))
+        clean_up_paths.append(os.path.join(os.getcwd(), 'data', self.release_folder))
+        for path in clean_up_paths:
+            rmtree(path)
+            print('Clean-up: removed folder: ' + path + ' and content.')
 
     def execute_release(self, release=None, version=None):
         self._update_code_version(release, version)
         self._compute_all_benchmarks()
         self._relocate_benchmarks_from_actual_to_archive_on_server()
         self._upload_actual_benchmarks()
+        self._clean_up()
+
+    @staticmethod
+    def _update_xml_beamlet_source(xml_file, h5_path):
+        param = GetData(data_path_name=xml_file).data
+        param.getroot().find('body').find('beamlet_source').text = h5_path
+        param.write('data/' + xml_file)
+
+    def _move_to_server(self, server, local_path, server_path):
+        self.put.to_server(local_path=local_path, server_path=server_path, server_type=server)
+
+    def _delete_from_server(self, data_path, server):
+        self.put.delete_from_server(data_path=data_path, server_type=server)
+
