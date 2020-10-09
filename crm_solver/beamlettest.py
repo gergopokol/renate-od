@@ -146,12 +146,13 @@ class BeamletTest(unittest.TestCase):
     def test_emission_calculator(self):
         self.beamlet.compute_linear_emission_density(to_level=self.INPUT_TRANSITION[0],
                                                      from_level=self.INPUT_TRANSITION[1])
-        self.assertEqual(self.beamlet.profiles.keys()[-1][0], self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0],
+        self.assertEqual(self.beamlet.profiles.keys()[-1][0],
+                         self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0],
                          msg='Beam emission calculation key mismatch within pandas data frame.')
-        self.assertIsInstance(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]],
+        self.assertIsInstance(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0]],
                               pandas.core.series.Series, msg='Beam emission output expected to '
                                                              'be stored in pandas series.')
-        self.assertEqual(len(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-' + self.INPUT_TRANSITION[0]]),
+        self.assertEqual(len(self.beamlet.profiles[self.INPUT_TRANSITION[1] + '-->' + self.INPUT_TRANSITION[0]]),
                          self.EXPECTED_PROFILES_LENGTH, msg='Beam emission calculation is expected to be returned '
                                                             'on the input grid.')
         test = self.beamlet.profiles['level '+self.INPUT_TRANSITION[1]] * self.beamlet.atomic_db.spontaneous_trans[
@@ -159,7 +160,7 @@ class BeamletTest(unittest.TestCase):
             self.beamlet.atomic_db.atomic_dict[self.INPUT_TRANSITION[1]]]
         for index in range(len(test)):
             self.assertEqual(test[index], self.beamlet.profiles[self.INPUT_TRANSITION[1]
-                             + '-' + self.INPUT_TRANSITION[0]][index],
+                             + '-->' + self.INPUT_TRANSITION[0]][index],
                              msg='Beam emission calculation fails for test case.')
 
     def test_relative_population_calculator(self):
@@ -177,3 +178,31 @@ class BeamletTest(unittest.TestCase):
                     self.assertLess(self.beamlet.profiles['rel.pop ' +
                                                           self.beamlet.atomic_db.inv_atomic_dict[level]][index], 1.0,
                                     msg='Values on comparative levels are expected to be less than 1.')
+
+    def test_beamlet_pandas_copy(self):
+        actual = self.beamlet.copy(object_copy='full')
+        self.assertTupleEqual(actual.components.shape, self.beamlet.components.shape,
+                              msg='Actual and copy Beamlet object components are expected to have same shape.')
+        logic_components = actual.components == self.beamlet.components
+        self.assertTrue(logic_components.values.all(), msg='Content of actual and reference Beamlet components '
+                                                           'objects is required to be equal.')
+        self.assertTupleEqual(actual.profiles.shape, self.beamlet.profiles.shape,
+                              msg='Actual and copy Beamlet object profiles are expected to have the same shape.')
+        logic_profiles = actual.profiles == self.beamlet.profiles
+        self.assertTrue(logic_profiles.values.all(), msg='Content of actual and reference Beamlet profiles '
+                                                         'objects is required to be equal.')
+
+    def test_beamlet_pandas_copy_without_results(self):
+        actual = self.beamlet.copy(object_copy='without-results')
+        self.assertTupleEqual(actual.components.shape, self.beamlet.components.shape,
+                              msg='Copy and Actual Beamlet object components are expected to have same shape.')
+        logic_components = actual.components == self.beamlet.components
+        self.assertTrue(logic_components.values.all(), msg='Content of Copy and Actual Beamlet components '
+                                                           'objects is required to be equal.')
+        self.assertEqual(actual.profiles.shape[0], self.beamlet.profiles.shape[0],
+                         msg='Copy and Actual of Beamlet profiles are expected to have the same number of elements.')
+        self.assertEqual(actual.profiles.shape[1], self.beamlet.profiles.shape[1]-self.beamlet.atomic_db.atomic_levels,
+                         msg='Copy of Actual Beamlet object profiles is expected to have nr of atomic levels: ' +
+                             str(self.beamlet.atomic_db.atomic_levels) + ' less columns.')
+        self.assertEqual(actual.profiles.filter(like='level').shape[1], 0,
+                         msg='The copy without results is expected NOT to contain any columns labeled <level>.')

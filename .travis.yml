@@ -14,3 +14,5 @@ script:
   - python -m unittest -v utility.accessdatatest.AccessDataTest
   - python -m unittest -v utility.getdatatest.GetDataTest
   - python -m unittest -v utility.putdatatest.PutDataTest
+  - python -m unittest -v utility.managetest.VersionTest
+  - python -m unittest -v utility.managetest.CodeInfoTest
