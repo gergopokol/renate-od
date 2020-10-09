@@ -22,10 +22,9 @@ class Version(object):
         self.major_version = int(version[0])
         self.minor_version = int(version[1])
         self.bugfix_version = int(version[2])
-        self.version = version
 
     def __repr__(self):
-        return 'Version: ' + self.version[0] + '.' + self.version[1] + '.' + self.version[2]
+        return 'Version: ' + str(self.major_version) + '.' + str(self.minor_version) + '.' + str(self.bugfix_version)
 
     def __eq__(self, other):
         return (self.major_version == other.major_version) and (self.minor_version == other.minor_version) and \
@@ -36,41 +35,39 @@ class Version(object):
                (self.bugfix_version != other.bugfix_version)
 
     def __lt__(self, other):
-        for i in range(self.version.__len__()):
-            if self.version[i] < other.version[i]:
-                return True
-            elif self.version[i] < other.version[i]:
-                return False
-            elif i+1 == self.version.__len__():
-                return False
+        if self.major_version < other.major_version:
+            return True
+        elif (self.major_version == other.major_version) and (self.minor_version < other.minor_version):
+            return True
+        elif (self.minor_version == other.minor_version) and (self.bugfix_version < other.bugfix_version):
+            return True
+        else:
+            return False
 
     def __gt__(self, other):
-        for i in range(self.version.__len__()):
-            if self.version[i] > other.version[i]:
-                return True
-            elif self.version[i] < other.version[i]:
-                return False
-            elif i+1 == self.version.__len__():
-                return False
+        if self.major_version > other.major_version:
+            return True
+        elif (self.major_version == other.major_version) and (self.minor_version > other.minor_version):
+            return True
+        elif (self.minor_version == other.minor_version) and (self.bugfix_version > other.bugfix_version):
+            return True
+        else:
+            return False
 
     def __str__(self):
-        return self.version[0] + '.' + self.version[1] + '.' + self.version[2]
+        return str(self.major_version) + '.' + str(self.minor_version) + '.' + str(self.bugfix_version)
 
     def release_major_version(self):
         self.major_version += 1
         self.minor_version = 0
         self.bugfix_version = 0
-        self.version = [str(self.major_version), str(self.minor_version), str(self.bugfix_version)]
 
     def release_minor_version(self):
         self.minor_version += 1
         self.bugfix_version = 0
-        self.version[1] = str(self.minor_version)
-        self.version[2] = str(self.bugfix_version)
 
     def release_bugfix_version(self):
         self.bugfix_version += 1
-        self.version[2] = str(self.bugfix_version)
 
 
 class CodeInfo(object):
