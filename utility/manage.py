@@ -196,8 +196,8 @@ class Release(object):
             self._update_xml_beamlet_source(file_location+self.data_type['xml'], file_placement+self.data_type['h5'])
             for server in self.server_type:
                 for extension in self.data_type.keys():
-                    self._move_to_server(server=server, local_path=file_location+self.data_type[extension],
-                                         server_path=file_placement+self.data_type[extension])
+                    self._upload_to_server(server=server, local_path=file_location+self.data_type[extension],
+                                           server_path=file_placement+self.data_type[extension])
                     self._delete_from_server(data_path=file_location+self.data_type[extension], server=server)
 
     def _upload_actual_benchmarks(self):
@@ -207,8 +207,8 @@ class Release(object):
             self._update_xml_beamlet_source(local_path + self.data_type['xml'], server_path + self.data_type['h5'])
             for server in self.server_type:
                 for extension in self.data_type.keys():
-                    self._move_to_server(server=server, local_path=local_path+self.data_type[extension],
-                                         server_path=server_path+self.data_type[extension])
+                    self._upload_to_server(server=server, local_path=local_path+self.data_type[extension],
+                                           server_path=server_path+self.data_type[extension])
 
     def _clean_up(self):
         clean_up_paths = list()
@@ -231,7 +231,7 @@ class Release(object):
         param.getroot().find('body').find('beamlet_source').text = h5_path
         param.write('data/' + xml_file)
 
-    def _move_to_server(self, server, local_path, server_path):
+    def _upload_to_server(self, server, local_path, server_path):
         self.put.to_server(local_path=local_path, server_path=server_path, server_type=server)
 
     def _delete_from_server(self, data_path, server):
