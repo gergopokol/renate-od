@@ -199,10 +199,40 @@ class PPD(Noise):
         self.__setup_detector_parameters(detector_parameters)
 
     def __setup_detector_parameters(self, detector_parameters):
-        pass
+        assert isinstance(detector_parameters, etree._ElementTree), 'Expected data type for <detector_parameters> ' \
+                                                                    'is etree._ElementTree.'
+        assert detector_parameters.getroot().find('head').find('type').text == 'ppd', \
+            'The detector type to be set is PPD. Please check input data.'
+        self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
+        self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
+        self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
+        self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
+        self.load_resistance = float(detector_parameters.getroot().find('body').find('load_resistance').text)
+        self.load_capacity = float(detector_parameters.getroot().find('body').find('load_capacity').text)
+        self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
+        self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
+        self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
+        self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
-    def add_noise_to_signal(self):
-        pass
+    def _ppd_transfer(self, signal):
+        detector_current = self.poisson(signal * self.quantum_efficiency) * self.constants.charge_electron * \
+                           self.sampling_frequency
+        return detector_current
+
+    def ppd_add_noise_to_signal(self, signal):
+        size = self.signal_size(signal)
+        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        emitted_photons = self.photon_noise_generator(prepared_signal)
+        background = self.background_noise_generator(emitted_photons, self.signal_to_background)
+        background_noised_signal = emitted_photons + background
+        detector_current = self._ppd_transfer(background_noised_signal)
+        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
+        voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
+                                                     self.load_capacity, self.internal_capacity, size)
+        johnson_noise = self.johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance,
+                                                     size)
+        noised_signal = detector_current + dark_noise + voltage_noise + johnson_noise
+        return noised_signal
 
 
 class Detector(APD, PMT, PPD):
