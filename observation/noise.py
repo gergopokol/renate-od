@@ -157,15 +157,40 @@ class PMT(Noise):
         assert detector_parameters.getroot().find('head').find('type').text == 'pmt', \
             'The detector type to be set is PMT. Please check input data.'
         self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
-        self.dynode_number = float(detector_parameters.getroot().find('body').find('dynode_number').text)
+        self.dynode_number = int(detector_parameters.getroot().find('body').find('dynode_number').text)
         self.dynode_gain = float(detector_parameters.getroot().find('body').find('dynode_gain').text)
         self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
+        self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
         self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
 
-    def add_noise_to_signal(self):
-        pass
+    def _dynode_noise_generator(self, signal):
+        for i in range(0, self.dynode_number):
+            signal = self.poisson(signal * self.dynode_gain)
+        return signal
+
+    def _pmt_dark_noise_generator(self, signal_size):
+        expected_value = self.dark_current / (self.sampling_frequency * self.constants.charge_electron)
+        dark_electrons = self.poisson(expected_value, signal_size)
+        return dark_electrons
+
+    def _pmt_transfer(self, signal):
+        emitted_electrons = self.poisson(signal * self.quantum_efficiency)
+        return emitted_electrons
+
+    def pmt_add_noise_to_signal(self, signal):
+        size = self.signal_size(signal)
+        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        emitted_photons = self.photon_noise_generator(prepared_signal)
+        background = self.background_noise_generator(emitted_photons, self.signal_to_background)
+        background_noised_signal = emitted_photons + background
+        emitted_electrons = self._pmt_transfer(background_noised_signal)
+        dark_electrons = self._pmt_dark_noise_generator(size)
+        primary_electrons = emitted_electrons + dark_electrons
+        secondary_electrons = self._dynode_noise_generator(primary_electrons)
+        noised_signal = secondary_electrons * self.constants.charge_electron * self.sampling_frequency
+        return noised_signal
 
 
 class PP(Noise):
