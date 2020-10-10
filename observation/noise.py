@@ -193,7 +193,7 @@ class PMT(Noise):
         return noised_signal
 
 
-class PP(Noise):
+class PPD(Noise):
     def __init__(self, detector_parameters):
         Noise.__init__(self)
         self.__setup_detector_parameters(detector_parameters)
@@ -205,7 +205,7 @@ class PP(Noise):
         pass
 
 
-class Detector(APD, PMT, PP):
+class Detector(APD, PMT, PPD):
     def __init__(self, detector_type='apd', parameters=None, data_path=None):
         assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
         self.detector_type = detector_type
@@ -213,8 +213,8 @@ class Detector(APD, PMT, PP):
             APD.__init__(self, self.__get_detector_parameters(parameters, data_path))
         elif self.detector_type is 'pmt':
             PMT.__init__(self, self.__get_detector_parameters(parameters, data_path))
-        elif self.detector_type is 'pp':
-            PP.__init__(self, self.__get_detector_parameters(parameters, data_path))
+        elif self.detector_type is 'ppd':
+            PPD.__init__(self, self.__get_detector_parameters(parameters, data_path))
         else:
             raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
 
