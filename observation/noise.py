@@ -235,30 +235,27 @@ class PPD(Noise):
         return noised_signal
 
 
-class Detector(APD, PMT, PPD):
-    def __init__(self, detector_type='apd', parameters=None, data_path=None):
+class Detector(object):
+    def __new__(cls, detector_type='apd', parameters=None, data_path=None):
         assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
-        self.detector_type = detector_type
-        if self.detector_type is 'apd':
-            APD.__init__(self, self.__get_detector_parameters(parameters, data_path))
-        elif self.detector_type is 'pmt':
-            PMT.__init__(self, self.__get_detector_parameters(parameters, data_path))
-        elif self.detector_type is 'ppd':
-            PPD.__init__(self, self.__get_detector_parameters(parameters, data_path))
+        if detector_type is 'apd':
+            return APD(cls.__get_detector_parameters(parameters, data_path, detector_type))
+        elif detector_type is 'pmt':
+            return PMT(cls.__get_detector_parameters(parameters, data_path, detector_type))
+        elif detector_type is 'ppd':
+            return PPD(cls.__get_detector_parameters(parameters, data_path, detector_type))
         else:
-            raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
+            raise ValueError('The requested detector type:' + detector_type + ' is not yet supported')
 
-    def __get_detector_parameters(self, parameters, data_path):
+    @staticmethod
+    def __get_detector_parameters(parameters, data_path, detector_type):
         if isinstance(parameters, etree._ElementTree):
-            self.data_path = 'From external workflow.'
+            print('Detector parameters received from external source.')
+            return parameters
         elif data_path is None:
-            self.data_path = 'detector/'+self.detector_type+'_default.xml'
-            parameters = ut.GetData(data_path_name=self.data_path).data
+            return ut.GetData(data_path_name='detector/'+detector_type+'_default.xml').data
         elif isinstance(data_path, str):
-            self.data_path = data_path
-            parameters = ut.GetData(data_path_name=self.data_path).data
+            return ut.GetData(data_path_name=data_path).data
         else:
             raise ValueError('Expected data type for <data_path> is str or None, '
                              'in which case default values will be loaded')
-        assert isinstance(parameters, etree._ElementTree), 'Expected data type for parameters is etree._ElementTree.'
-        return parameters
