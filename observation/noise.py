@@ -43,10 +43,8 @@ class Noise(RandomState):
     def background_addition(signal, signal_to_background):
         return signal + signal.mean() / signal_to_background
 
-    def detector_transfer(self, signal, detector_gain, quantum_efficiency, load_resistance):
-        detector_voltage = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * \
-                           load_resistance
-        return detector_voltage
+    def photon_flux_to_detector_voltage(self, signal, detector_gain, quantum_efficiency, load_resistance):
+        return signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
 
     def photon_noise_generator(self, signal):
         signal = self.poisson(signal)
@@ -127,8 +125,8 @@ class APD(Noise):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
-        detector_voltage = self.detector_transfer(background_noised_signal, self.detector_gain, self.quantum_efficiency,
-                                                  self.load_resistance)
+        detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
+                                                                self.quantum_efficiency, self.load_resistance)
         shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
                                                        self.noise_index, self.bandwidth, self.quantum_efficiency)
         shot_noise = shot_noised_signal - detector_voltage
