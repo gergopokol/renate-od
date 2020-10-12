@@ -32,7 +32,7 @@ class Noise(RandomState):
         self.constants = Constants()
 
     @staticmethod
-    def signal_size(signal):
+    def signal_length(signal):
         return signal.size
 
     @staticmethod
