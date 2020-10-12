@@ -93,6 +93,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_STD = 100
     INPUT_FREQUENCY = 1E6
     INPUT_PHOTON_FLUX = 1E9
+    INPUT_SBR = 5
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
 
     def setUp(self):
@@ -146,6 +147,13 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                               msg='The expected output signal shape is expected to be equal to input signal shape.')
         self.assertEqual(actual_signal.mean(), self.INPUT_PHOTON_FLUX / self.INPUT_FREQUENCY,
                          msg='The actual signal values are expected to be normalized with the signal frequency.')
+
+    def test_background_addition(self):
+        actual_signal = self.noise_gen.background_addition(self.INPUT_SIGNAL, self.INPUT_SBR)
+        self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The background signal addition is not expected to change the signal length.')
+        self.assertEqual(actual_signal.mean(), self.INPUT_PHOTON_FLUX * (1 + self.INPUT_SBR**-1),
+                         msg='The background light addition should be an SBR-th portion of the modelled mean signal.')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
