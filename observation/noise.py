@@ -31,13 +31,13 @@ class Noise(RandomState):
         RandomState.__init__(self, seed)
         self.constants = Constants()
 
-    def signal_size(self, signal):
-        size = signal.size
-        return size
+    @staticmethod
+    def signal_size(signal):
+        return signal.size
 
-    def _photonflux_to_photnnumber(self, signal, sampling_frequency):
-        photonnumber_signal = signal / sampling_frequency
-        return photonnumber_signal
+    @staticmethod
+    def _photonflux_to_photnnumber(signal, sampling_frequency):
+        return signal / sampling_frequency
 
     def background_noise_generator(self, signal, signal_to_background):
         background = signal / signal_to_background
