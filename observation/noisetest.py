@@ -91,6 +91,9 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_INSTANCE = 1000000
     INPUT_SEED = 20
     INPUT_STD = 100
+    INPUT_FREQUENCY = 1E6
+    INPUT_PHOTON_FLUX = 1E9
+    INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
 
     def setUp(self):
         self.noise_gen = Noise()
@@ -132,6 +135,17 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         reference_data = reference_gen.normal(numpy.full(self.INPUT_INSTANCE, self.INPUT_VALUE), self.INPUT_STD)
         self.assertListEqual(list(actual_data), list(reference_data),
                              msg='Generator seed test fail for Normal distribution.')
+
+    def test_signal_length(self):
+        self.assertEqual(self.noise_gen.signal_length(self.INPUT_SIGNAL), self.INPUT_INSTANCE, msg='<signal_length> '
+                         'routine is expected to return the length of the input signal.')
+
+    def test_photon_flux_to_count(self):
+        actual_signal = self.noise_gen._photon_flux_to_photon_number(self.INPUT_SIGNAL, self.INPUT_FREQUENCY)
+        self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The expected output signal shape is expected to be equal to input signal shape.')
+        self.assertEqual(actual_signal.mean(), self.INPUT_PHOTON_FLUX / self.INPUT_FREQUENCY,
+                         msg='The actual signal values are expected to be normalized with the signal frequency.')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
