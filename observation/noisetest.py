@@ -213,7 +213,7 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
                                                             'class is expected to be <pmt>')
         self.assertIsInstance(self.PMT, PMT, msg='<Detector> class is expected to be a child of the <PMT> class.')
 
-    def test_PP_inheritance(self):
+    def test_PPD_inheritance(self):
         self.assertIsInstance(self.PPD.detector_type, str, msg='Expected type for <detector_type> is <str>.')
         self.assertEqual(self.PPD.detector_type, 'pp', msg='The detector type for the <Detector> '
                                                            'class is expected to be <ppd>')
