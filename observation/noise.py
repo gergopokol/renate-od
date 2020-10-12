@@ -39,13 +39,9 @@ class Noise(RandomState):
     def _photon_flux_to_photon_number(signal, sampling_frequency):
         return signal / sampling_frequency
 
-    def background_noise_generator(self, signal, signal_to_background):
-        background = signal / signal_to_background
-        return background
-
-    def signal_preparation(self, signal, sampling_frequency):
-        prepared_signal = self._photon_flux_to_photon_number(signal, sampling_frequency)
-        return prepared_signal
+    @staticmethod
+    def backgroundit _noise_generator(signal, signal_to_background):
+        return signal / signal_to_background
 
     def detector_transfer(self, signal, detector_gain, quantum_efficiency, load_resistance):
         detector_voltage = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * \
@@ -128,8 +124,8 @@ class APD(Noise):
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background = self.background_noise_generator(prepared_signal, self.signal_to_background)
         background_noised_signal = prepared_signal + background
         detector_voltage = self.detector_transfer(background_noised_signal, self.detector_gain, self.quantum_efficiency,
@@ -180,8 +176,8 @@ class PMT(Noise):
         return emitted_electrons
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.photon_noise_generator(prepared_signal)
         background = self.background_noise_generator(emitted_photons, self.signal_to_background)
         background_noised_signal = emitted_photons + background
@@ -220,8 +216,8 @@ class PPD(Noise):
         return detector_current
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.photon_noise_generator(prepared_signal)
         background = self.background_noise_generator(emitted_photons, self.signal_to_background)
         background_noised_signal = emitted_photons + background
