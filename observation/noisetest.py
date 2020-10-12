@@ -174,13 +174,13 @@ class PPGeneratorTest(NoiseBasicTestCase):
     DEFAULT_PP_PATH = 'detector/pp_default.xml'
 
     def setUp(self):
-        self.PP = PP(GetData(data_path_name=self.DEFAULT_PP_PATH).data)
+        self.PPD = PPD(GetData(data_path_name=self.DEFAULT_PP_PATH).data)
 
     def tearDown(self):
-        del self.PP
+        del self.PPD
 
     def test_class_inheritance(self):
-        self.assertIsInstance(self.PP, Noise, msg='<PP> class is expected to be a child of <Noise>.')
+        self.assertIsInstance(self.PPD, Noise, msg='<PP> class is expected to be a child of <Noise>.')
 
 
 class DetectorGeneratorTest(NoiseBasicTestCase):
