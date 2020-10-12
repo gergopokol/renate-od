@@ -40,7 +40,7 @@ class Noise(RandomState):
         return signal / sampling_frequency
 
     @staticmethod
-    def backgroundit _noise_generator(signal, signal_to_background):
+    def background_noise_generator(signal, signal_to_background):
         return signal / signal_to_background
 
     def detector_transfer(self, signal, detector_gain, quantum_efficiency, load_resistance):
