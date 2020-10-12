@@ -167,7 +167,7 @@ class PMT(Noise):
 
     def _dynode_noise_generator(self, signal):
         for i in range(0, self.dynode_number):
-            signal = self.poisson(signal * self.dynode_gain)
+            signal = self.normal(signal * self.dynode_gain, numpy.sqrt(signal * self.dynode_gain))
         return signal
 
     def _pmt_dark_noise_generator(self, signal_size):
@@ -179,7 +179,7 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency)
         return emitted_electrons
 
-    def pmt_add_noise_to_signal(self, signal):
+    def add_noise_to_signal(self, signal):
         size = self.signal_size(signal)
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
         emitted_photons = self.photon_noise_generator(prepared_signal)
@@ -219,7 +219,7 @@ class PPD(Noise):
                            self.sampling_frequency
         return detector_current
 
-    def ppd_add_noise_to_signal(self, signal):
+    def add_noise_to_signal(self, signal):
         size = self.signal_size(signal)
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
         emitted_photons = self.photon_noise_generator(prepared_signal)
