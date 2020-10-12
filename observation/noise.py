@@ -46,9 +46,8 @@ class Noise(RandomState):
     def photon_flux_to_detector_voltage(self, signal, detector_gain, quantum_efficiency, load_resistance):
         return signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
 
-    def photon_noise_generator(self, signal):
-        signal = self.poisson(signal)
-        return signal
+    def generate_photon_noise(self, signal):
+        return self.poisson(signal)
 
     def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth,
                           expected_value=0):
@@ -175,7 +174,7 @@ class PMT(Noise):
     def add_noise_to_signal(self, signal):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
-        emitted_photons = self.photon_noise_generator(prepared_signal)
+        emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
         emitted_electrons = self._pmt_transfer(background_noised_signal)
         dark_electrons = self._pmt_dark_noise_generator(size)
@@ -214,7 +213,7 @@ class PPD(Noise):
     def add_noise_to_signal(self, signal):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
-        emitted_photons = self.photon_noise_generator(prepared_signal)
+        emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
         detector_current = self._ppd_transfer(background_noised_signal)
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
