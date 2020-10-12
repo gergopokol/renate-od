@@ -188,33 +188,25 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
     INPUT_APD_TYPE = 'apd'
     INPUT_PMT_TYPE = 'pmt'
     INPUT_PPD_TYPE = 'ppd'
+    INPUT_VAL_ERROR_1 = 'bbb'
+    INPUT_VAL_ERROR_2 = 123
 
-    @classmethod
-    def setUpClass(cls):
-        cls.APD = Detector(detector_type=cls.INPUT_APD_TYPE)
-        cls.PMT = Detector(detector_type=cls.INPUT_PMT_TYPE)
-        cls.PPD = Detector(detector_type=cls.INPUT_PPD_TYPE)
+    def test_APD_instantiation(self):
+        actual = Detector(detector_type=self.INPUT_APD_TYPE)
+        self.assertIsInstance(actual, APD, msg='<Detector> class is expected to return a <APD> class.')
 
-    @classmethod
-    def tearDownClass(cls):
-        del cls.APD
-        del cls.PMT
-        del cls.PPD
+    def test_PMT_instantiation(self):
+        actual = Detector(detector_type=self.INPUT_PMT_TYPE)
+        self.assertIsInstance(actual, PMT, msg='<Detector> class is expected to return a <PMT> class.')
 
-    def test_APD_inheritance(self):
-        self.assertIsInstance(self.APD.detector_type, str, msg='Expected type for <detector_type> is <str>.')
-        self.assertEqual(self.APD.detector_type, 'apd', msg='The detector type for the <Detector> '
-                                                            'class is expected to be <apd>')
-        self.assertIsInstance(self.APD, APD, msg='<Detector> class is expected to be a child of the <APD> class.')
+    def test_PPD_instantiation(self):
+        actual = Detector(detector_type=self.INPUT_PPD_TYPE)
+        self.assertIsInstance(actual, PPD, msg='<Detector> class is expected to return a <PPD> class.')
 
-    def test_PMT_inheritance(self):
-        self.assertIsInstance(self.PMT.detector_type, str, msg='Expected type for <detector_type> is <str>.')
-        self.assertEqual(self.PMT.detector_type, 'pmt', msg='The detector type for the <Detector> '
-                                                            'class is expected to be <pmt>')
-        self.assertIsInstance(self.PMT, PMT, msg='<Detector> class is expected to be a child of the <PMT> class.')
+    def test_exception_handling(self):
+        with self.assertRaises(ValueError, msg='ValueError raising is expected in case of wrong str input.'):
+            actual = Detector(detector_type=self.INPUT_VAL_ERROR_1)
 
-    def test_PPD_inheritance(self):
-        self.assertIsInstance(self.PPD.detector_type, str, msg='Expected type for <detector_type> is <str>.')
-        self.assertEqual(self.PPD.detector_type, 'ppd', msg='The detector type for the <Detector> '
-                                                            'class is expected to be <ppd>')
-        self.assertIsInstance(self.PPD, PPD, msg='<Detector> class is expected to be a child of the <PPD> class.')
+        with self.assertRaises(AssertionError, msg='AssertionError raising is expected in case '
+                                                   'of wrong detector type input.'):
+            actual = Detector(detector_type=self.INPUT_VAL_ERROR_2)
