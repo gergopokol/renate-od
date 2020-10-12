@@ -2,6 +2,7 @@ import unittest
 import numpy
 import scipy.stats as st
 from unittest.util import safe_repr
+from utility.constants import Constants
 from utility.getdata import GetData
 from observation.noise import Noise, APD, PMT, PPD, Detector
 
@@ -94,7 +95,12 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_FREQUENCY = 1E6
     INPUT_PHOTON_FLUX = 1E9
     INPUT_SBR = 5
+    INPUT_QE = 5
+    INPUT_LOAD_RESIST = 5
+    INPUT_GAIN = 5
+    INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
+    EXPECTED_PRECISION_4 = 4
 
     def setUp(self):
         self.noise_gen = Noise()
@@ -154,6 +160,16 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                               msg='The background signal addition is not expected to change the signal length.')
         self.assertEqual(actual_signal.mean(), self.INPUT_PHOTON_FLUX * (1 + self.INPUT_SBR**-1),
                          msg='The background light addition should be an SBR-th portion of the modelled mean signal.')
+
+    def test_photon_flux_to_detector_voltage(self):
+        actual_signal = self.noise_gen.photon_flux_to_detector_voltage(self.INPUT_SIGNAL, self.INPUT_GAIN,
+                                                                       self.INPUT_QE, self.INPUT_LOAD_RESIST)
+        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE *\
+                                     self.INPUT_GAIN * self.INPUT_CONST.charge_electron
+        self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The detector voltage converter is not expected to change the output signal shape.')
+        self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
+                               msg='The detector voltage converter is expected to be <signal*e*G*QE*R_L>')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
