@@ -8,6 +8,8 @@ import os
 
 class CrmRegressionTest(CrmTestCase):
 
+    EXPECTED_PRECISION = 1E-2
+
     def setUp(self):
         self.test_cases = ['scenario-standard_plasma-H_energy-100_beam-H_profile',
                            'scenario-standard_plasma-H_energy-100_beam-D_profile',
@@ -43,6 +45,8 @@ class CrmRegressionTest(CrmTestCase):
 
 class CrmAcceptanceTest(CrmTestCase):
 
+    EXPECTED_PRECISION = 1E-2
+
     def setUp(self):
         self.test_cases = ['scenario-standard_plasma-H_energy-100_beam-H_profile',
                            'scenario-standard_plasma-H_energy-100_beam-D_profile',
@@ -67,4 +71,4 @@ class CrmAcceptanceTest(CrmTestCase):
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
                              components=actual_source.components, atomic_db=actual_source.atomic_db, solver='numerical')
             msg = 'Failure for following test case: '+test_case+'\n'
-            self.assertAlmostEqualRateEvolution(actual, reference, msg=msg)
+            self.assertAlmostEqualRateEvolution(actual, reference, precision=self.EXPECTED_PRECISION, msg=msg)

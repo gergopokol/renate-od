@@ -37,6 +37,7 @@ class CoefficientMatrixTest(unittest.TestCase):
     ATOMIC_DB = AtomicDB(data_path=INPUT_DUMMY_PATH, components=COMPONENTS)
     BEAMLET_PARAM = GetData(data_path_name=INPUT_DUMMY_PATH).data
 
+    EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DECIMAL_PRECISION_6 = 6
     EXPECTED_ATTRIBUTES = ['matrix', 'electron_terms', 'ion_terms', 'photon_terms', 'beamlet_profiles',
                            'electron_impact_trans_np', 'electron_impact_loss_np', 'ion_impact_trans_np',
@@ -304,7 +305,7 @@ class CoefficientMatrixTest(unittest.TestCase):
                               self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
                               msg='The rate coefficient matrix is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_RATE_COEFFICIENT_MATRIX,
-                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Rate coefficient matrix assembly '
+                                          self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Rate coefficient matrix assembly '
                                                                                      'and generation failed.')
 
     def test_spontaneous_rate_term_assembly(self):
@@ -314,14 +315,14 @@ class CoefficientMatrixTest(unittest.TestCase):
                               self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
                               msg='The photon term is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.photon_terms, self.EXPECTED_PHOTON_TERM,
-                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term assembly failed.')
+                                          self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Photon term assembly failed.')
 
     def test_spontaneous_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
         for step in range(self.PROFILES['beamlet grid'].size):
             self.RATE_COEFFICIENT.apply_photons(step)
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_PHOTON_TERM,
-                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Photon term application failed.')
+                                          self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Photon term application failed.')
 
     def test_electron_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_terms, numpy.ndarray,
