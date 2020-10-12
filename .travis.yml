@@ -5,7 +5,7 @@ install:
   - pip install -r requirements.txt
 script:
   - python -m unittest -v crm_solver.odetest.OdeTest
-  - python -m unittest -v crm_solver.crmsystemtest.CrmRegressionTest
+#  - python -m unittest -v crm_solver.crmsystemtest.CrmRegressionTest
   - python -m unittest -v crm_solver.crmsystemtest.CrmAcceptanceTest
   - python -m unittest -v crm_solver.atomic_dbtest.AtomicDBTest
   - python -m unittest -v crm_solver.beamlettest.BeamletTest
