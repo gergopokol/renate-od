@@ -3,7 +3,7 @@ import numpy
 import scipy.stats as st
 from unittest.util import safe_repr
 from utility.getdata import GetData
-from observation.noise import Noise, APD, PMT, PP, Detector
+from observation.noise import Noise, APD, PMT, PPD, Detector
 
 
 class NoiseBasicTestCase(unittest.TestCase):
