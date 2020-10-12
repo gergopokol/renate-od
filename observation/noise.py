@@ -36,7 +36,7 @@ class Noise(RandomState):
         return signal.size
 
     @staticmethod
-    def _photonflux_to_photnnumber(signal, sampling_frequency):
+    def _photon_flux_to_photon_number(signal, sampling_frequency):
         return signal / sampling_frequency
 
     def background_noise_generator(self, signal, signal_to_background):
@@ -44,7 +44,7 @@ class Noise(RandomState):
         return background
 
     def signal_preparation(self, signal, sampling_frequency):
-        prepared_signal = self._photonflux_to_photnnumber(signal, sampling_frequency)
+        prepared_signal = self._photon_flux_to_photon_number(signal, sampling_frequency)
         return prepared_signal
 
     def detector_transfer(self, signal, detector_gain, quantum_efficiency, load_resistance):
