@@ -90,6 +90,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
+    INPUT_INSTANCE_2 = 20
     INPUT_SEED = 20
     INPUT_STD = 100
     INPUT_FREQUENCY = 1E6
@@ -100,6 +101,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_GAIN = 5
     INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
+    INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE)
     EXPECTED_PRECISION_4 = 4
 
     def setUp(self):
@@ -170,6 +172,16 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                               msg='The detector voltage converter is not expected to change the output signal shape.')
         self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
                                msg='The detector voltage converter is expected to be <signal*e*G*QE*R_L>')
+
+    def test_photon_noise_generator(self):
+        actual_signal = self.noise_gen.generate_photon_noise(self.INPUT_SIGNAL)
+        self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The photon noise generator routine is not expected to change the output signal.')
+        self.assertDistributionMean(actual_signal, self.INPUT_PHOTON_FLUX,
+                                    msg='The photon noise generator does not return expected <mean> value.')
+        self.assertDistributionStandardDeviation(actual_signal, numpy.sqrt(self.INPUT_PHOTON_FLUX),
+                                                 msg='Photon Noise Generator is expected to create Poisson '
+                                                     'distributions. The actual STD does not match.')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
