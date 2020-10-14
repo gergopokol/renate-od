@@ -72,12 +72,12 @@ class Noise(RandomState):
         expected_value, variance = self._johnson_noise_setup(detector_temperature, bandwidth, load_resistance)
         return self.normal(expected_value, variance, signal_size)
 
-    def _voltage_noise_setup(self, voltage_noise, load_resistance, load_capacity, internal_capacity, expected_value=0):
-        variance = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
-                                                    (load_capacity + internal_capacity))) + voltage_noise * \
-                    (1 + internal_capacity / load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance *
-                                                                                       load_capacity))
-        return expected_value, variance
+    @staticmethod
+    def _voltage_noise_setup(voltage_noise, load_resistance, load_capacity, internal_capacity, expected_value=0):
+        return expected_value,\
+            voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance * (load_capacity + internal_capacity))) + \
+            voltage_noise * (1 + internal_capacity / load_capacity) * \
+            numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance * load_capacity))
 
     def voltage_noise_generator(self, voltage_noise, load_resistance, load_capacity, internal_capacity, signal_size):
         expected_value, variance = self._voltage_noise_setup(voltage_noise, load_resistance,
