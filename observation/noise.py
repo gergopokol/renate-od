@@ -85,10 +85,12 @@ class Noise(RandomState):
         noise = self.normal(expected_value, variance, signal_size)
         return noise
 
-    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance, expected_value=0):
-        variance = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
-        expected_value = dark_current * load_resistance
-        return expected_value, variance
+    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance):
+        """
+        :return: mean (I_dark*R_l), STD(sqrt(2*q*I_dark*B)*R_l)
+        """
+        return dark_current * load_resistance, \
+            numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
 
     def dark_noise_generator(self, dark_current, bandwidth, load_resistance, signal_size):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
