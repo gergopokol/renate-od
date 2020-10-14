@@ -96,12 +96,14 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_FREQUENCY = 1E6
     INPUT_PHOTON_FLUX = 1E9
     INPUT_SBR = 5
-    INPUT_QE = 5
-    INPUT_LOAD_RESIST = 5
-    INPUT_GAIN = 5
+    INPUT_QE = 2
+    INPUT_LOAD_RESIST = 2
+    INPUT_BANDWIDTH = 2
+    INPUT_GAIN = 2
+    INPUT_NOISE_INDEX = 1
     INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
-    INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE)
+    INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
     EXPECTED_PRECISION_4 = 4
 
     def setUp(self):
@@ -182,6 +184,21 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionStandardDeviation(actual_signal, numpy.sqrt(self.INPUT_PHOTON_FLUX),
                                                  msg='Photon Noise Generator is expected to create Poisson '
                                                      'distributions. The actual STD does not match.')
+
+    def test_shot_noise_setup(self):
+        mean, variance = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, self.INPUT_GAIN, self.INPUT_LOAD_RESIST,
+                                                          self.INPUT_NOISE_INDEX, self.INPUT_BANDWIDTH)
+        self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL_2.shape, msg='The mean values for shot signal noise '
+                              'generation is expected to have the same shape.')
+        self.assertTupleEqual(variance.shape, self.INPUT_SIGNAL_2.shape,
+                              msg='The variance values for shot noise generation is expected to have the same shape.')
+        for index in range(self.INPUT_INSTANCE):
+            self.assertEqual(mean[index], self.INPUT_SIGNAL_2[index], msg='Mean value for noise generator is expected '
+                                                                          'to be equal to input signal values.')
+            self.assertEqual(variance[index], self.INPUT_LOAD_RESIST * numpy.sqrt(2 * self.INPUT_CONST.charge_electron *
+                             self.INPUT_BANDWIDTH * numpy.power(self.INPUT_GAIN, self.INPUT_NOISE_INDEX+1) *
+                             self.INPUT_SIGNAL_2[index]), msg='Variance values for noise generator is '
+                                                              'expected to be equal to R*sqrt(2*q*B*G^(x+1)*signal)')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
