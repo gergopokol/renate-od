@@ -26,45 +26,53 @@ class NoiseBasicTestCase(unittest.TestCase):
             return False, 'Actual precision: \t %s, Reference precision: \t %s. \n' % \
                    (safe_repr(abs(actual - reference)), precision)
 
-    def assertDistributionVariance(self, series, reference_variance, precision=1E-2, msg=''):
+    def _WithinPrecision(self, actual, reference, precision, comparison):
+        if comparison == 'relative':
+            return self._WithinRelativePrecision(actual, reference, precision)
+        elif comparison == 'absolute':
+            return self._WithinAbsolutePrecision(actual, reference, precision)
+        else:
+            raise ValueError('The comparison type: ' + comparison + ' is not supported.')
+
+    def assertDistributionVariance(self, series, reference_variance, precision=1E-2, comparison='relative', msg=''):
         actual = series.var()
-        status, statement = self._WithinRelativePrecision(actual, reference_variance, precision)
+        status, statement = self._WithinPrecision(actual, reference_variance, precision, comparison)
         if not status:
             standardMsg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_variance)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionMean(self, series, reference_mean, precision=1E-2, msg=''):
+    def assertDistributionMean(self, series, reference_mean, precision=1E-2, comparison='relative', msg=''):
         actual = series.mean()
-        status, statement = self._WithinRelativePrecision(actual, reference_mean, precision)
+        status, statement = self._WithinPrecision(actual, reference_mean, precision, comparison)
         if not status:
             standardMsg = '\n Actual distribution function mean: \t %s and \n reference mean: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_mean)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionStandardDeviation(self, series, reference_std, precision=1E-2, msg=''):
+    def assertDistributionStandardDeviation(self, series, reference_std, comparison='relative', precision=1E-2, msg=''):
         actual = series.std()
-        status, statement = self._WithinRelativePrecision(actual, reference_std, precision)
+        status, statement = self._WithinPrecision(actual, reference_std, precision, comparison)
         if not status:
             standardMsg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_std)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionSkewness(self, series, reference_skewness, precision=1E-2, msg=''):
+    def assertDistributionSkewness(self, series, reference_skewness, comparison='relative', precision=1E-2, msg=''):
         actual = st.skew(series)
-        status, statement = self._WithinAbsolutePrecision(actual, reference_skewness, precision)
+        status, statement = self._WithinPrecision(actual, reference_skewness, precision, comparison)
         if not status:
             standardMsg = '\n Actual distribution function skewness: \t %s and \n reference skewness: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_skewness)) + statement
             msg = self._formatMessage(msg, standardMsg)
             self.fail(msg)
 
-    def assertDistributionKurtosis(self, series, reference_kurtosis, precision=1E-2, msg=''):
+    def assertDistributionKurtosis(self, series, reference_kurtosis, comparison='relative', precision=1E-2, msg=''):
         actual = st.kurtosis(series)
-        status, statement = self._WithinAbsolutePrecision(actual, reference_kurtosis, precision)
+        status, statement = self._WithinPrecision(actual, reference_kurtosis, precision, comparison)
         if not status:
             standardMsg = '\n Actual distribution function kurtosis: \t %s and \n reference kurtosis: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_kurtosis)) + statement
@@ -120,9 +128,9 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Poisson generator mean test FAIL.')
         self.assertDistributionStandardDeviation(test_data, numpy.sqrt(self.INPUT_VALUE),
                                                  msg='Poisson generator std test FAIL.')
-        self.assertDistributionSkewness(test_data, 1/numpy.sqrt(self.INPUT_VALUE),
+        self.assertDistributionSkewness(test_data, 1/numpy.sqrt(self.INPUT_VALUE), comparison='absolute',
                                         msg='Poisson generator skewness test FAIL')
-        self.assertDistributionKurtosis(test_data, 1/self.INPUT_VALUE, precision=2E-2,
+        self.assertDistributionKurtosis(test_data, 1/self.INPUT_VALUE, precision=2E-2, comparison='absolute',
                                         msg='Poisson generator kurtosis test FAIL.')
 
     def test_gaussian_generator(self):
@@ -130,8 +138,10 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(test_data, self.INPUT_VALUE, msg='Normal generator mean test FAIL.')
         self.assertDistributionVariance(test_data, self.INPUT_STD**2, msg='Normal generator variance FAIL.')
         self.assertDistributionStandardDeviation(test_data, self.INPUT_STD, msg='Normal generator std test FAIL.')
-        self.assertDistributionSkewness(test_data, 0, msg='Normal generator skewness test FAIL.')
-        self.assertDistributionKurtosis(test_data, 0, precision=2E-2, msg='Normal generator kurtosis test FAIL.')
+        self.assertDistributionSkewness(test_data, 0, comparison='absolute',
+                                        msg='Normal generator skewness test FAIL.')
+        self.assertDistributionKurtosis(test_data, 0, precision=2E-2, comparison='absolute',
+                                        msg='Normal generator kurtosis test FAIL.')
 
     def test_seeded_poisson_generator(self):
         reference_gen = Noise(seed=self.INPUT_SEED)
@@ -228,6 +238,22 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(variance, numpy.sqrt(4 * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RESIST * self.INPUT_DET_TEMP *
                          self.INPUT_CONST.Boltzmann), msg='The expected std for the Johnson noise '
                                                           'generator is expected to be <sqrt(4kBTR)>')
+
+    def test_johnson_noise_generator(self):
+        noisy_signal = self.noise_gen.johnson_noise_generator(detector_temperature=self.INPUT_DET_TEMP,
+                                                              load_resistance=self.INPUT_LOAD_RESIST,
+                                                              bandwidth=self.INPUT_BANDWIDTH,
+                                                              signal_size=self.INPUT_SIGNAL_2.shape[0])
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
+                              msg='The Johnson noise generator is expected to create a similar sized signal.')
+        mean, variance = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
+                                                             load_resistance=self.INPUT_LOAD_RESIST,
+                                                             bandwidth=self.INPUT_BANDWIDTH)
+        self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
+                                    msg='Johnson Noise Generator does not return expected value: 0.')
+        self.assertDistributionStandardDeviation(noisy_signal, variance,
+                                                 msg='Johnson Noise Generator is expected to create Normal '
+                                                     'distributions. The actual STD does not match.')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
