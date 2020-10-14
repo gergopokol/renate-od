@@ -56,7 +56,7 @@ class Noise(RandomState):
         return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
                                    numpy.power(detector_gain, noise_index + 1) * bandwidth) * load_resistance)
 
-    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth, quantum_efficiency):
+    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         expected_value, variance = self._shot_noise_setup(signal, detector_gain, load_resistance, noise_index, bandwidth)
         noised_signal = self.normal(expected_value, variance)
         return noised_signal
