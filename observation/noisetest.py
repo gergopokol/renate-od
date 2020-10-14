@@ -200,6 +200,23 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                              self.INPUT_SIGNAL_2[index]), msg='Variance values for noise generator is '
                                                               'expected to be equal to R*sqrt(2*q*B*G^(x+1)*signal)')
 
+    def test_shot_noise_generator(self):
+        noisy_signal = self.noise_gen.shot_noise_generator(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
+                                                           load_resistance=self.INPUT_LOAD_RESIST,
+                                                           noise_index=self.INPUT_NOISE_INDEX,
+                                                           bandwidth=self.INPUT_BANDWIDTH)
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
+                              msg='The shot noise generator routine is not expected to change the signal shape.')
+        mean, variance = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
+                                                          load_resistance=self.INPUT_LOAD_RESIST,
+                                                          noise_index=self.INPUT_NOISE_INDEX,
+                                                          bandwidth=self.INPUT_BANDWIDTH)
+        self.assertDistributionMean(noisy_signal, mean.mean(),
+                                    msg='The shot noise generator does not return expected <mean> value.')
+        self.assertDistributionStandardDeviation(noisy_signal, variance.mean(),
+                                                 msg='Shot Noise Generator is expected to create Normal '
+                                                     'distributions. The actual STD does not match.')
+
 
 class APDGeneratorTest(NoiseBasicTestCase):
 
