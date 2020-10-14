@@ -70,8 +70,7 @@ class Noise(RandomState):
 
     def johnson_noise_generator(self, detector_temperature, bandwidth, load_resistance, signal_size):
         expected_value, variance = self._johnson_noise_setup(detector_temperature, bandwidth, load_resistance)
-        johnson_noise = self.normal(expected_value, variance, signal_size)
-        return johnson_noise
+        return self.normal(expected_value, variance, signal_size)
 
     def _voltage_noise_setup(self, voltage_noise, load_resistance, load_capacity, internal_capacity, expected_value=0):
         variance = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
