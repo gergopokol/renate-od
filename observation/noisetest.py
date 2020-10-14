@@ -110,6 +110,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_GAIN = 2
     INPUT_NOISE_INDEX = 1
     INPUT_DET_TEMP = 300
+    INPUT_DARK_CURRENT = 10
     INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
     INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
@@ -256,7 +257,14 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                      'distributions. The actual STD does not match.')
 
     def test_dark_noise_setup(self):
-        pass
+        mean, variance = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                          bandwidth=self.INPUT_BANDWIDTH,
+                                                          load_resistance=self.INPUT_LOAD_RESIST)
+        self.assertEqual(mean, self.INPUT_LOAD_RESIST * self.INPUT_DARK_CURRENT,
+                         msg='Mean value for dark current distribution function is expected to be I_dark * R_load.')
+        self.assertEqual(variance, self.INPUT_LOAD_RESIST * numpy.sqrt(2 * self.INPUT_CONST.charge_electron *
+                         self.INPUT_BANDWIDTH * self.INPUT_DARK_CURRENT),
+                         msg='The expected STD for dark current generator function is R_load*sqrt(2*I_dark*B*q).')
 
     def test_dark_noise_generator(self):
         pass
