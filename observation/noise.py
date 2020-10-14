@@ -57,9 +57,9 @@ class Noise(RandomState):
                                    numpy.power(detector_gain, noise_index + 1) * bandwidth) * load_resistance)
 
     def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
-        expected_value, variance = self._shot_noise_setup(signal, detector_gain, load_resistance, noise_index, bandwidth)
-        noised_signal = self.normal(expected_value, variance)
-        return noised_signal
+        expected_value, variance = self._shot_noise_setup(signal, detector_gain,
+                                                          load_resistance, noise_index, bandwidth)
+        return self.normal(expected_value, variance)
 
     def _johnson_noise_setup(self, detector_temperature, bandwidth, load_resistance, expected_value=0):
         variance = numpy.sqrt(4 * self.constants.Boltzmann * detector_temperature * bandwidth * load_resistance)
