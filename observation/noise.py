@@ -49,17 +49,15 @@ class Noise(RandomState):
     def generate_photon_noise(self, signal):
         return self.poisson(signal)
 
-    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth,
-                          expected_value=0):
-        expected_value = signal
-        variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
-                                          numpy.power(detector_gain, noise_index) * bandwidth) * load_resistance *
-                               numpy.sqrt(signal))
-        return expected_value, variance
+    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        """
+        :return: mean (I_det) and STD (R_l * sqrt(2*q*I_det*M*F*B)), where F = M exp(x)
+        """
+        return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
+                                   numpy.power(detector_gain, noise_index + 1) * bandwidth) * load_resistance)
 
     def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth, quantum_efficiency):
-        expected_value, variance = self._shot_noise_setup(signal, detector_gain, load_resistance, noise_index,
-                                                          bandwidth, quantum_efficiency)
+        expected_value, variance = self._shot_noise_setup(signal, detector_gain, load_resistance, noise_index, bandwidth)
         noised_signal = self.normal(expected_value, variance)
         return noised_signal
 
