@@ -80,10 +80,9 @@ class Noise(RandomState):
         return expected_value, variance
 
     def voltage_noise_generator(self, voltage_noise, load_resistance, load_capacity, internal_capacity, signal_size):
-        expected_value, variance = self._voltage_noise_setup(voltage_noise, load_resistance, load_capacity,
-                                                             internal_capacity)
-        noise = self.normal(expected_value, variance, signal_size)
-        return noise
+        expected_value, variance = self._voltage_noise_setup(voltage_noise, load_resistance,
+                                                             load_capacity, internal_capacity)
+        return self.normal(expected_value, variance, signal_size)
 
     def _dark_noise_setup(self, dark_current, bandwidth, load_resistance):
         """
