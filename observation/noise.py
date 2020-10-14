@@ -127,7 +127,7 @@ class APD(Noise):
         detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
                                                                 self.quantum_efficiency, self.load_resistance)
         shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
-                                                       self.noise_index, self.bandwidth, self.quantum_efficiency)
+                                                       self.noise_index, self.bandwidth)
         shot_noise = shot_noised_signal - detector_voltage
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
