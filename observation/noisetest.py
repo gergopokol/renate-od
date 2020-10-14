@@ -267,7 +267,20 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                          msg='The expected STD for dark current generator function is R_load*sqrt(2*I_dark*B*q).')
 
     def test_dark_noise_generator(self):
-        pass
+        noisy_signal = self.noise_gen.dark_noise_generator(dark_current=self.INPUT_DARK_CURRENT,
+                                                           bandwidth=self.INPUT_BANDWIDTH,
+                                                           load_resistance=self.INPUT_LOAD_RESIST,
+                                                           signal_size=self.INPUT_SIGNAL_2.shape[0])
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
+                              msg='The Dark Current noise generator is expected to create a similar sized signal.')
+        mean, variance = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                          bandwidth=self.INPUT_BANDWIDTH,
+                                                          load_resistance=self.INPUT_LOAD_RESIST)
+        self.assertDistributionMean(noisy_signal, mean,
+                                    msg='The Dark Current Generator does not return expected mean value')
+        self.assertDistributionStandardDeviation(noisy_signal, variance,
+                                                 msg='Dark Current Generator is expected to create Normal '
+                                                     'distributions. The actual STD does not match.')
 
     def test_voltage_noise_setup(self):
         pass
