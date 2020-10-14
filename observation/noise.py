@@ -94,8 +94,7 @@ class Noise(RandomState):
 
     def dark_noise_generator(self, dark_current, bandwidth, load_resistance, signal_size):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
-        noise = self.normal(expected_value, variance, signal_size)
-        return noise
+        return self.normal(expected_value, variance, signal_size)
 
 
 class APD(Noise):
