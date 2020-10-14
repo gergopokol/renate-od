@@ -255,6 +255,18 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                  msg='Johnson Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
+    def test_dark_noise_setup(self):
+        pass
+
+    def test_dark_noise_generator(self):
+        pass
+
+    def test_voltage_noise_setup(self):
+        pass
+
+    def test_voltage_noise_generator(self):
+        pass
+
 
 class APDGeneratorTest(NoiseBasicTestCase):
 
