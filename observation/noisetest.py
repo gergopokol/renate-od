@@ -101,10 +101,12 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_BANDWIDTH = 2
     INPUT_GAIN = 2
     INPUT_NOISE_INDEX = 1
+    INPUT_DET_TEMP = 300
     INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
     INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
     EXPECTED_PRECISION_4 = 4
+    EXPECTED_JOHNSON_MEAN = 0
 
     def setUp(self):
         self.noise_gen = Noise()
@@ -216,6 +218,16 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionStandardDeviation(noisy_signal, variance.mean(),
                                                  msg='Shot Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
+
+    def test_johnson_noise_setup(self):
+        mean, variance = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
+                                                             bandwidth=self.INPUT_BANDWIDTH,
+                                                             load_resistance=self.INPUT_LOAD_RESIST)
+        self.assertEqual(mean, self.EXPECTED_JOHNSON_MEAN,
+                         msg='The expected mean value for the Johnson noise contribution is <0>')
+        self.assertEqual(variance, numpy.sqrt(4 * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RESIST * self.INPUT_DET_TEMP *
+                         self.INPUT_CONST.Boltzmann), msg='The expected std for the Johnson noise '
+                                                          'generator is expected to be <sqrt(4kBTR)>')
 
 
 class APDGeneratorTest(NoiseBasicTestCase):
