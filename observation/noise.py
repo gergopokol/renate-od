@@ -179,7 +179,7 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency)
         return emitted_electrons
 
-    def add_noise_to_signal(self, signal):
+    def pmt_add_noise_to_signal(self, signal):
         size = self.signal_size(signal)
         prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
         emitted_photons = self.photon_noise_generator(prepared_signal)
