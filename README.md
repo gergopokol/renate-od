@@ -1,7 +1,17 @@
 # renate-od
 RENATE Open Diagnostics (RENATE-OD)
 
-Responsible developer: Dr. Gergo Pokol, www.reak.bme.hu/pokol
+Responsible developers:
+* [Dr. Gergo Pokol](www.reak.bme.hu/pokol)
+* [Ors Asztalos](https://github.com/asztalosors)
+
+Contributors:
+* Borbala Szondy
+* Matt Carr
+* Andorfi Istvan
+* Gergely Mindler
+
+Code information is available in [RENATE-OD.info](RENATE-OD.info)
 
 RENATE Open Diagnostics, or in short RENATE-OD, is a physics based modelling suit for the beam 
 emission spectroscopy diagnostic of magnetically confined high temperature plasmas. 

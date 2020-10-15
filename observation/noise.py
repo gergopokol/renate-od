@@ -31,76 +31,69 @@ class Noise(RandomState):
         RandomState.__init__(self, seed)
         self.constants = Constants()
 
-    def signal_size(self, signal):
-        size = signal.size
-        return size
+    @staticmethod
+    def signal_length(signal):
+        return signal.size
 
-    def _photonflux_to_photnnumber(self, signal, sampling_frequency):
-        photonnumber_signal = signal / sampling_frequency
-        return photonnumber_signal
+    @staticmethod
+    def _photon_flux_to_photon_number(signal, sampling_frequency):
+        return signal / sampling_frequency
 
-    def background_noise_generator(self, signal, signal_to_background):
-        background = signal / signal_to_background
-        return background
+    @staticmethod
+    def background_addition(signal, signal_to_background):
+        return signal + signal.mean() / signal_to_background
 
-    def signal_preparation(self, signal, sampling_frequency):
-        prepared_signal = self._photonflux_to_photnnumber(signal, sampling_frequency)
-        return prepared_signal
+    def photon_flux_to_detector_voltage(self, signal, detector_gain, quantum_efficiency, load_resistance):
+        return signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance
 
-    def detector_transfer(self, signal, detector_gain, quantum_efficiency, load_resistance):
-        detector_voltage = signal * self.constants.charge_electron * detector_gain * quantum_efficiency * \
-                           load_resistance
-        return detector_voltage
+    def generate_photon_noise(self, signal):
+        return self.poisson(signal)
 
-    def photon_noise_generator(self, signal):
-        signal = self.poisson(signal)
-        return signal
+    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        """
+        :return: mean (I_det) and STD (R_l * sqrt(2*q*I_det*M*F*B)), where F = M exp(x)
+        """
+        return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
+                                   numpy.power(detector_gain, noise_index + 1) * bandwidth) * load_resistance)
 
-    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth,
-                          expected_value=0):
-        expected_value = signal
-        variance = numpy.array(numpy.sqrt(2 * self.constants.charge_electron * detector_gain *
-                                          numpy.power(detector_gain, noise_index) * bandwidth) * load_resistance *
-                               numpy.sqrt(signal))
-        return expected_value, variance
-
-    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth, quantum_efficiency):
-        expected_value, variance = self._shot_noise_setup(signal, detector_gain, load_resistance, noise_index,
-                                                          bandwidth, quantum_efficiency)
-        noised_signal = self.normal(expected_value, variance)
-        return noised_signal
+    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        expected_value, variance = self._shot_noise_setup(signal, detector_gain,
+                                                          load_resistance, noise_index, bandwidth)
+        return self.normal(expected_value, variance)
 
     def _johnson_noise_setup(self, detector_temperature, bandwidth, load_resistance, expected_value=0):
-        variance = numpy.sqrt(4 * self.constants.Boltzmann * detector_temperature * bandwidth * load_resistance)
-        return expected_value, variance
+        """
+        :return: mean (0) and STD (sqrt(4kBTR_l))
+        """
+        return expected_value, numpy.sqrt(4 * self.constants.Boltzmann * detector_temperature *
+                                          bandwidth * load_resistance)
 
     def johnson_noise_generator(self, detector_temperature, bandwidth, load_resistance, signal_size):
         expected_value, variance = self._johnson_noise_setup(detector_temperature, bandwidth, load_resistance)
-        johnson_noise = self.normal(expected_value, variance, signal_size)
-        return johnson_noise
+        return self.normal(expected_value, variance, signal_size)
 
-    def _voltage_noise_setup(self, voltage_noise, load_resistance, load_capacity, internal_capacity, expected_value=0):
-        variance = voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance *
-                                                    (load_capacity + internal_capacity))) + voltage_noise * \
-                    (1 + internal_capacity / load_capacity) * numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance *
-                                                                                       load_capacity))
-        return expected_value, variance
+    @staticmethod
+    def _voltage_noise_setup(voltage_noise, load_resistance, load_capacity, internal_capacity, expected_value=0):
+        return expected_value,\
+            voltage_noise * numpy.sqrt(1 / (2 * numpy.pi * load_resistance * (load_capacity + internal_capacity))) + \
+            voltage_noise * (1 + internal_capacity / load_capacity) * \
+            numpy.sqrt(1.57 * 1 / (2 * numpy.pi * load_resistance * load_capacity))
 
     def voltage_noise_generator(self, voltage_noise, load_resistance, load_capacity, internal_capacity, signal_size):
-        expected_value, variance = self._voltage_noise_setup(voltage_noise, load_resistance, load_capacity,
-                                                             internal_capacity)
-        noise = self.normal(expected_value, variance, signal_size)
-        return noise
+        expected_value, variance = self._voltage_noise_setup(voltage_noise, load_resistance,
+                                                             load_capacity, internal_capacity)
+        return self.normal(expected_value, variance, signal_size)
 
-    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance, expected_value=0):
-        variance = numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
-        expected_value = dark_current * load_resistance
-        return expected_value, variance
+    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance):
+        """
+        :return: mean (I_dark*R_l), STD(sqrt(2*q*I_dark*B)*R_l)
+        """
+        return dark_current * load_resistance, \
+            numpy.sqrt(2 * self.constants.charge_electron * dark_current * bandwidth) * load_resistance
 
     def dark_noise_generator(self, dark_current, bandwidth, load_resistance, signal_size):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
-        noise = self.normal(expected_value, variance, signal_size)
-        return noise
+        return self.normal(expected_value, variance, signal_size)
 
 
 class APD(Noise):
@@ -128,14 +121,13 @@ class APD(Noise):
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
-        background = self.background_noise_generator(prepared_signal, self.signal_to_background)
-        background_noised_signal = prepared_signal + background
-        detector_voltage = self.detector_transfer(background_noised_signal, self.detector_gain, self.quantum_efficiency,
-                                                  self.load_resistance)
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
+        background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
+        detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
+                                                                self.quantum_efficiency, self.load_resistance)
         shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
-                                                       self.noise_index, self.bandwidth, self.quantum_efficiency)
+                                                       self.noise_index, self.bandwidth)
         shot_noise = shot_noised_signal - detector_voltage
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
@@ -179,12 +171,11 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency)
         return emitted_electrons
 
-    def pmt_add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
-        emitted_photons = self.photon_noise_generator(prepared_signal)
-        background = self.background_noise_generator(emitted_photons, self.signal_to_background)
-        background_noised_signal = emitted_photons + background
+    def add_noise_to_signal(self, signal):
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
+        emitted_photons = self.generate_photon_noise(prepared_signal)
+        background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
         emitted_electrons = self._pmt_transfer(background_noised_signal)
         dark_electrons = self._pmt_dark_noise_generator(size)
         primary_electrons = emitted_electrons + dark_electrons
@@ -220,11 +211,10 @@ class PPD(Noise):
         return detector_current
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_size(signal)
-        prepared_signal = self.signal_preparation(signal, self.sampling_frequency)
-        emitted_photons = self.photon_noise_generator(prepared_signal)
-        background = self.background_noise_generator(emitted_photons, self.signal_to_background)
-        background_noised_signal = emitted_photons + background
+        size = self.signal_length(signal)
+        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
+        emitted_photons = self.generate_photon_noise(prepared_signal)
+        background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
         detector_current = self._ppd_transfer(background_noised_signal)
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
@@ -235,30 +225,27 @@ class PPD(Noise):
         return noised_signal
 
 
-class Detector(APD, PMT, PPD):
-    def __init__(self, detector_type='apd', parameters=None, data_path=None):
+class Detector(object):
+    def __new__(cls, detector_type='apd', parameters=None, data_path=None):
         assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
-        self.detector_type = detector_type
-        if self.detector_type is 'apd':
-            APD.__init__(self, self.__get_detector_parameters(parameters, data_path))
-        elif self.detector_type is 'pmt':
-            PMT.__init__(self, self.__get_detector_parameters(parameters, data_path))
-        elif self.detector_type is 'ppd':
-            PPD.__init__(self, self.__get_detector_parameters(parameters, data_path))
+        if detector_type is 'apd':
+            return APD(cls.__get_detector_parameters(parameters, data_path, detector_type))
+        elif detector_type is 'pmt':
+            return PMT(cls.__get_detector_parameters(parameters, data_path, detector_type))
+        elif detector_type is 'ppd':
+            return PPD(cls.__get_detector_parameters(parameters, data_path, detector_type))
         else:
-            raise ValueError('The requested detector type:' + self.detector_type + ' is not yet supported')
+            raise ValueError('The requested detector type:' + detector_type + ' is not yet supported')
 
-    def __get_detector_parameters(self, parameters, data_path):
+    @staticmethod
+    def __get_detector_parameters(parameters, data_path, detector_type):
         if isinstance(parameters, etree._ElementTree):
-            self.data_path = 'From external workflow.'
+            print('Detector parameters received from external source.')
+            return parameters
         elif data_path is None:
-            self.data_path = 'detector/'+self.detector_type+'_default.xml'
-            parameters = ut.GetData(data_path_name=self.data_path).data
+            return ut.GetData(data_path_name='detector/'+detector_type+'_default.xml').data
         elif isinstance(data_path, str):
-            self.data_path = data_path
-            parameters = ut.GetData(data_path_name=self.data_path).data
+            return ut.GetData(data_path_name=data_path).data
         else:
             raise ValueError('Expected data type for <data_path> is str or None, '
                              'in which case default values will be loaded')
-        assert isinstance(parameters, etree._ElementTree), 'Expected data type for parameters is etree._ElementTree.'
-        return parameters
