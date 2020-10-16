@@ -211,10 +211,10 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         for index in range(self.INPUT_INSTANCE):
             self.assertEqual(mean[index], self.INPUT_SIGNAL_2[index], msg='Mean value for noise generator is expected '
                                                                           'to be equal to input signal values.')
-            self.assertEqual(variance[index], self.INPUT_LOAD_RESIST * numpy.sqrt(2 * self.INPUT_CONST.charge_electron *
+            self.assertEqual(variance[index], numpy.sqrt(2 * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RESIST *
                              self.INPUT_BANDWIDTH * numpy.power(self.INPUT_GAIN, self.INPUT_NOISE_INDEX+1) *
                              self.INPUT_SIGNAL_2[index]), msg='Variance values for noise generator is '
-                                                              'expected to be equal to R*sqrt(2*q*B*G^(x+1)*signal)')
+                                                              'expected to be equal to sqrt(2*q*B*G^(x+1)*signal*R)')
 
     def test_shot_noise_generator(self):
         noisy_signal = self.noise_gen.shot_noise_generator(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
