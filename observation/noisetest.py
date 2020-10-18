@@ -186,7 +186,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                                        self.INPUT_QE, self.INPUT_LOAD_RESIST,
                                                                        self.INPUT_FREQUENCY)
         reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE *\
-                                     self.INPUT_GAIN * self.INPUT_CONST.charge_electron
+                                     self.INPUT_GAIN * self.INPUT_CONST.charge_electron * self.INPUT_FREQUENCY
         self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The detector voltage converter is not expected to change the output signal shape.')
         self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
