@@ -183,13 +183,14 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 
     def test_photon_flux_to_detector_voltage(self):
         actual_signal = self.noise_gen.photon_flux_to_detector_voltage(self.INPUT_SIGNAL, self.INPUT_GAIN,
-                                                                       self.INPUT_QE, self.INPUT_LOAD_RESIST)
+                                                                       self.INPUT_QE, self.INPUT_LOAD_RESIST,
+                                                                       self.INPUT_FREQUENCY)
         reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE *\
                                      self.INPUT_GAIN * self.INPUT_CONST.charge_electron
         self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The detector voltage converter is not expected to change the output signal shape.')
         self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
-                               msg='The detector voltage converter is expected to be <signal*e*G*QE*R_L>')
+                               msg='The detector voltage converter is expected to be <signal*e*M*QE*R_L>')
 
     def test_photon_noise_generator(self):
         actual_signal = self.noise_gen.generate_photon_noise(self.INPUT_SIGNAL)
