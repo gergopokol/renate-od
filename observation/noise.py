@@ -51,15 +51,15 @@ class Noise(RandomState):
     def generate_photon_noise(self, signal):
         return self.poisson(signal)
 
-    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+    def _apd_shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         """
         :return: mean (U_det) and STD (sqrt(2*q*U_det*M*F*B*R_L)), where F = M exp(x)
         """
         return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
                                    numpy.power(detector_gain, noise_index + 1) * bandwidth * load_resistance))
 
-    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
-        expected_value, variance = self._shot_noise_setup(signal, detector_gain,
+    def apd_shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        expected_value, variance = self._apd_shot_noise_setup(signal, detector_gain,
                                                           load_resistance, noise_index, bandwidth)
         return self.normal(expected_value, variance)
 
@@ -97,6 +97,19 @@ class Noise(RandomState):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
         return self.normal(expected_value, variance, signal_size)
 
+    def pmt_dynode_noise_generator(self, signal, signal_size, dynode_number, dynode_gain):
+        for i in range(dynode_number):
+            for j in range(signal_size):
+                if signal[j] < 0:
+                    signal[j] = 0
+            signal = self.normal(signal * dynode_gain, numpy.sqrt(signal * dynode_gain))
+        return signal
+
+    def pmt_dark_noise_generator(self, signal_size, dark_current, sampling_frequency):
+        expected_value = dark_current / (sampling_frequency * self.constants.charge_electron)
+        dark_electrons = self.normal(expected_value, numpy.sqrt(expected_value), signal_size)
+        return dark_electrons
+
 
 class APD(Noise):
 
@@ -129,7 +142,7 @@ class APD(Noise):
         detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
                                                                 self.quantum_efficiency, self.load_resistance,
                                                                 self.sampling_frequency)
-        shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
+        shot_noised_signal = self.apd_shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
                                                        self.noise_index, self.bandwidth)
         shot_noise = shot_noised_signal - detector_voltage
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
@@ -160,16 +173,6 @@ class PMT(Noise):
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
 
-    def _dynode_noise_generator(self, signal):
-        for i in range(0, self.dynode_number):
-            signal = self.normal(signal * self.dynode_gain, numpy.sqrt(signal * self.dynode_gain))
-        return signal
-
-    def _pmt_dark_noise_generator(self, signal_size):
-        expected_value = self.dark_current / (self.sampling_frequency * self.constants.charge_electron)
-        dark_electrons = self.poisson(expected_value, signal_size)
-        return dark_electrons
-
     def _pmt_transfer(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency)
         return emitted_electrons
@@ -180,13 +183,14 @@ class PMT(Noise):
         emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
         emitted_electrons = self._pmt_transfer(background_noised_signal)
-        dark_electrons = self._pmt_dark_noise_generator(size)
-        primary_electrons = emitted_electrons + dark_electrons
-        secondary_electrons = self._dynode_noise_generator(primary_electrons)
-        noised_signal = secondary_electrons * self.constants.charge_electron * self.sampling_frequency
+        dark_electrons = self.pmt_dark_noise_generator(size, self.dark_current, self.sampling_frequency)
+        secondary_electrons = self.pmt_dynode_noise_generator(emitted_electrons, size, self.dynode_number,
+                                                              self.dynode_gain)
+        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron * \
+                            self.sampling_frequency
         return noised_signal
 
-
+    
 class PPD(Noise):
     def __init__(self, detector_parameters):
         Noise.__init__(self)
