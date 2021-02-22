@@ -57,7 +57,7 @@ class RenateDB:
         if self.species not in ['H', 'D', 'T', 'Li', 'Na', 'dummy']:
             raise Exception(self.species + ' beam atomic data not supported')
         if self.species in ['H', 'D', 'T']:
-            self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
+            self.atomic_dict = {'1n': 0, '2n': 1, '3n': 2, '4n': 3, '5n': 4, '6n': 5}
             self.atomic_levels = 6
         if self.species == 'Li':
             self.atomic_dict = {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8}
@@ -73,7 +73,7 @@ class RenateDB:
     def __set_rates_path(self, rate_type):
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
-        self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
+        self.rates_path = 'atomic_data/'+self.species+'/rates/'+rate_type+'/'+self.file_name
 
     def __set_charge_state_lib(self):
         impact_loss = self.get_from_renate_atomic('ionization_terms')
@@ -88,13 +88,13 @@ class RenateDB:
 
     def set_default_atomic_levels(self):
         if self.species in ['H', 'D', 'T']:
-            return '3', '2', '1', '3-2'
+            return '3n', '2n', '1n', '3n-->2n'
         elif self.species == 'Li':
-            return '2p', '2s', '2s', '2p-2s'
+            return '2p', '2s', '2s', '2p-->2s'
         elif self.species == 'Na':
-            return '3p', '3s', '3s', '3p-3s'
+            return '3p', '3s', '3s', '3p-->3s'
         elif self.species == 'dummy':
-            return '1', '0', '0', '1-0'
+            return '1', '0', '0', '1-->0'
         else:
             raise ValueError('The atomic species: ' + self.species + ' is not supported')
 

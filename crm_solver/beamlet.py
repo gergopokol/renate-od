@@ -1,6 +1,8 @@
 import utility
 from utility.constants import Constants
 import pandas
+import numpy
+from copy import deepcopy
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
@@ -41,7 +43,7 @@ class Beamlet:
 
     def __initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components, self.atomic_db)
-        self.initial_condition = [self.__get_linear_density()] + [0] * (self.atomic_db.atomic_levels - 1)
+        self.initial_condition = [self.__get_linear_density()] + [0.] * (self.atomic_db.atomic_levels - 1)
 
     def __get_linear_density(self):
         current = float(self.param.getroot().find('body').find('beamlet_current').text)
@@ -64,8 +66,7 @@ class Beamlet:
         if solver is 'numerical':
             self.__solve_numerically()
         elif solver is 'analytical':
-            # TODO: Implement analytical solver
-            pass
+            raise NotImplementedError('Analytical solver not yet implemented.')
         elif solver is 'disregard':
             print('Beam evolution not calculated.')
             return
@@ -92,7 +93,7 @@ class Beamlet:
                             'Bundled-n for H,D,T beam species ex:[1, 2, ... 6]. '
                             'l-n resolved labels for Li ex: [2s, 2p, ... 4f] and Na ex: [3s, 3p, ... 5s]')
         if self.__was_beamevolution_performed():
-            transition_label = from_level + '-' + to_level
+            transition_label = from_level + '-->' + to_level
             self.profiles[transition_label] = \
                 self.profiles['level '+from_level] * self.atomic_db.spontaneous_trans[self.atomic_db.atomic_dict
                                                                                       [to_level], self.atomic_db.atomic_dict[from_level]]
@@ -119,3 +120,46 @@ class Beamlet:
                     self.profiles['level ' + reference_level]
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
+
+    def copy(self, object_copy='full'):
+        if not isinstance(object_copy, str):
+            raise TypeError('The expected data type for <object_copy> is str.')
+        if object_copy == 'full':
+            return deepcopy(self)
+        elif object_copy == 'without-results':
+            beamlet = deepcopy(self)
+            beamlet.profiles = self._copy_profiles_input()
+            return beamlet
+        else:
+            raise ValueError('The <object_copy> variable does not support ' + object_copy)
+
+    def _copy_profiles_input(self):
+        profiles = numpy.zeros((1 + len(self.components) * 2, len(self.profiles)))
+        type_labels = []
+        property_labels = []
+        unit_labels = []
+
+        profiles[0, :] = self.profiles['beamlet grid']['distance']['m']
+        type_labels.append('beamlet grid')
+        property_labels.append('distance')
+        unit_labels.append('m')
+        count = 1
+
+        for component in self.components.T:
+            type_labels.append(str(component))
+            property_labels.append('density')
+            unit_labels.append('m-3')
+            profiles[count, :] = self.profiles[str(component)]['density']['m-3']
+
+            type_labels.append(str(component))
+            property_labels.append('temperature')
+            unit_labels.append('eV')
+            profiles[count+1, :] = self.profiles[str(component)]['temperature']['eV']
+
+            count += 2
+
+        profiles = numpy.swapaxes(profiles, 0, 1)
+        row_index = [i for i in range(len(self.profiles))]
+        column_index = pandas.MultiIndex.from_arrays([type_labels, property_labels, unit_labels],
+                                                     names=['type', 'property', 'unit'])
+        return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)

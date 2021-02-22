@@ -5,5 +5,14 @@ install:
   - pip install -r requirements.txt
 script:
   - python -m unittest -v crm_solver.odetest.OdeTest
-  - python -m unittest -v crm_solver.crmacceptancetest.CrmAcceptanceTest
+  - python -m unittest -v crm_solver.crmsystemtest.CrmRegressionTest
+  - python -m unittest -v crm_solver.crmsystemtest.CrmAcceptanceTest
   - python -m unittest -v crm_solver.atomic_dbtest.AtomicDBTest
+  - python -m unittest -v crm_solver.beamlettest.BeamletTest
+  - python -m unittest -v crm_solver.atomic_dbtest.RenateDBTest
+  - python -m unittest -v crm_solver.coefficientmatrixtest.CoefficientMatrixTest
+  - python -m unittest -v utility.accessdatatest.AccessDataTest
+  - python -m unittest -v utility.getdatatest.GetDataTest
+  - python -m unittest -v utility.putdatatest.PutDataTest
+  - python -m unittest -v utility.managetest.VersionTest
+  - python -m unittest -v utility.managetest.CodeInfoTest
