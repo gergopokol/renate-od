@@ -141,8 +141,8 @@ class APD(Noise):
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def apd_noiseless_transfer(self, signal):
-        detector_voltage = (signal * self.quantum_efficiency * self.constants.charge_electron * self.detector_gain +
-                            self.dark_current) * self.load_resistance
+        detector_voltage = (signal *  self.quantum_efficiency * self.constants.charge_electron * self.detector_gain /
+                            self.sampling_frequency + self.dark_current) * self.load_resistance
         return detector_voltage
 
     def add_noise_to_signal(self, signal):
@@ -182,6 +182,12 @@ class PMT(Noise):
         self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
+
+    def _pmt_noiseless_transfer(self, signal):
+        detector_current = signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency \
+                           * self.constants.charge_electron / self.sampling_frequency \
+                           * (self.dynode_gain ** self.dynode_number) + self.dark_current
+        return detector_current
 
     def _pmt_transfer(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency)
