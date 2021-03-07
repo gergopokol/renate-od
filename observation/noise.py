@@ -141,8 +141,9 @@ class APD(Noise):
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
     def apd_noiseless_transfer(self, signal):
-        detector_voltage = (signal *  self.quantum_efficiency * self.constants.charge_electron * self.detector_gain /
-                            self.sampling_frequency + self.dark_current) * self.load_resistance
+        detector_voltage = (signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency
+                            * self.constants.charge_electron * self.detector_gain
+                            / self.sampling_frequency + self.dark_current) * self.load_resistance
         return detector_voltage
 
     def add_noise_to_signal(self, signal):
