@@ -140,6 +140,11 @@ class APD(Noise):
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
+    def apd_noiseless_transfer(self, signal):
+        detector_voltage = (signal * self.quantum_efficiency * self.constants.charge_electron * self.detector_gain +
+                            self.dark_current) * self.load_resistance
+        return detector_voltage
+
     def add_noise_to_signal(self, signal):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
