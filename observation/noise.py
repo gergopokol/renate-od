@@ -51,6 +51,11 @@ class Noise(RandomState):
     def generate_photon_noise(self, signal):
         return self.poisson(signal)
 
+    def generate_gaussian_noise(self, signal, snr):
+        average = signal.avg()
+        noised_signal = self.normal(signal, average/snr)
+        return noised_signal
+
     def _apd_shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         """
         :return: mean (U_det) and STD (sqrt(2*q*U_det*M*F*B*R_L)), where F = M exp(x)
