@@ -140,7 +140,7 @@ class APD(Noise):
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
 
-    def apd_noiseless_transfer(self, signal):
+    def _apd_noiseless_transfer(self, signal):
         detector_voltage = (signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency
                             * self.constants.charge_electron * self.detector_gain
                             / self.sampling_frequency + self.dark_current) * self.load_resistance
@@ -203,8 +203,8 @@ class PMT(Noise):
         dark_electrons = self.pmt_dark_noise_generator(size, self.dark_current, self.sampling_frequency)
         secondary_electrons = self.pmt_dynode_noise_generator(emitted_electrons, size, self.dynode_number,
                                                               self.dynode_gain)
-        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron * \
-                            self.sampling_frequency
+        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron\
+                        * self.sampling_frequency
         return noised_signal
 
     
@@ -228,6 +228,12 @@ class PPD(Noise):
         self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
+
+    def _ppd_noiseless_transfer(self, signal):
+        detector_voltage = (signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency
+                            * self.constants.charge_electron / self.sampling_frequency + self.dark_current)\
+                           * self.load_resistance
+        return detector_voltage
 
     def _ppd_transfer(self, signal):
         detector_voltage = self.poisson(signal * self.quantum_efficiency) * self.constants.charge_electron * \
