@@ -56,15 +56,15 @@ class Noise(RandomState):
         noised_signal = self.normal(signal, average/snr)
         return noised_signal
 
-    def _apd_shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
         """
         :return: mean (U_det) and STD (sqrt(2*q*U_det*M*F*B*R_L)), where F = M exp(x)
         """
         return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
                                    numpy.power(detector_gain, noise_index + 1) * bandwidth * load_resistance))
 
-    def apd_shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
-        expected_value, variance = self._apd_shot_noise_setup(signal, detector_gain,
+    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
+        expected_value, variance = self._shot_noise_setup(signal, detector_gain,
                                                           load_resistance, noise_index, bandwidth)
         return self.normal(expected_value, variance)
 
@@ -153,7 +153,7 @@ class APD(Noise):
         detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
                                                                 self.quantum_efficiency, self.load_resistance,
                                                                 self.sampling_frequency)
-        shot_noised_signal = self.apd_shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
+        shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
                                                        self.noise_index, self.bandwidth)
         shot_noise = shot_noised_signal - detector_voltage
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
