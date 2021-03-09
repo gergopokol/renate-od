@@ -104,10 +104,12 @@ class Noise(RandomState):
 
     def pmt_dynode_noise_generator(self, signal, signal_size, dynode_number, dynode_gain):
         for i in range(dynode_number):
+            signal = numpy.abs(signal)
             for j in range(signal_size):
-                if signal[j] < 0:
-                    signal[j] = 0
-            signal = self.normal(signal * dynode_gain, numpy.sqrt(signal * dynode_gain))
+                if signal[j] * dynode_gain > 2e9:
+                    signal[j] = self.normal(signal[j] * dynode_gain, numpy.sqrt(signal[j] * dynode_gain))
+                else:
+                    signal[j] = self.poisson(signal[j] * dynode_gain)
         return signal
 
     def pmt_dark_noise_generator(self, signal_size, dark_current, sampling_frequency):
