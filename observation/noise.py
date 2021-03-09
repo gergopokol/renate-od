@@ -231,8 +231,7 @@ class PPD(Noise):
 
     def _ppd_noiseless_transfer(self, signal):
         detector_voltage = (signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency
-                            * self.constants.charge_electron / self.sampling_frequency + self.dark_current)\
-                           * self.load_resistance
+                            * self.constants.charge_electron + self.dark_current) * self.load_resistance
         return detector_voltage
 
     def _ppd_transfer(self, signal):
