@@ -186,8 +186,8 @@ class PMT(Noise):
 
     def _pmt_noiseless_transfer(self, signal):
         detector_current = signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency \
-                           * self.constants.charge_electron / self.sampling_frequency \
-                           * (self.dynode_gain ** self.dynode_number) + self.dark_current
+                           * self.constants.charge_electron * (self.dynode_gain ** self.dynode_number) \
+                           + self.dark_current
         return detector_current
 
     def _pmt_transfer(self, signal):
