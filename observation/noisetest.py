@@ -322,15 +322,15 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                  msg='The Voltage Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
-    def test_pmt_dynode_noise_generator(self):
+    def test_pmt_single_dynode_noise_generator(self):
         noisy_signal = self.noise_gen.pmt_dynode_noise_generator(signal=self.INPUT_SIGNAL_2,
                                                                  signal_size=self.INPUT_SIGNAL_2.shape[0],
-                                                                 dynode_number=self.INPUT_DYNODE_NUMBER,
+                                                                 dynode_number=1,
                                                                  dynode_gain=self.INPUT_DYNODE_GAIN)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                                  msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
-        mean, variance = (self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER).mean(), \
-                          numpy.sqrt((self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER).mean())
+        mean, variance = (self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean(), \
+                          numpy.sqrt((self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean())
         self.assertDistributionMean(noisy_signal, mean,
                                         msg='The PMT Dynode Noise Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, variance,
