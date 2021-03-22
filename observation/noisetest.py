@@ -187,7 +187,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         actual_signal = self.noise_gen.photon_flux_to_detector_voltage(self.INPUT_SIGNAL, self.INPUT_GAIN,
                                                                        self.INPUT_QE, self.INPUT_LOAD_RESIST,
                                                                        self.INPUT_FREQUENCY)
-        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE *\
+        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE * \
                                      self.INPUT_GAIN * self.INPUT_CONST.charge_electron * self.INPUT_FREQUENCY
         self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The detector voltage converter is not expected to change the output signal shape.')
@@ -205,16 +205,16 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                      'distributions. The actual STD does not match.')
 
     def test_shot_noise_setup(self):
-        mean, variance = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, self.INPUT_GAIN, self.INPUT_LOAD_RESIST,
-                                                          self.INPUT_NOISE_INDEX, self.INPUT_BANDWIDTH)
+        mean, std = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, self.INPUT_GAIN, self.INPUT_LOAD_RESIST,
+                                                     self.INPUT_NOISE_INDEX, self.INPUT_BANDWIDTH)
         self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL_2.shape, msg='The mean values for shot signal noise '
                               'generation is expected to have the same shape.')
-        self.assertTupleEqual(variance.shape, self.INPUT_SIGNAL_2.shape,
+        self.assertTupleEqual(std.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The variance values for shot noise generation is expected to have the same shape.')
         for index in range(self.INPUT_INSTANCE):
             self.assertEqual(mean[index], self.INPUT_SIGNAL_2[index], msg='Mean value for noise generator is expected '
                                                                           'to be equal to input signal values.')
-            self.assertEqual(variance[index], numpy.sqrt(2 * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RESIST *
+            self.assertEqual(std[index], numpy.sqrt(2 * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RESIST *
                              self.INPUT_BANDWIDTH * numpy.power(self.INPUT_GAIN, self.INPUT_NOISE_INDEX+1) *
                              self.INPUT_SIGNAL_2[index]), msg='Variance values for noise generator is '
                                                               'expected to be equal to sqrt(2*q*B*G^(x+1)*signal*R)')
@@ -226,23 +226,23 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                            bandwidth=self.INPUT_BANDWIDTH)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The shot noise generator routine is not expected to change the signal shape.')
-        mean, variance = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
-                                                          load_resistance=self.INPUT_LOAD_RESIST,
-                                                          noise_index=self.INPUT_NOISE_INDEX,
-                                                          bandwidth=self.INPUT_BANDWIDTH)
+        mean, std = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
+                                                     load_resistance=self.INPUT_LOAD_RESIST,
+                                                     noise_index=self.INPUT_NOISE_INDEX,
+                                                     bandwidth=self.INPUT_BANDWIDTH)
         self.assertDistributionMean(noisy_signal, mean.mean(),
                                     msg='The shot noise generator does not return expected <mean> value.')
-        self.assertDistributionStandardDeviation(noisy_signal, variance.mean(),
+        self.assertDistributionStandardDeviation(noisy_signal, std.mean(),
                                                  msg='Shot Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
     def test_johnson_noise_setup(self):
-        mean, variance = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
-                                                             bandwidth=self.INPUT_BANDWIDTH,
-                                                             load_resistance=self.INPUT_LOAD_RESIST)
+        mean, std = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
+                                                        bandwidth=self.INPUT_BANDWIDTH,
+                                                        load_resistance=self.INPUT_LOAD_RESIST)
         self.assertEqual(mean, self.EXPECTED_JOHNSON_MEAN,
                          msg='The expected mean value for the Johnson noise contribution is <0>')
-        self.assertEqual(variance, numpy.sqrt(4 * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RESIST * self.INPUT_DET_TEMP *
+        self.assertEqual(std, numpy.sqrt(4 * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RESIST * self.INPUT_DET_TEMP *
                          self.INPUT_CONST.Boltzmann), msg='The expected std for the Johnson noise '
                                                           'generator is expected to be <sqrt(4kBTR)>')
 
@@ -253,22 +253,22 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                               signal_size=self.INPUT_SIGNAL_2.shape[0])
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The Johnson noise generator is expected to create a similar sized signal.')
-        mean, variance = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
-                                                             load_resistance=self.INPUT_LOAD_RESIST,
-                                                             bandwidth=self.INPUT_BANDWIDTH)
+        mean, std = self.noise_gen._johnson_noise_setup(detector_temperature=self.INPUT_DET_TEMP,
+                                                        load_resistance=self.INPUT_LOAD_RESIST,
+                                                        bandwidth=self.INPUT_BANDWIDTH)
         self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
                                     msg='Johnson Noise Generator does not return expected value: 0.')
-        self.assertDistributionStandardDeviation(noisy_signal, variance,
+        self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='Johnson Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
     def test_dark_noise_setup(self):
-        mean, variance = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
-                                                          bandwidth=self.INPUT_BANDWIDTH,
-                                                          load_resistance=self.INPUT_LOAD_RESIST)
+        mean, std = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     load_resistance=self.INPUT_LOAD_RESIST)
         self.assertEqual(mean, self.INPUT_LOAD_RESIST * self.INPUT_DARK_CURRENT,
                          msg='Mean value for dark current distribution function is expected to be I_dark * R_load.')
-        self.assertEqual(variance, self.INPUT_LOAD_RESIST * numpy.sqrt(2 * self.INPUT_CONST.charge_electron *
+        self.assertEqual(std, self.INPUT_LOAD_RESIST * numpy.sqrt(2 * self.INPUT_CONST.charge_electron *
                          self.INPUT_BANDWIDTH * self.INPUT_DARK_CURRENT),
                          msg='The expected STD for dark current generator function is R_load*sqrt(2*I_dark*B*q).')
 
@@ -279,29 +279,30 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                            signal_size=self.INPUT_SIGNAL_2.shape[0])
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The Dark Current noise generator is expected to create a similar sized signal.')
-        mean, variance = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
-                                                          bandwidth=self.INPUT_BANDWIDTH,
-                                                          load_resistance=self.INPUT_LOAD_RESIST)
+        mean, std = self.noise_gen._dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     load_resistance=self.INPUT_LOAD_RESIST)
         self.assertDistributionMean(noisy_signal, mean,
                                     msg='The Dark Current Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, variance,
+        self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='Dark Current Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
     def test_voltage_noise_setup(self):
-        mean, variance = self.noise_gen._voltage_noise_setup(voltage_noise=self.INPUT_VOLTAGE_NOISE,
-                                                             load_resistance=self.INPUT_LOAD_RESIST,
-                                                             load_capacity=self.INPUT_LOAD_CAPACITY,
-                                                             internal_capacity=self.INPUT_INTERNAL_CAPACITY,
-                                                             expected_value=0)
+        mean, std = self.noise_gen._voltage_noise_setup(voltage_noise=self.INPUT_VOLTAGE_NOISE,
+                                                        load_resistance=self.INPUT_LOAD_RESIST,
+                                                        load_capacity=self.INPUT_LOAD_CAPACITY,
+                                                        internal_capacity=self.INPUT_INTERNAL_CAPACITY,
+                                                        expected_value=0)
         self.assertEqual(mean, 0,
                          msg='Mean value for voltage noise distribution function is expected to be 0.')
-        self.assertEqual(variance, self.INPUT_VOLTAGE_NOISE * numpy.sqrt(1 / (2 * numpy.pi * self.INPUT_LOAD_RESIST *
-                        (self.INPUT_LOAD_CAPACITY + self.INPUT_INTERNAL_CAPACITY))) + self.INPUT_VOLTAGE_NOISE *
-                        (1 + self.INPUT_INTERNAL_CAPACITY / self.INPUT_LOAD_CAPACITY) *
-                        numpy.sqrt(1.57 * 1 / (2 * numpy.pi * self.INPUT_LOAD_RESIST * self.INPUT_LOAD_CAPACITY)),
-                        msg='The expected STD for voltage noise generator function is N_V*'
-                        'sqrt(1/(2pi*R_load*(C_load+C_in)))+N_V*(1+C_in/C_load)*sqrt(1.57*1/(2pi*R_load*C_load))')
+        self.assertEqual(std, self.INPUT_VOLTAGE_NOISE * numpy.sqrt(1 / (2 * numpy.pi * self.INPUT_LOAD_RESIST *
+                                                                         (self.INPUT_LOAD_CAPACITY +
+                                                                          self.INPUT_INTERNAL_CAPACITY))) +
+                         self.INPUT_VOLTAGE_NOISE * (1 + self.INPUT_INTERNAL_CAPACITY / self.INPUT_LOAD_CAPACITY) *
+                         numpy.sqrt(1.57 * 1 / (2 * numpy.pi * self.INPUT_LOAD_RESIST * self.INPUT_LOAD_CAPACITY)),
+                         msg='The expected STD for voltage noise generator function is N_V*'
+                             'sqrt(1/(2pi*R_load*(C_load+C_in)))+N_V*(1+C_in/C_load)*sqrt(1.57*1/(2pi*R_load*C_load))')
 
     def test_voltage_noise_generator(self):
         noisy_signal = self.noise_gen.voltage_noise_generator(voltage_noise=self.INPUT_VOLTAGE_NOISE,
@@ -311,14 +312,14 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                               signal_size=self.INPUT_SIGNAL_2.shape[0])
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The Voltage noise generator is expected to create a similar sized signal.')
-        mean, variance = self.noise_gen._voltage_noise_setup(voltage_noise=self.INPUT_VOLTAGE_NOISE,
-                                                             load_resistance=self.INPUT_LOAD_RESIST,
-                                                             load_capacity=self.INPUT_LOAD_CAPACITY,
-                                                             internal_capacity=self.INPUT_INTERNAL_CAPACITY,
-                                                             expected_value=0)
+        mean, std = self.noise_gen._voltage_noise_setup(voltage_noise=self.INPUT_VOLTAGE_NOISE,
+                                                        load_resistance=self.INPUT_LOAD_RESIST,
+                                                        load_capacity=self.INPUT_LOAD_CAPACITY,
+                                                        internal_capacity=self.INPUT_INTERNAL_CAPACITY,
+                                                        expected_value=0)
         self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
                                     msg='The Voltage Noise Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, variance,
+        self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='The Voltage Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
@@ -328,14 +329,14 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                                  dynode_number=1,
                                                                  dynode_gain=self.INPUT_DYNODE_GAIN)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
-                                 msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
-        mean, variance = (self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean(), \
-                          numpy.sqrt((self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean())
+                              msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
+        mean, std = (self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean(),\
+                    numpy.sqrt((self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean())
         self.assertDistributionMean(noisy_signal, mean,
-                                        msg='The PMT Dynode Noise Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, variance,
-                                                msg='The PMT Dynode Noise Generator is expected to create Poisson '
-                                                    'distributions. The actual STD does not match.')
+                                    msg='The PMT Dynode Noise Generator does not return expected mean value')
+        self.assertDistributionStandardDeviation(noisy_signal, std,
+                                                 msg='The PMT Dynode Noise Generator is expected to create Poisson '
+                                                     'distributions. The actual STD does not match.')
 
     def test_pmt_dark_noise_generator(self):
         noisy_signal = self.noise_gen.pmt_dark_noise_generator(signal_size=self.INPUT_SIGNAL_2.shape[0],
@@ -343,11 +344,11 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                                sampling_frequency=self.INPUT_FREQUENCY)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The PMT Dark Noise Generator is expected to create a similar sized signal.')
-        mean, variance = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron), \
-                         numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron))
+        mean, std = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron),\
+                    numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron))
         self.assertDistributionMean(noisy_signal, mean,
                                     msg='The PMT Dark Noise Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, variance,
+        self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='The PMT Dark Noise Generator is expected to create Poisson '
                                                      'distributions. The actual STD does not match.')
 
