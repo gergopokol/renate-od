@@ -384,8 +384,8 @@ class APDGeneratorTest(NoiseBasicTestCase):
                 self.INPUT_CONST.charge_electron * self.APD.detector_gain + self.APD.dark_current) \
                 * self.APD.load_resistance
         self.assertEqual(detector_voltage.all(), mean.all(),
-                              msg='The APD noiseless transfer function is expected to create a theoretical '
-                                  'indicated value.')
+                         msg='The APD noiseless transfer function is expected to create a theoretical '
+                         'indicated value.')
 
 
 class PMTGeneratorTest(NoiseBasicTestCase):
@@ -407,13 +407,23 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertIsInstance(self.PMT, Noise, msg='<PMT> class is expected to be a child of <Noise>.')
 
     def test_pmt_noiseless_transfer(self):
-        detector_voltage = self.PMT._pmt_noiseless_transfer(signal=self.INPUT_SIGNAL[0])
+        detector_voltage = self.PMT._pmt_noiseless_transfer(signal=self.INPUT_SIGNAL)
         mean = self.INPUT_SIGNAL * (1 + 1 / self.PMT.signal_to_background) * self.PMT.quantum_efficiency \
-                           * self.INPUT_CONST.charge_electron * (self.PMT.dynode_gain ** self.PMT.dynode_number) \
-                           + self.PMT.dark_current
-        self.assertTupleEqual(detector_voltage, mean,
-                              msg='The PMT noiseless transfer function is expected to create a theoretical '
-                                  'indicated value.')
+               * self.INPUT_CONST.charge_electron * (self.PMT.dynode_gain ** self.PMT.dynode_number) \
+               + self.PMT.dark_current
+        self.assertEqual(detector_voltage.all(), mean.all(),
+                         msg='The PMT noiseless transfer function is expected to create a theoretical '
+                         'indicated value.')
+
+    def test_pmt_transfer(self):
+        emitted_electrons = self.PMT._pmt_transfer(self.INPUT_SIGNAL)
+        mean, std = self.INPUT_SIGNAL * self.PMT.quantum_efficiency, \
+                    numpy.sqrt(self.INPUT_SIGNAL * self.PMT.quantum_efficiency)
+        self.assertDistributionMean(emitted_electrons.mean(), mean[0],
+                                    msg='The PMT Transfer does not return expected mean value')
+        self.assertDistributionStandardDeviation(emitted_electrons.std(), std[0],
+                                                 msg='The PMT Transfer is expected to create Poisson '
+                                                     'distributions. The actual STD does not match.')
 
 
 class PPGeneratorTest(NoiseBasicTestCase):
