@@ -355,6 +355,11 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 
 class APDGeneratorTest(NoiseBasicTestCase):
 
+    INPUT_VALUE = 1000
+    INPUT_INSTANCE = 1000000
+    INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_CONST = Constants()
+
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
     EXPECTED_ATTRIBUTES = ['detector_temperature', 'detector_gain', 'quantum_efficiency', 'noise_index', 'bandwidth',
                            'dark_current', 'load_resistance', 'load_capacity', 'voltage_noise', 'internal_capacity',
@@ -373,8 +378,22 @@ class APDGeneratorTest(NoiseBasicTestCase):
         self.assertHasAttributes(self.APD, self.EXPECTED_ATTRIBUTES, msg='<APD> class does not initiate will all '
                                                                          'expected attributes.')
 
+    def test_apd_noiseless_transfer(self):
+        detector_voltage = self.APD._apd_noiseless_transfer(signal=self.INPUT_SIGNAL)
+        mean = (self.INPUT_SIGNAL * (1 + 1 / self.APD.signal_to_background) * self.APD.quantum_efficiency *
+                self.INPUT_CONST.charge_electron * self.APD.detector_gain + self.APD.dark_current) \
+                * self.APD.load_resistance
+        self.assertTupleEqual(detector_voltage, mean,
+                              msg='The APD noiseless transfer function is expected to create a theoretical '
+                                  'indicated value.')
+
 
 class PMTGeneratorTest(NoiseBasicTestCase):
+
+    INPUT_VALUE = 1000
+    INPUT_INSTANCE = 1000000
+    INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_CONST = Constants()
 
     DEFAULT_PMT_PATH = 'detector/pmt_default.xml'
 
