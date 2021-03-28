@@ -406,6 +406,15 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     def test_class_inheritance(self):
         self.assertIsInstance(self.PMT, Noise, msg='<PMT> class is expected to be a child of <Noise>.')
 
+    def test_pmt_noiseless_transfer(self):
+        detector_voltage = self.PMT._pmt_noiseless_transfer(signal=self.INPUT_SIGNAL[0])
+        mean = self.INPUT_SIGNAL * (1 + 1 / self.PMT.signal_to_background) * self.PMT.quantum_efficiency \
+                           * self.INPUT_CONST.charge_electron * (self.PMT.dynode_gain ** self.PMT.dynode_number) \
+                           + self.PMT.dark_current
+        self.assertTupleEqual(detector_voltage, mean,
+                              msg='The PMT noiseless transfer function is expected to create a theoretical '
+                                  'indicated value.')
+
 
 class PPGeneratorTest(NoiseBasicTestCase):
 
