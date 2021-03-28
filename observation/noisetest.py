@@ -419,14 +419,19 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         emitted_electrons = self.PMT._pmt_transfer(self.INPUT_SIGNAL)
         mean, std = self.INPUT_SIGNAL * self.PMT.quantum_efficiency, \
                     numpy.sqrt(self.INPUT_SIGNAL * self.PMT.quantum_efficiency)
-        self.assertDistributionMean(emitted_electrons.mean(), mean[0],
+        self.assertDistributionMean(emitted_electrons, mean[0],
                                     msg='The PMT Transfer does not return expected mean value')
-        self.assertDistributionStandardDeviation(emitted_electrons.std(), std[0],
+        self.assertDistributionStandardDeviation(emitted_electrons, std[0],
                                                  msg='The PMT Transfer is expected to create Poisson '
                                                      'distributions. The actual STD does not match.')
 
 
-class PPGeneratorTest(NoiseBasicTestCase):
+class PPDGeneratorTest(NoiseBasicTestCase):
+
+    INPUT_VALUE = 1000
+    INPUT_INSTANCE = 1000000
+    INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_CONST = Constants()
 
     DEFAULT_PPD_PATH = 'detector/ppd_default.xml'
 
@@ -438,6 +443,14 @@ class PPGeneratorTest(NoiseBasicTestCase):
 
     def test_class_inheritance(self):
         self.assertIsInstance(self.PPD, Noise, msg='<PPD> class is expected to be a child of <Noise>.')
+
+    def test_ppd_noiseless_transfer(self):
+        detector_voltage = self.PPD._ppd_noiseless_transfer(signal=self.INPUT_SIGNAL)
+        mean = (self.INPUT_SIGNAL * (1 + 1 / self.PPD.signal_to_background) * self.PPD.quantum_efficiency *
+                self.INPUT_CONST.charge_electron + self.PPD.dark_current) * self.PPD.load_resistance
+        self.assertEqual(detector_voltage.all(), mean.all(),
+                         msg='The PPD noiseless transfer function is expected to create a theoretical '
+                         'indicated value.')
 
 
 class DetectorGeneratorTest(NoiseBasicTestCase):
