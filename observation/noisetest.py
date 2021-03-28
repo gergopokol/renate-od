@@ -383,7 +383,7 @@ class APDGeneratorTest(NoiseBasicTestCase):
         mean = (self.INPUT_SIGNAL * (1 + 1 / self.APD.signal_to_background) * self.APD.quantum_efficiency *
                 self.INPUT_CONST.charge_electron * self.APD.detector_gain + self.APD.dark_current) \
                 * self.APD.load_resistance
-        self.assertTupleEqual(detector_voltage, mean,
+        self.assertEqual(detector_voltage.all(), mean.all(),
                               msg='The APD noiseless transfer function is expected to create a theoretical '
                                   'indicated value.')
 
