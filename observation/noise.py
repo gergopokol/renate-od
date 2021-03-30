@@ -1,6 +1,7 @@
 import numpy
 import pandas
 import utility.getdata as ut
+import math
 from utility.constants import Constants
 from numpy.random import RandomState
 from lxml import etree
@@ -106,10 +107,10 @@ class Noise(RandomState):
         for i in range(dynode_number):
             signal = numpy.abs(signal)
             for j in range(signal_size):
-                if signal[j] * dynode_gain > 2e9:
-                    signal[j] = self.normal(signal[j] * dynode_gain, numpy.sqrt(signal[j] * dynode_gain))
+                if signal[j] * dynode_gain > 1000:
+                    signal[j] = self.normal(signal[j] * dynode_gain, math.sqrt(signal[j] * dynode_gain))
                 else:
-                    signal[j] = self.poisson(signal[j] * dynode_gain)
+                    signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
         return signal
 
     def pmt_dark_noise_generator(self, signal_size, dark_current, sampling_frequency):
@@ -193,7 +194,7 @@ class PMT(Noise):
         return detector_current
 
     def _pmt_transfer(self, signal):
-        emitted_electrons = self.poisson(signal * self.quantum_efficiency)
+        emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
     def add_noise_to_signal(self, signal):
