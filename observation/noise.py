@@ -107,7 +107,7 @@ class Noise(RandomState):
         for i in range(dynode_number):
             signal = numpy.abs(signal)
             for j in range(signal_size):
-                if signal[j] * dynode_gain > 1000:
+                if signal[j] * dynode_gain > 10:
                     signal[j] = self.normal(signal[j] * dynode_gain, math.sqrt(signal[j] * dynode_gain))
                 else:
                     signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
@@ -197,7 +197,10 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
-    def add_noise_to_signal(self, signal):
+    def _pmt_gaussian_noise_generator(self, signal):
+        pass
+
+    def _pmt_poisson_noise_generator(self, signal):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.generate_photon_noise(prepared_signal)
@@ -206,11 +209,19 @@ class PMT(Noise):
         dark_electrons = self.pmt_dark_noise_generator(size, self.dark_current, self.sampling_frequency)
         secondary_electrons = self.pmt_dynode_noise_generator(emitted_electrons, size, self.dynode_number,
                                                               self.dynode_gain)
-        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron\
-                        * self.sampling_frequency
+        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron * \
+                        self.sampling_frequency
         return noised_signal
 
-    
+    def add_noise_to_signal(self, signal, noise_type='poisson'):
+        if noise_type == 'poisson':
+            self._pmt_poisson_noise_generator(signal)
+        elif noise_type == 'gaussian':
+            self._pmt_gaussian_noise_generator(signal)
+        else:
+            raise ValueError('The requested noise type does not exist or is not implemented.', noise_type)
+
+
 class PPD(Noise):
     def __init__(self, detector_parameters):
         Noise.__init__(self)
