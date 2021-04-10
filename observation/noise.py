@@ -224,8 +224,9 @@ class PMT(Noise):
         anode_electron_count = self.pmt_dynode_noise_generator(emitted_electrons + dark_electrons,
                                                                self.dynode_number, self.dynode_gain)
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
-        return anode_current + self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
-                                                            self.load_resistance, self.signal_length(anode_current))
+        return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
+                                                                                   self.bandwidth, self.load_resistance,
+                                                                                   self.signal_length(anode_current))
 
     def add_noise_to_signal(self, signal, noise_type='poisson'):
         if noise_type == 'poisson':
