@@ -113,10 +113,22 @@ class Noise(RandomState):
                     signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
         return signal
 
-    def pmt_dark_noise_generator(self, signal_size, dark_current, sampling_frequency):
-        expected_value = dark_current / (sampling_frequency * self.constants.charge_electron)
-        dark_electrons = self.normal(expected_value, numpy.sqrt(expected_value), signal_size)
-        return dark_electrons
+    def thermionic_dark_electron_generator(self, signal_length, dark_current, sampling_frequency,
+                                           dynode_gain, dynode_number):
+        expected_cathode_electron_count = dark_current / (self.constants.charge_electron * dynode_gain ** dynode_number)
+        electron_generation_rate = expected_cathode_electron_count / sampling_frequency
+        if electron_generation_rate >= 1:
+            return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
+        else:
+            electron_generation = self.uniform(0, 1, signal_length)
+            electron_generation[electron_generation <= electron_generation_rate] = 1
+            electron_generation[electron_generation > electron_generation_rate] = 0
+            return electron_generation
+
+    def derive_background_emission_in_photon_count(self, signal, sbr):
+        expected_background = numpy.ones(len(signal)) * signal.mean() / sbr
+        return self.generate_photon_noise(expected_background)
+
 
 
 class APD(Noise):
@@ -193,7 +205,7 @@ class PMT(Noise):
                            + self.dark_current
         return detector_current
 
-    def _pmt_transfer(self, signal):
+    def _photo_cathode_electron_generation(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
@@ -201,17 +213,18 @@ class PMT(Noise):
         pass
 
     def _pmt_poisson_noise_generator(self, signal):
-        size = self.signal_length(signal)
-        prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
-        emitted_photons = self.generate_photon_noise(prepared_signal)
-        background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
-        emitted_electrons = self._pmt_transfer(background_noised_signal)
-        dark_electrons = self.pmt_dark_noise_generator(size, self.dark_current, self.sampling_frequency)
-        secondary_electrons = self.pmt_dynode_noise_generator(emitted_electrons, size, self.dynode_number,
-                                                              self.dynode_gain)
-        noised_signal = (secondary_electrons + dark_electrons) * self.constants.charge_electron * \
-                        self.sampling_frequency
-        return noised_signal
+        expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
+        emission_photon_count = self.generate_photon_noise(expected_emission_photon_count)
+        background_photon_count = self.derive_background_emission_in_photon_count(expected_emission_photon_count,
+                                                                                  self.signal_to_background)
+        emitted_electrons = self._photo_cathode_electron_generation(emission_photon_count + background_photon_count)
+        dark_electrons = self.thermionic_dark_electron_generator(self.signal_length(signal), self.dark_current,
+                                                                 self.sampling_frequency, self.dynode_gain,
+                                                                 self.dynode_number)
+        anode_electron_count = self.pmt_dynode_noise_generator(emitted_electrons + dark_electrons,
+                                                               self.signal_length(signal),
+                                                               self.dynode_number, self.dynode_gain)
+        return anode_electron_count * self.constants.charge_electron * self.sampling_frequency
 
     def add_noise_to_signal(self, signal, noise_type='poisson'):
         if noise_type == 'poisson':
