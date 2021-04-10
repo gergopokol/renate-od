@@ -103,10 +103,10 @@ class Noise(RandomState):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
         return self.normal(expected_value, variance, signal_size)
 
-    def pmt_dynode_noise_generator(self, signal, signal_size, dynode_number, dynode_gain):
+    def pmt_dynode_noise_generator(self, signal, dynode_number, dynode_gain):
         for i in range(dynode_number):
             signal = numpy.abs(signal)
-            for j in range(signal_size):
+            for j in range(len(signal)):
                 if signal[j] * dynode_gain > 10:
                     signal[j] = self.normal(signal[j] * dynode_gain, math.sqrt(signal[j] * dynode_gain))
                 else:
@@ -128,7 +128,6 @@ class Noise(RandomState):
     def derive_background_emission_in_photon_count(self, signal, sbr):
         expected_background = numpy.ones(len(signal)) * signal.mean() / sbr
         return self.generate_photon_noise(expected_background)
-
 
 
 class APD(Noise):
@@ -198,6 +197,7 @@ class PMT(Noise):
         self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
+        self.load_resistance = float(detector_parameters.getroot().find('body').find('load_resistance').text)
 
     def _pmt_noiseless_transfer(self, signal):
         detector_current = signal * (1 + 1 / self.signal_to_background) * self.quantum_efficiency \
@@ -210,7 +210,7 @@ class PMT(Noise):
         return emitted_electrons
 
     def _pmt_gaussian_noise_generator(self, signal):
-        pass
+        raise NotImplementedError('On ToDo list :) ')
 
     def _pmt_poisson_noise_generator(self, signal):
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
@@ -222,15 +222,16 @@ class PMT(Noise):
                                                                  self.sampling_frequency, self.dynode_gain,
                                                                  self.dynode_number)
         anode_electron_count = self.pmt_dynode_noise_generator(emitted_electrons + dark_electrons,
-                                                               self.signal_length(signal),
                                                                self.dynode_number, self.dynode_gain)
-        return anode_electron_count * self.constants.charge_electron * self.sampling_frequency
+        anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
+        return anode_current + self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
+                                                            self.load_resistance, self.signal_length(anode_current))
 
     def add_noise_to_signal(self, signal, noise_type='poisson'):
         if noise_type == 'poisson':
-            self._pmt_poisson_noise_generator(signal)
+            return self._pmt_poisson_noise_generator(signal)
         elif noise_type == 'gaussian':
-            self._pmt_gaussian_noise_generator(signal)
+            return self._pmt_gaussian_noise_generator(signal)
         else:
             raise ValueError('The requested noise type does not exist or is not implemented.', noise_type)
 
