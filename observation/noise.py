@@ -205,12 +205,37 @@ class PMT(Noise):
                            + self.dark_current
         return detector_current
 
+    def _pmt_shot_noise_generation(self, signal):
+        mean, variance = self._pmt_shot_noise_setup(signal)
+        return self.normal(mean, variance)
+
+    def _pmt_shot_noise_setup(self, signal):
+        mean = signal * self.sampling_frequency * self.dynode_gain ** self.dynode_number * self.quantum_efficiency * \
+               self.constants.charge_electron
+        variance = numpy.sqrt(2*self.constants.charge_electron*mean*(self.dynode_gain/(self.dynode_gain-1)) *
+                              self.bandwidth*self.dynode_gain**self.dynode_number)
+        return mean, variance
+
+    def _pmt_dark_noise_generation(self, signal):
+        mean = numpy.ones(len(signal))*self.dark_current
+        variance = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number*
+                              (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth)
+        return self.normal(mean, variance)
+
     def _photo_cathode_electron_generation(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
     def _pmt_gaussian_noise_generator(self, signal):
-        raise NotImplementedError('On ToDo list :) ')
+        expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
+        total_expected_photon_count = self.background_addition(expected_emission_photon_count,
+                                                               self.signal_to_background)
+        anode_photon_current = self._pmt_shot_noise_generation(total_expected_photon_count)
+        anode_dark_current = self._pmt_dark_noise_generation(total_expected_photon_count)
+        noisy_voltage_signal = (anode_photon_current + anode_dark_current) * self.load_resistance + \
+                               self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
+                                                            self.load_resistance, len(signal))
+        return noisy_voltage_signal
 
     def _pmt_poisson_noise_generator(self, signal):
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
