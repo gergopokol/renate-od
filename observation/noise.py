@@ -294,6 +294,20 @@ class MPPC(Noise):
         assert detector_parameters.getroot().find('head').find('type').text == 'mppc', \
             'The detector type to be set is MPPC, Please check input data.'
         self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
+        self.detector_gain = float(detector_parameters.getroot().find('body').find('gain').text)
+        self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
+        self.noise_index = float(detector_parameters.getroot().find('body').find('noise_index').text)
+        self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
+        self.dark_current = float(detector_parameters.getroot().find('body').find('dark_current').text)
+        self.load_resistance = float(detector_parameters.getroot().find('body').find('load_resistance').text)
+        self.load_capacity = float(detector_parameters.getroot().find('body').find('load_capacity').text)
+        self.voltage_noise = float(detector_parameters.getroot().find('body').find('voltage_noise').text)
+        self.internal_capacity = float(detector_parameters.getroot().find('body').find('internal_capacity').text)
+        self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
+        self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
+
+    def add_noise_to_signal(self, signal):
+        pass
 
 
 class Detector(object):
