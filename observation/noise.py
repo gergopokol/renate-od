@@ -283,6 +283,19 @@ class PPD(Noise):
         return noised_signal
 
 
+class MPPC(Noise):
+    def __init__(self, detector_parameters):
+        Noise.__init__(self)
+        self.__setup_detector_parameters(detector_parameters)
+
+    def __setup_detector_parameters(self, detector_parameters):
+        assert isinstance(detector_parameters, etree._ElementTree), 'Expected data type for <detector_parameters> ' \
+                                                                    'is etree._ElementTree.'
+        assert detector_parameters.getroot().find('head').find('type').text == 'mppc', \
+            'The detector type to be set is MPPC, Please check input data.'
+        self.detector_temperature = float(detector_parameters.getroot().find('body').find('temperature').text)
+
+
 class Detector(object):
     def __new__(cls, detector_type='apd', parameters=None, data_path=None):
         assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
@@ -292,6 +305,8 @@ class Detector(object):
             return PMT(cls.__get_detector_parameters(parameters, data_path, detector_type))
         elif detector_type is 'ppd':
             return PPD(cls.__get_detector_parameters(parameters, data_path, detector_type))
+        elif detector_type is 'mppc':
+            return MPPC(cls.__get_detector_parameters(parameters, data_path, detector_type))
         else:
             raise ValueError('The requested detector type:' + detector_type + ' is not yet supported')
 
