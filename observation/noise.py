@@ -129,15 +129,14 @@ class Noise(RandomState):
         expected_background = numpy.ones(len(signal)) * signal.mean() / sbr
         return self.generate_photon_noise(expected_background)
 
-    def _mppc_gaussian_noise_init(self, signal, dark_count_rate, sampling_frequency, photon_detection_efficiency):
-        mean = signal / sampling_frequency * photon_detection_efficiency
-        std = numpy.sqrt(signal / sampling_frequency * photon_detection_efficiency + dark_count_rate
-                         / sampling_frequency)
+    def _mppc_gaussian_noise_init(self, signal, dark_count_rate, photon_detection_efficiency, sampling_frequency):
+        mean = signal * photon_detection_efficiency
+        std = numpy.sqrt(signal * photon_detection_efficiency + dark_count_rate / sampling_frequency)
         return mean, std
 
     def mppc_gaussian_noise_generator(self, signal, dark_count_rate, sampling_frequency, photon_detection_efficiency):
-        mean, std = self._mppc_gaussian_noise_init(signal, dark_count_rate, sampling_frequency,
-                                                   photon_detection_efficiency)
+        mean, std = self._mppc_gaussian_noise_init(signal, dark_count_rate, photon_detection_efficiency,
+                                                   sampling_frequency)
         noisy_signal = self.normal(mean, std)
         return noisy_signal * sampling_frequency
 
@@ -310,7 +309,7 @@ class MPPC(Noise):
                                                                     'is etree._ElementTree.'
         assert detector_parameters.getroot().find('head').find('type').text == 'mppc', \
             'The detector type to be set is MPPC, Please check input data.'
-        self.detector_gain = float(detector_parameters.getroot().find('body').find('gain').text)
+        self.detector_gain = float(detector_parameters.getroot().find('body').find('detector_gain').text)
         self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.dark_count_rate = float(detector_parameters.getroot().find('body').find('dark_count_rate').text)
