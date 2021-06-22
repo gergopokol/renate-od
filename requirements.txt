@@ -3,7 +3,7 @@ numpy==1.14.0
 pandas==0.22.0
 h5py==2.9.0
 matplotlib==2.1.2
-lxml==4.6.2
+lxml==4.6.3
 tables==3.4.2
 paramiko==2.4.2
 scp==0.13.2
