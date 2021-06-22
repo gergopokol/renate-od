@@ -96,7 +96,7 @@ class NoiseBasicTestCase(unittest.TestCase):
 
 class NoiseGeneratorTest(NoiseBasicTestCase):
 
-    INPUT_VALUE = 1000
+    INPUT_VALUE = 1100
     INPUT_INSTANCE = 1000000
     INPUT_INSTANCE_2 = 20
     INPUT_SEED = 20
