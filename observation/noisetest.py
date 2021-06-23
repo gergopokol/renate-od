@@ -411,7 +411,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionStandardDeviation(noisy_signal, numpy.sqrt(4*self.INPUT_CONST.charge_electron *
                                                     self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
                                                     * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
-                                                    self.PMT.bandwidth),
+                                                    self.PMT.bandwidth), precision=3E-02,
                                                     msg='The PMT Dark Noise Generation does not return '
                                                         'expected std value')
 
