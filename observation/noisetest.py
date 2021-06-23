@@ -403,17 +403,17 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      'distributions. The actual STD does not match.')
 
     def test_pmt_dark_noise_generation(self):
-        mean, std = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL)
-        self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL.shape,
-                              msg='The PMT Dark Noise Generation is expected to create a similar sized mean.')
-        self.assertTupleEqual(std.shape, self.INPUT_SIGNAL.shape,
-                              msg='The PMT Dark Noise Generation is expected to create a similar sized std.')
-        self.assertEqual(mean, self.PMT.dark_current,
-                         msg='The PMT Dark Noise Generation does not return expected mean value')
-        self.assertEqual(std,
-                         numpy.sqrt(4*self.INPUT_CONST.charge_electron*mean*self.PMT.dynode_gain**self.PMT.dynode_number
-                                    * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1))*self.PMT.bandwidth),
-                         msg='The PMT Dark Noise Generation does not return expected std value')
+        noisy_signal = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL)
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The PMT Dark Noise Generation is expected to create a similar sized signal.')
+        self.assertDistributionMean(noisy_signal, self.PMT.dark_current,
+                                    msg='The PMT Dark Noise Generation does not return expected mean value')
+        self.assertDistributionStandardDeviation(noisy_signal, numpy.sqrt(4*self.INPUT_CONST.charge_electron *
+                                                    self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
+                                                    * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
+                                                    self.PMT.bandwidth),
+                                                    msg='The PMT Dark Noise Generation does not return '
+                                                        'expected std value')
 
 
 class PPGeneratorTest(NoiseBasicTestCase):
