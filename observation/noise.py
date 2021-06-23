@@ -103,28 +103,6 @@ class Noise(RandomState):
         expected_value, variance = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
         return self.normal(expected_value, variance, signal_size)
 
-    def pmt_dynode_noise_generator(self, signal, dynode_number, dynode_gain):
-        for i in range(dynode_number):
-            signal = numpy.abs(signal)
-            for j in range(len(signal)):
-                if signal[j] * dynode_gain > 10:
-                    signal[j] = self.normal(signal[j] * dynode_gain, math.sqrt(signal[j] * dynode_gain))
-                else:
-                    signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
-        return signal
-
-    def thermionic_dark_electron_generator(self, signal_length, dark_current, sampling_frequency,
-                                           dynode_gain, dynode_number):
-        expected_cathode_electron_count = dark_current / (self.constants.charge_electron * dynode_gain ** dynode_number)
-        electron_generation_rate = expected_cathode_electron_count / sampling_frequency
-        if electron_generation_rate >= 1:
-            return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
-        else:
-            electron_generation = self.uniform(0, 1, signal_length)
-            electron_generation[electron_generation <= electron_generation_rate] = 1
-            electron_generation[electron_generation > electron_generation_rate] = 0
-            return electron_generation
-
     def derive_background_emission_in_photon_count(self, signal, sbr):
         expected_background = numpy.ones(len(signal)) * signal.mean() / sbr
         return self.generate_photon_noise(expected_background)
@@ -242,6 +220,27 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
+    def _dynode_noise_generator(self, signal, dynode_number):
+        for i in range(dynode_number):
+            signal = numpy.abs(signal)
+            for j in range(len(signal)):
+                if signal[j] * self.dynode_gain > 10:
+                    signal[j] = self.normal(signal[j] * self.dynode_gain, math.sqrt(signal[j] * self.dynode_gain))
+                else:
+                    signal[j] = numpy.float(self.poisson(signal[j] * self.dynode_gain))
+        return signal
+
+    def _thermionic_dark_electron_generator(self, signal_length):
+        expected_cathode_electron_count = self.dark_current / (self.constants.charge_electron * self.dynode_gain ** self.dynode_number)
+        electron_generation_rate = expected_cathode_electron_count / self.sampling_frequency
+        if electron_generation_rate >= 1:
+            return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
+        else:
+            electron_generation = self.uniform(0, 1, signal_length)
+            electron_generation[electron_generation <= electron_generation_rate] = 1
+            electron_generation[electron_generation > electron_generation_rate] = 0
+            return electron_generation
+
     def _pmt_gaussian_noise_generator(self, signal):
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         total_expected_photon_count = self.background_addition(expected_emission_photon_count,
@@ -259,11 +258,8 @@ class PMT(Noise):
         background_photon_count = self.derive_background_emission_in_photon_count(expected_emission_photon_count,
                                                                                   self.signal_to_background)
         emitted_electrons = self._photo_cathode_electron_generation(emission_photon_count + background_photon_count)
-        dark_electrons = self.thermionic_dark_electron_generator(self.signal_length(signal), self.dark_current,
-                                                                 self.sampling_frequency, self.dynode_gain,
-                                                                 self.dynode_number)
-        anode_electron_count = self.pmt_dynode_noise_generator(emitted_electrons + dark_electrons,
-                                                               self.dynode_number, self.dynode_gain)
+        dark_electrons = self._thermionic_dark_electron_generator(self.signal_length(signal))
+        anode_electron_count = self._dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number)
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
         return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
                                                                                    self.bandwidth, self.load_resistance,
