@@ -220,14 +220,14 @@ class PMT(Noise):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
-    def _dynode_noise_generator(self, signal, dynode_number):
+    def _dynode_noise_generator(self, signal, dynode_number, dynode_gain):
         for i in range(dynode_number):
             signal = numpy.abs(signal)
             for j in range(len(signal)):
-                if signal[j] * self.dynode_gain > 10:
-                    signal[j] = self.normal(signal[j] * self.dynode_gain, math.sqrt(signal[j] * self.dynode_gain))
+                if signal[j] * dynode_gain > 10:
+                    signal[j] = self.normal(signal[j] * dynode_gain, math.sqrt(signal[j] * dynode_gain))
                 else:
-                    signal[j] = numpy.float(self.poisson(signal[j] * self.dynode_gain))
+                    signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
         return signal
 
     def _thermionic_dark_electron_generator(self, signal_length):
@@ -259,7 +259,8 @@ class PMT(Noise):
                                                                                   self.signal_to_background)
         emitted_electrons = self._photo_cathode_electron_generation(emission_photon_count + background_photon_count)
         dark_electrons = self._thermionic_dark_electron_generator(self.signal_length(signal))
-        anode_electron_count = self._dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number)
+        anode_electron_count = self._dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number,
+                                                            self. dynode_gain)
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
         return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
                                                                                    self.bandwidth, self.load_resistance,

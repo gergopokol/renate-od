@@ -315,7 +315,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                         load_capacity=self.INPUT_LOAD_CAPACITY,
                                                         internal_capacity=self.INPUT_INTERNAL_CAPACITY,
                                                         expected_value=0)
-        self.assertDistributionMean(noisy_signal, mean, comparison='relative',
+        self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
                                     msg='The Voltage Noise Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='The Voltage Noise Generator is expected to create Normal '
@@ -390,7 +390,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
 
     def test_pmt_single_dynode_noise_generator(self):
         noisy_signal = self.PMT._dynode_noise_generator(signal=self.INPUT_SIGNAL,
-                                                        dynode_number=1)
+                                                        dynode_number=1,
+                                                        dynode_gain=self.INPUT_DYNODE_GAIN)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
         mean, std = (self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean(),\
@@ -415,7 +416,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                          msg='The PMT Dark Noise Generation does not return expected std value')
 
 
-class PPDGeneratorTest(NoiseBasicTestCase):
+class PPGeneratorTest(NoiseBasicTestCase):
 
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
