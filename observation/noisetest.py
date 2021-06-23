@@ -114,8 +114,6 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_VOLTAGE_NOISE = 10
     INPUT_LOAD_CAPACITY = 5
     INPUT_INTERNAL_CAPACITY = 8
-    INPUT_DYNODE_NUMBER = 2
-    INPUT_DYNODE_GAIN = 2
     INPUT_CONST = Constants()
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_PHOTON_FLUX)
     INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
@@ -317,39 +315,10 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                         load_capacity=self.INPUT_LOAD_CAPACITY,
                                                         internal_capacity=self.INPUT_INTERNAL_CAPACITY,
                                                         expected_value=0)
-        self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
+        self.assertDistributionMean(noisy_signal, mean, comparison='relative',
                                     msg='The Voltage Noise Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='The Voltage Noise Generator is expected to create Normal '
-                                                     'distributions. The actual STD does not match.')
-
-    def test_pmt_single_dynode_noise_generator(self):
-        noisy_signal = self.noise_gen.pmt_dynode_noise_generator(signal=self.INPUT_SIGNAL_2,
-                                                                 signal_size=self.INPUT_SIGNAL_2.shape[0],
-                                                                 dynode_number=1,
-                                                                 dynode_gain=self.INPUT_DYNODE_GAIN)
-        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
-                              msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
-        mean, std = (self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean(),\
-                    numpy.sqrt((self.INPUT_SIGNAL_2 * self.INPUT_DYNODE_GAIN).mean())
-        self.assertDistributionMean(noisy_signal, mean,
-                                    msg='The PMT Dynode Noise Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, std,
-                                                 msg='The PMT Dynode Noise Generator is expected to create Poisson '
-                                                     'distributions. The actual STD does not match.')
-
-    def test_pmt_dark_noise_generator(self):
-        noisy_signal = self.noise_gen.pmt_dark_noise_generator(signal_size=self.INPUT_SIGNAL_2.shape[0],
-                                                               dark_current=self.INPUT_DARK_CURRENT,
-                                                               sampling_frequency=self.INPUT_FREQUENCY)
-        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
-                              msg='The PMT Dark Noise Generator is expected to create a similar sized signal.')
-        mean, std = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron),\
-                    numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron))
-        self.assertDistributionMean(noisy_signal, mean,
-                                    msg='The PMT Dark Noise Generator does not return expected mean value')
-        self.assertDistributionStandardDeviation(noisy_signal, std,
-                                                 msg='The PMT Dark Noise Generator is expected to create Poisson '
                                                      'distributions. The actual STD does not match.')
 
 
@@ -394,6 +363,10 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
     INPUT_CONST = Constants()
+    INPUT_DYNODE_NUMBER = 2
+    INPUT_DYNODE_GAIN = 2
+    INPUT_DARK_CURRENT = 10
+    INPUT_FREQUENCY = 1E6
 
     DEFAULT_PMT_PATH = 'detector/pmt_default.xml'
 
@@ -415,15 +388,31 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                          msg='The PMT noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
 
-    def test_pmt_transfer(self):
-        emitted_electrons = self.PMT._pmt_transfer(self.INPUT_SIGNAL)
-        mean, std = self.INPUT_SIGNAL * self.PMT.quantum_efficiency, \
-                    numpy.sqrt(self.INPUT_SIGNAL * self.PMT.quantum_efficiency)
-        self.assertDistributionMean(emitted_electrons, mean[0],
-                                    msg='The PMT Transfer does not return expected mean value')
-        self.assertDistributionStandardDeviation(emitted_electrons, std[0],
-                                                 msg='The PMT Transfer is expected to create Poisson '
+    def test_pmt_single_dynode_noise_generator(self):
+        noisy_signal = self.PMT._dynode_noise_generator(signal=self.INPUT_SIGNAL,
+                                                        dynode_number=1)
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
+        mean, std = (self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean(),\
+                    numpy.sqrt((self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean())
+        self.assertDistributionMean(noisy_signal, mean,
+                                    msg='The PMT Dynode Noise Generator does not return expected mean value')
+        self.assertDistributionStandardDeviation(noisy_signal, std,
+                                                 msg='The PMT Dynode Noise Generator is expected to create Poisson '
                                                      'distributions. The actual STD does not match.')
+
+    def test_pmt_dark_noise_generation(self):
+        mean, std = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL)
+        self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL.shape,
+                              msg='The PMT Dark Noise Generation is expected to create a similar sized mean.')
+        self.assertTupleEqual(std.shape, self.INPUT_SIGNAL.shape,
+                              msg='The PMT Dark Noise Generation is expected to create a similar sized std.')
+        self.assertEqual(mean, self.PMT.dark_current,
+                         msg='The PMT Dark Noise Generation does not return expected mean value')
+        self.assertEqual(std,
+                         numpy.sqrt(4*self.INPUT_CONST.charge_electron*mean*self.PMT.dynode_gain**self.PMT.dynode_number
+                                    * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1))*self.PMT.bandwidth),
+                         msg='The PMT Dark Noise Generation does not return expected std value')
 
 
 class PPDGeneratorTest(NoiseBasicTestCase):
