@@ -208,13 +208,13 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL_2.shape, msg='The mean values for shot signal noise '
                               'generation is expected to have the same shape.')
         self.assertTupleEqual(std.shape, self.INPUT_SIGNAL_2.shape,
-                              msg='The variance values for shot noise generation is expected to have the same shape.')
+                              msg='The std values for shot noise generation is expected to have the same shape.')
         for index in range(self.INPUT_INSTANCE):
             self.assertEqual(mean[index], self.INPUT_SIGNAL_2[index], msg='Mean value for noise generator is expected '
                                                                           'to be equal to input signal values.')
             self.assertEqual(std[index], numpy.sqrt(2 * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RESIST *
                              self.INPUT_BANDWIDTH * numpy.power(self.INPUT_GAIN, self.INPUT_NOISE_INDEX+1) *
-                             self.INPUT_SIGNAL_2[index]), msg='Variance values for noise generator is '
+                             self.INPUT_SIGNAL_2[index]), msg='Std values for noise generator is '
                                                               'expected to be equal to sqrt(2*q*B*G^(x+1)*signal*R)')
 
     def test_shot_noise_generator(self):
@@ -387,6 +387,18 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(detector_voltage.all(), mean.all(),
                          msg='The PMT noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
+
+    def test_pmt_shot_noise_setup(self):
+        mean, std = self.PMT._pmt_shot_noise_setup(signal=self.INPUT_SIGNAL)
+
+        self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.PMT.sampling_frequency * self.PMT.dynode_gain **
+                                      self.PMT.dynode_number * self.PMT.quantum_efficiency *
+                                      self.INPUT_CONST.charge_electron).all(),
+                         msg='Mean value for noise generator is expected to be equal to input signal values.')
+        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean*
+                                                (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) * self.PMT.bandwidth*
+                                                self.PMT.dynode_gain**self.PMT.dynode_number)).all(),
+                         msg='Std value for noise generator is expected to be equal to input signal values.')
 
     def test_pmt_single_dynode_noise_generator(self):
         noisy_signal = self.PMT._dynode_noise_generator(signal=self.INPUT_SIGNAL,

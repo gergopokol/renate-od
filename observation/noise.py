@@ -206,15 +206,15 @@ class PMT(Noise):
     def _pmt_shot_noise_setup(self, signal):
         mean = signal * self.sampling_frequency * self.dynode_gain ** self.dynode_number * self.quantum_efficiency * \
                self.constants.charge_electron
-        variance = numpy.sqrt(2*self.constants.charge_electron*mean*(self.dynode_gain/(self.dynode_gain-1)) *
-                              self.bandwidth*self.dynode_gain**self.dynode_number)
-        return mean, variance
+        std = numpy.sqrt(2*self.constants.charge_electron*mean*(self.dynode_gain/(self.dynode_gain-1)) *
+                         self.bandwidth*self.dynode_gain**self.dynode_number)
+        return mean, std
 
     def _pmt_dark_noise_generation(self, signal):
         mean = numpy.ones(len(signal))*self.dark_current
-        variance = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number*
-                              (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth)
-        return self.normal(mean, variance)
+        std = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number*
+                         (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth)
+        return self.normal(mean, std)
 
     def _photo_cathode_electron_generation(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
