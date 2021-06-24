@@ -3,6 +3,7 @@ import urllib.request
 import pandas
 import h5py
 from lxml import etree
+from scipy.io import readsav
 from utility.accessdata import AccessData
 
 
@@ -56,6 +57,8 @@ class GetData(AccessData):
                 self.read_txt()
             elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
+            elif self.data_path_name.endswith('.sav'):
+                self.read_sav()
             else:
                 print('NO data read from file: ' + self.access_path)
         else:
@@ -101,6 +104,10 @@ class GetData(AccessData):
         with open(self.access_path, 'r') as file:
             self.data = file.read()
             print('Data read to string from: ' + self.access_path)
+
+    def read_sav(self):
+        self.data = readsav(self.access_path)
+        print('Data read in IDL specific data dictionary: ' + self.access_path)
 
     def read_xml(self):
         if not self.data_key:
