@@ -107,22 +107,6 @@ class Noise(RandomState):
         expected_background = numpy.ones(len(signal)) * signal.mean() / sbr
         return self.generate_photon_noise(expected_background)
 
-    def _mppc_gaussian_noise_init(self, signal, dark_count_rate, photon_detection_efficiency, sampling_frequency):
-        mean = signal * photon_detection_efficiency
-        std = numpy.sqrt(signal * photon_detection_efficiency + dark_count_rate / sampling_frequency)
-        return mean, std
-
-    def mppc_gaussian_noise_generator(self, signal, dark_count_rate, sampling_frequency, photon_detection_efficiency):
-        mean, std = self._mppc_gaussian_noise_init(signal, dark_count_rate, photon_detection_efficiency,
-                                                   sampling_frequency)
-        noisy_signal = self.normal(mean, std)
-        return noisy_signal * sampling_frequency
-
-    def mppc_transfer(self, signal, photon_detection_efficiency, detector_gain, quenching_resistance):
-        detector_voltage = signal * photon_detection_efficiency * detector_gain * quenching_resistance \
-                           * self.constants.charge_electron
-        return detector_voltage
-
 
 class APD(Noise):
 
@@ -212,15 +196,15 @@ class PMT(Noise):
 
     def _pmt_dark_noise_generation(self, signal):
         mean = numpy.ones(len(signal))*self.dark_current
-        std = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number*
+        std = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number *
                          (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth)
         return self.normal(mean, std)
 
-    def _photo_cathode_electron_generation(self, signal):
+    def _pmt_photo_cathode_electron_generation(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
 
-    def _dynode_noise_generator(self, signal, dynode_number, dynode_gain):
+    def _pmt_dynode_noise_generator(self, signal, dynode_number, dynode_gain):
         for i in range(dynode_number):
             signal = numpy.abs(signal)
             for j in range(len(signal)):
@@ -230,8 +214,9 @@ class PMT(Noise):
                     signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
         return signal
 
-    def _thermionic_dark_electron_generator(self, signal_length):
-        expected_cathode_electron_count = self.dark_current / (self.constants.charge_electron * self.dynode_gain ** self.dynode_number)
+    def _pmt_thermionic_dark_electron_generator(self, signal_length):
+        expected_cathode_electron_count = self.dark_current / (self.constants.charge_electron * self.dynode_gain **
+                                                               self.dynode_number)
         electron_generation_rate = expected_cathode_electron_count / self.sampling_frequency
         if electron_generation_rate >= 1:
             return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
@@ -247,9 +232,8 @@ class PMT(Noise):
                                                                self.signal_to_background)
         anode_photon_current = self._pmt_shot_noise_generation(total_expected_photon_count)
         anode_dark_current = self._pmt_dark_noise_generation(total_expected_photon_count)
-        noisy_voltage_signal = (anode_photon_current + anode_dark_current) * self.load_resistance + \
-                               self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
-                                                            self.load_resistance, len(signal))
+        noisy_voltage_signal = (anode_photon_current + anode_dark_current) * self.load_resistance + self.\
+            johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance, len(signal))
         return noisy_voltage_signal
 
     def _pmt_poisson_noise_generator(self, signal):
@@ -257,10 +241,10 @@ class PMT(Noise):
         emission_photon_count = self.generate_photon_noise(expected_emission_photon_count)
         background_photon_count = self.derive_background_emission_in_photon_count(expected_emission_photon_count,
                                                                                   self.signal_to_background)
-        emitted_electrons = self._photo_cathode_electron_generation(emission_photon_count + background_photon_count)
-        dark_electrons = self._thermionic_dark_electron_generator(self.signal_length(signal))
-        anode_electron_count = self._dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number,
-                                                            self. dynode_gain)
+        emitted_electrons = self._pmt_photo_cathode_electron_generation(emission_photon_count + background_photon_count)
+        dark_electrons = self._pmt_thermionic_dark_electron_generator(self.signal_length(signal))
+        anode_electron_count = self._pmt_dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number,
+                                                                self. dynode_gain)
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
         return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
                                                                                    self.bandwidth, self.load_resistance,
@@ -342,12 +326,26 @@ class MPPC(Noise):
         self.terminal_capacitance = float(detector_parameters.getroot().find('body').find('terminal_capacitance').text)
         self.total_pixel_count = float(detector_parameters.getroot().find('body').find('total_pixel_count').text)
 
+    def _mppc_gaussian_noise_setup(self, signal):
+        mean = signal * self.photon_detection_efficiency
+        std = numpy.sqrt(signal * self.photon_detection_efficiency + self.dark_count_rate / self.sampling_frequency)
+        return mean, std
+
+    def _mppc_gaussian_noise_generator(self, signal):
+        mean, std = self._mppc_gaussian_noise_setup(signal)
+        noisy_signal = self.normal(mean, std)
+        return noisy_signal * self.sampling_frequency
+
+    def _mppc_transfer(self, signal, photon_detection_efficiency, detector_gain, quenching_resistance):
+        detector_voltage = signal * photon_detection_efficiency * detector_gain * quenching_resistance \
+                           * self.constants.charge_electron
+        return detector_voltage
+
     def add_noise_to_signal(self, signal):
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
-        noisy_signal = self.mppc_gaussian_noise_generator(background_noised_signal, self.dark_count_rate,
-                                                          self.sampling_frequency, self.photon_detection_efficiency)
+        noisy_signal = self._mppc_gaussian_noise_generator(background_noised_signal)
         return noisy_signal
 
 
