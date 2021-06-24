@@ -390,7 +390,6 @@ class PMTGeneratorTest(NoiseBasicTestCase):
 
     def test_pmt_shot_noise_setup(self):
         mean, std = self.PMT._pmt_shot_noise_setup(signal=self.INPUT_SIGNAL)
-
         self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.PMT.sampling_frequency * self.PMT.dynode_gain **
                                       self.PMT.dynode_number * self.PMT.quantum_efficiency *
                                       self.INPUT_CONST.charge_electron).all(),
@@ -399,6 +398,21 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                 (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) * self.PMT.bandwidth*
                                                 self.PMT.dynode_gain**self.PMT.dynode_number)).all(),
                          msg='Std value for noise generator is expected to be equal to input signal values.')
+
+    def test_pmt_shot_noise_generation(self):
+        noisy_signal = self.PMT._pmt_shot_noise_generation(signal=self.INPUT_SIGNAL)
+        mean = (self.INPUT_SIGNAL * self.PMT.sampling_frequency * self.PMT.dynode_gain ** self.PMT.dynode_number *
+                self.PMT.quantum_efficiency * self.INPUT_CONST.charge_electron).mean()
+        std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean*(self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
+                          self.PMT.bandwidth*self.PMT.dynode_gain**self.PMT.dynode_number)).mean()
+        self.assertEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+                         msg='The function need to keep teh shape of the array')
+        self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
+                                    msg='The PMT shot noise generation function needs to create an array with a well '
+                                        'defined mean')
+        self.assertDistributionStandardDeviation(series=noisy_signal, reference_std=std,
+                                                 msg='The PMT shot noise generation function needs to create an array '
+                                                     'with a well defined std')
 
     def test_pmt_single_dynode_noise_generator(self):
         noisy_signal = self.PMT._dynode_noise_generator(signal=self.INPUT_SIGNAL,
