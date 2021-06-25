@@ -35,5 +35,8 @@ class Equilibrium(object):
         plt.contour(self.R, self.Z, self.Psi, levels)
         if lcfs:
             plt.contour(self.R, self.Z, self.Psi, [1], colors='r')
+        plt.title('2D flux surface map')
+        plt.xlabel('R [m]')
+        plt.ylabel('Z [m]')
         plt.axis('equal')
         plt.show()
