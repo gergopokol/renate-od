@@ -38,45 +38,45 @@ class NoiseBasicTestCase(unittest.TestCase):
         actual = series.var()
         status, statement = self._WithinPrecision(actual, reference_variance, precision, comparison)
         if not status:
-            standardMsg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
+            standard_msg = '\n Actual distribution function variance: \t %s and \n reference variance: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_variance)) + statement
-            msg = self._formatMessage(msg, standardMsg)
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
     def assertDistributionMean(self, series, reference_mean, precision=1E-2, comparison='relative', msg=''):
         actual = series.mean()
         status, statement = self._WithinPrecision(actual, reference_mean, precision, comparison)
         if not status:
-            standardMsg = '\n Actual distribution function mean: \t %s and \n reference mean: \t %s are not within ' \
+            standard_msg = '\n Actual distribution function mean: \t %s and \n reference mean: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_mean)) + statement
-            msg = self._formatMessage(msg, standardMsg)
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
     def assertDistributionStandardDeviation(self, series, reference_std, comparison='relative', precision=1E-2, msg=''):
         actual = series.std()
         status, statement = self._WithinPrecision(actual, reference_std, precision, comparison)
         if not status:
-            standardMsg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
+            standard_msg = '\n Actual distribution function std: \t %s and \n reference std: \t %s are not within ' \
                           'precision margin. \n' % (safe_repr(actual), safe_repr(reference_std)) + statement
-            msg = self._formatMessage(msg, standardMsg)
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
     def assertDistributionSkewness(self, series, reference_skewness, comparison='relative', precision=1E-2, msg=''):
         actual = st.skew(series)
         status, statement = self._WithinPrecision(actual, reference_skewness, precision, comparison)
         if not status:
-            standardMsg = '\n Actual distribution function skewness: \t %s and \n reference skewness: \t %s are not ' \
+            standard_msg = '\n Actual distribution function skewness: \t %s and \n reference skewness: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_skewness)) + statement
-            msg = self._formatMessage(msg, standardMsg)
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
     def assertDistributionKurtosis(self, series, reference_kurtosis, comparison='relative', precision=1E-2, msg=''):
         actual = st.kurtosis(series)
         status, statement = self._WithinPrecision(actual, reference_kurtosis, precision, comparison)
         if not status:
-            standardMsg = '\n Actual distribution function kurtosis: \t %s and \n reference kurtosis: \t %s are not ' \
+            standard_msg = '\n Actual distribution function kurtosis: \t %s and \n reference kurtosis: \t %s are not ' \
                           'within precision margin. \n' % (safe_repr(actual), safe_repr(reference_kurtosis)) + statement
-            msg = self._formatMessage(msg, standardMsg)
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
     def assertHasAttributes(self, actual_class, reference_attributes, msg=''):
@@ -89,8 +89,8 @@ class NoiseBasicTestCase(unittest.TestCase):
             else:
                 statement += '%s, \t %s, \n' % (safe_repr(attribute), safe_repr(True))
         if not status:
-            standardMsg = '\n Input class does not have all expected attributes. \n' + statement
-            msg = self._formatMessage(msg, standardMsg)
+            standard_msg = '\n Input class does not have all expected attributes. \n' + statement
+            msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
 
@@ -185,8 +185,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         actual_signal = self.noise_gen.photon_flux_to_detector_voltage(self.INPUT_SIGNAL, self.INPUT_GAIN,
                                                                        self.INPUT_QE, self.INPUT_LOAD_RESIST,
                                                                        self.INPUT_FREQUENCY)
-        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE * \
-                                     self.INPUT_GAIN * self.INPUT_CONST.charge_electron * self.INPUT_FREQUENCY
+        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE * self.\
+            INPUT_GAIN * self.INPUT_CONST.charge_electron * self.INPUT_FREQUENCY
         self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The detector voltage converter is not expected to change the output signal shape.')
         self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
@@ -350,8 +350,8 @@ class APDGeneratorTest(NoiseBasicTestCase):
     def test_apd_noiseless_transfer(self):
         detector_voltage = self.APD._apd_noiseless_transfer(signal=self.INPUT_SIGNAL)
         mean = (self.INPUT_SIGNAL * (1 + 1 / self.APD.signal_to_background) * self.APD.quantum_efficiency *
-                self.INPUT_CONST.charge_electron * self.APD.detector_gain + self.APD.dark_current) \
-                * self.APD.load_resistance
+                self.INPUT_CONST.charge_electron * self.APD.detector_gain + self.APD.dark_current) * self.\
+            APD.load_resistance
         self.assertEqual(detector_voltage.all(), mean.all(),
                          msg='The APD noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
@@ -381,9 +381,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
 
     def test_pmt_noiseless_transfer(self):
         detector_voltage = self.PMT._pmt_noiseless_transfer(signal=self.INPUT_SIGNAL)
-        mean = self.INPUT_SIGNAL * (1 + 1 / self.PMT.signal_to_background) * self.PMT.quantum_efficiency \
-               * self.INPUT_CONST.charge_electron * (self.PMT.dynode_gain ** self.PMT.dynode_number) \
-               + self.PMT.dark_current
+        mean = self.INPUT_SIGNAL * (1 + 1 / self.PMT.signal_to_background) * self.PMT.quantum_efficiency * self.\
+            INPUT_CONST.charge_electron * (self.PMT.dynode_gain ** self.PMT.dynode_number) + self.PMT.dark_current
         self.assertEqual(detector_voltage.all(), mean.all(),
                          msg='The PMT noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
@@ -394,8 +393,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                       self.PMT.dynode_number * self.PMT.quantum_efficiency *
                                       self.INPUT_CONST.charge_electron).all(),
                          msg='Mean value for noise generator is expected to be equal to input signal values.')
-        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean*
-                                                (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) * self.PMT.bandwidth*
+        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean *
+                                                (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) * self.PMT.bandwidth *
                                                 self.PMT.dynode_gain**self.PMT.dynode_number)).all(),
                          msg='Std value for noise generator is expected to be equal to input signal values.')
 
@@ -415,13 +414,13 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      'with a well defined std')
 
     def test_pmt_single_dynode_noise_generator(self):
-        noisy_signal = self.PMT._dynode_noise_generator(signal=self.INPUT_SIGNAL,
-                                                        dynode_number=1,
-                                                        dynode_gain=self.INPUT_DYNODE_GAIN)
+        noisy_signal = self.PMT._pmt_dynode_noise_generator(signal=self.INPUT_SIGNAL,
+                                                            dynode_number=1,
+                                                            dynode_gain=self.INPUT_DYNODE_GAIN)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The PMT Dynode Noise Generator is expected to create a similar sized signal.')
-        mean, std = (self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean(),\
-                    numpy.sqrt((self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean())
+        mean, std = (self.INPUT_SIGNAL * self.INPUT_DYNODE_GAIN).mean(), numpy.sqrt((self.INPUT_SIGNAL * self.
+                                                                                     INPUT_DYNODE_GAIN).mean())
         self.assertDistributionMean(noisy_signal, mean,
                                     msg='The PMT Dynode Noise Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, std,
@@ -435,11 +434,24 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(noisy_signal, self.PMT.dark_current, precision=1E-01,
                                     msg='The PMT Dark Noise Generation does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, numpy.sqrt(4*self.INPUT_CONST.charge_electron *
-                                                    self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
-                                                    * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
-                                                    self.PMT.bandwidth),
-                                                    msg='The PMT Dark Noise Generation does not return '
-                                                        'expected std value')
+                                                 self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
+                                                 * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
+                                                 self.PMT.bandwidth),
+                                                 msg='The PMT Dark Noise Generation does not return '
+                                                     'expected std value')
+
+    def test_pmt_photo_cathode_electron_generation(self):
+        emitted_electrons = self.PMT._pmt_photo_cathode_electron_generation(signal=self.INPUT_SIGNAL)
+        mean = (self.INPUT_SIGNAL * self.PMT.quantum_efficiency).mean()
+        std = (numpy.sqrt(self.INPUT_SIGNAL * self.PMT.quantum_efficiency)).mean()
+        self.assertEqual(self.INPUT_SIGNAL.size(), emitted_electrons.size(),
+                         msg='PMT photo cathode electron generation function needs to create a similar sized array')
+        self.assertDistributionMean(series=emitted_electrons, reference_mean=mean,
+                                    msg='PMT photo cathode electron generation function needs to create a '
+                                        'theoretically indicated mean')
+        self.assertDistributionStandardDeviation(series=emitted_electrons, reference_std=std,
+                                                 msg='PMT photo cathode electron generation function needs to create '
+                                                     'Poisson distribution')
 
 
 class PPGeneratorTest(NoiseBasicTestCase):
