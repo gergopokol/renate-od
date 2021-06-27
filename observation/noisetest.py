@@ -404,8 +404,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                 self.PMT.quantum_efficiency * self.INPUT_CONST.charge_electron).mean()
         std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean*(self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
                           self.PMT.bandwidth*self.PMT.dynode_gain**self.PMT.dynode_number)).mean()
-        self.assertEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
-                         msg='The function need to keep teh shape of the array')
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The function need to keep the shape of the array')
         self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
                                     msg='The PMT shot noise generation function needs to create an array with a well '
                                         'defined mean')
@@ -444,8 +444,9 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         emitted_electrons = self.PMT._pmt_photo_cathode_electron_generation(signal=self.INPUT_SIGNAL)
         mean = (self.INPUT_SIGNAL * self.PMT.quantum_efficiency).mean()
         std = (numpy.sqrt(self.INPUT_SIGNAL * self.PMT.quantum_efficiency)).mean()
-        self.assertEqual(self.INPUT_SIGNAL.size(), emitted_electrons.size(),
-                         msg='PMT photo cathode electron generation function needs to create a similar sized array')
+        self.assertTupleEqual(self.INPUT_SIGNAL.shape, emitted_electrons.shape,
+                              msg='PMT photo cathode electron generation function needs to create a similar sized '
+                                  'array')
         self.assertDistributionMean(series=emitted_electrons, reference_mean=mean,
                                     msg='PMT photo cathode electron generation function needs to create a '
                                         'theoretically indicated mean')
@@ -464,8 +465,9 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                           self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
         std = numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
                                                     self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
-        self.assertEqual(self.INPUT_SIGNAL.size(), electron_generation.size(),
-                         msg='The pmt thermionic dark electron generation function needs to keep the size of an array')
+        self.assertTupleEqual(self.INPUT_SIGNAL.shape, electron_generation.shape,
+                              msg='The pmt thermionic dark electron generation function needs to keep the size of an '
+                                  'array')
         self.assertDistributionMean(series=electron_generation, reference_mean=mean,
                                     msg='The pmt thermionic dark electron generator function needs to create a '
                                         'theoretically indicated mean')
