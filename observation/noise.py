@@ -214,10 +214,11 @@ class PMT(Noise):
                     signal[j] = numpy.float(self.poisson(signal[j] * dynode_gain))
         return signal
 
-    def _pmt_thermionic_dark_electron_generator(self, signal_length):
-        expected_cathode_electron_count = self.dark_current / (self.constants.charge_electron * self.dynode_gain **
-                                                               self.dynode_number)
-        electron_generation_rate = expected_cathode_electron_count / self.sampling_frequency
+    def _pmt_thermionic_dark_electron_generator(self, signal_length, dark_current, dynode_gain, dynode_number,
+                                                sampling_frequency):
+        expected_cathode_electron_count = dark_current / (self.constants.charge_electron * dynode_gain **
+                                                          dynode_number)
+        electron_generation_rate = expected_cathode_electron_count / sampling_frequency
         if electron_generation_rate >= 1:
             return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
         else:
@@ -236,13 +237,15 @@ class PMT(Noise):
             johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance, len(signal))
         return noisy_voltage_signal
 
-    def _pmt_poisson_noise_generator(self, signal):
+    def _pmt_detailed_noise_generator(self, signal):
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emission_photon_count = self.generate_photon_noise(expected_emission_photon_count)
         background_photon_count = self.derive_background_emission_in_photon_count(expected_emission_photon_count,
                                                                                   self.signal_to_background)
         emitted_electrons = self._pmt_photo_cathode_electron_generation(emission_photon_count + background_photon_count)
-        dark_electrons = self._pmt_thermionic_dark_electron_generator(self.signal_length(signal))
+        dark_electrons = self._pmt_thermionic_dark_electron_generator(self.signal_length(signal), self.dark_current,
+                                                                      self.dynode_gain, self.dynode_number,
+                                                                      self.sampling_frequency)
         anode_electron_count = self._pmt_dynode_noise_generator(emitted_electrons + dark_electrons, self.dynode_number,
                                                                 self. dynode_gain)
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
@@ -250,9 +253,9 @@ class PMT(Noise):
                                                                                    self.bandwidth, self.load_resistance,
                                                                                    self.signal_length(anode_current))
 
-    def add_noise_to_signal(self, signal, noise_type='poisson'):
-        if noise_type == 'poisson':
-            return self._pmt_poisson_noise_generator(signal)
+    def add_noise_to_signal(self, signal, noise_type='detailed'):
+        if noise_type == 'detailed':
+            return self._pmt_detailed_noise_generator(signal)
         elif noise_type == 'gaussian':
             return self._pmt_gaussian_noise_generator(signal)
         else:
