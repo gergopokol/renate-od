@@ -461,10 +461,10 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                                                dynode_gain=self.INPUT_DYNODE_GAIN,
                                                                                dynode_number=self.INPUT_DYNODE_NUMBER,
                                                                                sampling_frequency=self.INPUT_FREQUENCY)
-        mean = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                          self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
-        std = numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                                    self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
+        mean = dark_current_1 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        std = numpy.sqrt(dark_current_1 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                           self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
         self.assertTupleEqual(self.INPUT_SIGNAL.shape, electron_generation.shape,
                               msg='The pmt thermionic dark electron generation function needs to keep the size of an '
                                   'array')
