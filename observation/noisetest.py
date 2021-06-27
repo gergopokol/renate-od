@@ -453,6 +453,37 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                  msg='PMT photo cathode electron generation function needs to create '
                                                      'Poisson distribution')
 
+    def test_pmt_thermionic_dark_electron_generator(self):
+        dark_current_1 = 1E-9
+        electron_generation = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.size(),
+                                                                               dark_current=dark_current_1,
+                                                                               dynode_gain=self.INPUT_DYNODE_GAIN,
+                                                                               dynode_number=self.INPUT_DYNODE_NUMBER,
+                                                                               sampling_frequency=self.INPUT_FREQUENCY)
+        mean = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                          self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        std = numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                                    self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
+        self.assertEqual(self.INPUT_SIGNAL.size(), electron_generation.size(),
+                         msg='The pmt thermionic dark electron generation function needs to keep the size of an array')
+        self.assertDistributionMean(series=electron_generation, reference_mean=mean,
+                                    msg='The pmt thermionic dark electron generator function needs to create a '
+                                        'theoretically indicated mean')
+        self.assertDistributionStandardDeviation(series=electron_generation, reference_std=std,
+                                                 msg='The pmt thermionic dark electron generator function needs to '
+                                                     'create Poisson distribution')
+        dark_current_2 = 1E-16
+        electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.size(),
+                                                                                 dark_current=dark_current_2,
+                                                                                 dynode_gain=self.INPUT_DYNODE_GAIN,
+                                                                                 dynode_number=self.INPUT_DYNODE_NUMBER,
+                                                                                 sampling_frequency=self.INPUT_FREQUENCY
+                                                                                 )
+        for i in range(self.INPUT_SIGNAL.size()):
+            if electron_generation_2[i] != 0 and electron_generation_2[i] != 1:
+                return False, 'If dark current is small, the pmt thermionic dark electron generator function needs ' \
+                              'to create zeros or ones'
+
 
 class PPGeneratorTest(NoiseBasicTestCase):
 
