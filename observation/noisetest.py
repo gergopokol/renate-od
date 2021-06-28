@@ -507,7 +507,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
 
     def test_pmt_low_thermionic_dark_electron_generator(self):
         dark_current_2 = 1E-6
-        electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.shape,
+        electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.size,
                                                                                  dark_current=dark_current_2,
                                                                                  dynode_gain=self.INPUT_DYNODE_GAIN,
                                                                                  dynode_number=self.INPUT_DYNODE_NUMBER,
