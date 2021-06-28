@@ -363,8 +363,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
     INPUT_CONST = Constants()
-    INPUT_DYNODE_NUMBER = 2
-    INPUT_DYNODE_GAIN = 2
+    INPUT_DYNODE_NUMBER = 9
+    INPUT_DYNODE_GAIN = 6
     INPUT_DARK_CURRENT = 10
     INPUT_FREQUENCY = 1E6
 
@@ -454,8 +454,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                  msg='PMT photo cathode electron generation function needs to create '
                                                      'Poisson distribution')
 
-    def test_pmt_thermionic_dark_electron_generator(self):
-        dark_current_1 = 1E-9
+    def test_pmt_high_thermionic_dark_electron_generator(self):
+        dark_current_1 = 1E-3
         electron_generation = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.shape,
                                                                                dark_current=dark_current_1,
                                                                                dynode_gain=self.INPUT_DYNODE_GAIN,
@@ -469,22 +469,29 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                               msg='The pmt thermionic dark electron generation function needs to keep the size of an '
                                   'array')
         self.assertDistributionMean(series=electron_generation, reference_mean=mean,
-                                    msg='The pmt thermionic dark electron generator function needs to create a '
+                                    msg='The pmt high thermionic dark electron generator function needs to create a '
                                         'theoretically indicated mean')
         self.assertDistributionStandardDeviation(series=electron_generation, reference_std=std,
-                                                 msg='The pmt thermionic dark electron generator function needs to '
-                                                     'create Poisson distribution')
-        dark_current_2 = 1E-16
+                                                 msg='The pmt high thermionic dark electron generator function needs'
+                                                     ' to create Poisson distribution')
+
+    def test_pmt_low_thermionic_dark_electron_generator(self):
+        dark_current_2 = 1E-7
         electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.shape,
                                                                                  dark_current=dark_current_2,
                                                                                  dynode_gain=self.INPUT_DYNODE_GAIN,
                                                                                  dynode_number=self.INPUT_DYNODE_NUMBER,
                                                                                  sampling_frequency=self.INPUT_FREQUENCY
                                                                                  )
-        for i in range(self.INPUT_SIGNAL.size):
-            if electron_generation_2[i] != 0 and electron_generation_2[i] != 1:
-                return False, 'If dark current is small, the pmt thermionic dark electron generator function needs ' \
+        for index in range(self.INPUT_SIGNAL.size):
+            if electron_generation_2[index] != 0 and electron_generation_2[index] != 1:
+                return False, 'The pmt low thermionic dark electron generator function needs ' \
                               'to create zeros or ones'
+        mean = dark_current_2 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
+                                    msg='The pmt low thermionic dark electron generator function needs to create the '
+                                        'theoretically indicated mean')
 
 
 class PPDGeneratorTest(NoiseBasicTestCase):
