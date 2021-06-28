@@ -371,14 +371,6 @@ class APDGeneratorTest(NoiseBasicTestCase):
                          msg='The APD noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
 
-    def test_apd_add_noise_to_signal(self):
-        self.APD.seed(self.INPUT_SEED)
-        noisy_signal = self.APD.add_noise_to_signal(self.INPUT_SIGNAL_2)
-        default = numpy.loadtxt('detector/test/APD_test_Gaussian.txt')
-        for index in range(self.INPUT_INSTANCE_2):
-            if noisy_signal[index] != default[index]:
-                return False, 'The add noise to signal function cannot create the seeded values'
-
 
 class PMTGeneratorTest(NoiseBasicTestCase):
 
@@ -523,22 +515,6 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
                                     msg='The pmt low thermionic dark electron generator function needs to create the '
                                         'theoretically indicated mean')
-
-    def test_pmt_detailed_noise_generator(self):
-        self.PMT.seed(self.INPUT_SEED)
-        noisy_signal = self.PMT.add_noise_to_signal(self.INPUT_SIGNAL_3, noise_type='detailed')
-        default = numpy.loadtxt('detector/test/PMT_test_Detailed.txt')
-        for index in range(self.INPUT_INSTANCE_2):
-            if noisy_signal[index] != default[index]:
-                return False, 'The PMT detailed noise generator function cannot create the seeded values'
-
-    def test_pmt_gaussian_noise_generator(self):
-        self.PMT.seed(self.INPUT_SEED)
-        noisy_signal = self.PMT.add_noise_to_signal(self.INPUT_SIGNAL_2, noise_type='gaussian')
-        default = numpy.loadtxt('detector/test/PMT_test_Gaussian.txt')
-        for index in range(self.INPUT_INSTANCE_2):
-            if noisy_signal[index] != default[index]:
-                return False, 'The PMT gaussian noise generator function cannot create the seeded values'
 
 
 class PPDGeneratorTest(NoiseBasicTestCase):

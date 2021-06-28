@@ -254,8 +254,7 @@ class PMT(Noise):
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
         return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
                                                                                    self.bandwidth, self.load_resistance,
-                                                                                   self.signal_length(anode_current)), \
-               dark_electrons
+                                                                                   self.signal_length(anode_current))
 
     def add_noise_to_signal(self, signal, noise_type='detailed'):
         if noise_type == 'detailed':
