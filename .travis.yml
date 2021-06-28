@@ -20,5 +20,5 @@ script:
   - python -m unittest -v observation.noisetest.NoiseGeneratorTest
   - python -m unittest -v observation.noisetest.APDGeneratorTest
   - python -m unittest -v observation.noisetest.PMTGeneratorTest
-  - python -m unittest -v observation.noisetest.PPGeneratorTest
+  - python -m unittest -v observation.noisetest.PPDGeneratorTest
   - python -m unittest -v observation.noisetest.DetectorGeneratorTest

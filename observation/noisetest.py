@@ -487,7 +487,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                               'to create zeros or ones'
 
 
-class PPGeneratorTest(NoiseBasicTestCase):
+class PPDGeneratorTest(NoiseBasicTestCase):
 
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
