@@ -385,6 +385,13 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_VALUE_2 = 1E9
+    INPUT_INSTANCE_2 = 1000000
+    INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE_2)
+    INPUT_VALUE_3 = 1E9
+    INPUT_INSTANCE_3 = 100000
+    INPUT_SIGNAL_3 = numpy.full(INPUT_INSTANCE_3, INPUT_VALUE_3)
+    INPUT_SEED = 20
     INPUT_CONST = Constants()
     INPUT_DYNODE_NUMBER = 9
     INPUT_DYNODE_GAIN = 6
@@ -515,6 +522,22 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
                                     msg='The pmt low thermionic dark electron generator function needs to create the '
                                         'theoretically indicated mean')
+
+    def test_pmt_detailed_noise_generator(self):
+        self.PMT.seed(self.INPUT_SEED)
+        noisy_signal = self.PMT.add_noise_to_signal(self.INPUT_SIGNAL_3, noise_type='detailed')
+        default = numpy.loadtxt('detector/test/PMT_test_Detailed.txt')
+        for index in range(self.INPUT_INSTANCE_2):
+            if noisy_signal[index] != default[index]:
+                return False, 'The PMT detailed noise generator function cannot create the seeded values'
+
+    def test_pmt_gaussian_noise_generator(self):
+        self.PMT.seed(self.INPUT_SEED)
+        noisy_signal = self.PMT.add_noise_to_signal(self.INPUT_SIGNAL_2, noise_type='gaussian')
+        default = numpy.loadtxt('detector/test/PMT_test_Gaussian.txt')
+        for index in range(self.INPUT_INSTANCE_2):
+            if noisy_signal[index] != default[index]:
+                return False, 'The PMT gaussian noise generator function cannot create the seeded values'
 
 
 class PPDGeneratorTest(NoiseBasicTestCase):
