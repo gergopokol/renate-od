@@ -338,6 +338,10 @@ class APDGeneratorTest(NoiseBasicTestCase):
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_VALUE_2 = 1E9
+    INPUT_INSTANCE_2 = 1000000
+    INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE_2)
+    INPUT_SEED = 20
     INPUT_CONST = Constants()
 
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
@@ -366,6 +370,14 @@ class APDGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(detector_voltage.all(), mean.all(),
                          msg='The APD noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
+
+    def test_apd_add_noise_to_signal(self):
+        detector = self.APD.seed(self.INPUT_SEED)
+        noisy_signal = detector.add_noise_to_signal(self.INPUT_SIGNAL_2)
+        default = numpy.loadtxt('detector/test/APD_test_Gaussian.txt')
+        for index in range(self.INPUT_INSTANCE_2):
+            if noisy_signal[index] != default[index]:
+                return False, 'The add noise to signal function cannot create the seeded values'
 
 
 class PMTGeneratorTest(NoiseBasicTestCase):
