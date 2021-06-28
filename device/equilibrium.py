@@ -3,17 +3,25 @@ from scipy.interpolate import interp2d
 from utility.getdata import GetData
 import matplotlib.pyplot as plt
 
+try:
+    import imas
+    from imas_utility.idsequilibrium import EquilibriumIds
+    IMAS_FLAG = True
+except ImportError:
+    IMAS_FLAG = False
+
 
 class Equilibrium(object):
     def __init__(self, source='renate', data_id=None, data_path='device_data/test/test_idl_data.sav'):
         self.data_source = source
         self.data_path = data_path
         self.data_id = data_id
+        self.imas_flag = IMAS_FLAG
 
     def load_poloidal_flux_map(self):
         if self.data_source == 'renate':
             self.__load_renate_IDL_flux_map_data()
-        elif self.data_source == 'ids':
+        elif self.data_source == 'ids' and self.imas_flag:
             self.__load_ids_flux_map_data()
         else:
             raise ValueError('The data source requested: ' + str(self.data_source) + ' is not supported. ')
