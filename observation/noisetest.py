@@ -324,7 +324,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     def test_derive_background_emission_in_photon_count(self):
         background = self.noise_gen.derive_background_emission_in_photon_count(self.INPUT_SIGNAL_2, self.INPUT_SBR)
         mean = self.INPUT_SIGNAL_2.mean() / self.INPUT_SBR
-        std = numpy.sqrt(self.INPUT_SIGNAL_2.mean() * self.INPUT_SBR)
+        std = numpy.sqrt(self.INPUT_SIGNAL_2.mean() / self.INPUT_SBR)
         self.assertDistributionMean(series=background, reference_mean=mean,
                                     msg='The derive background emission into photon count function needs to create a '
                                         'theoretically indicated mean')
