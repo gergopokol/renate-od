@@ -323,7 +323,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
 
     def test_derive_background_emission_in_photon_count(self):
         background = self.noise_gen.derive_background_emission_in_photon_count(self.INPUT_SIGNAL_2, self.INPUT_SBR)
-        mean = self.INPUT_SIGNAL_2.mean() * self.INPUT_SBR
+        mean = self.INPUT_SIGNAL_2.mean() / self.INPUT_SBR
         std = numpy.sqrt(self.INPUT_SIGNAL_2.mean() * self.INPUT_SBR)
         self.assertDistributionMean(series=background, reference_mean=mean,
                                     msg='The derive background emission into photon count function needs to create a '
@@ -372,8 +372,8 @@ class APDGeneratorTest(NoiseBasicTestCase):
                          'indicated value.')
 
     def test_apd_add_noise_to_signal(self):
-        detector = self.APD.seed(self.INPUT_SEED)
-        noisy_signal = detector.add_noise_to_signal(self.INPUT_SIGNAL_2)
+        self.APD.seed(self.INPUT_SEED)
+        noisy_signal = self.APD.add_noise_to_signal(self.INPUT_SIGNAL_2)
         default = numpy.loadtxt('detector/test/APD_test_Gaussian.txt')
         for index in range(self.INPUT_INSTANCE_2):
             if noisy_signal[index] != default[index]:
