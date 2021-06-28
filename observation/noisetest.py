@@ -514,9 +514,15 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                                                  sampling_frequency=self.INPUT_FREQUENCY
                                                                                  )
         for index in range(self.INPUT_SIGNAL.size):
-            if electron_generation_2[index] != 0:
+            if electron_generation_2[index] != 0 and electron_generation_2[index] != 1:
                 return False, 'The pmt low thermionic dark electron generator function needs ' \
                               'to create zeros or ones'
+
+        mean = dark_current_2 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
+                                    msg='The pmt low thermionic dark electron generator function needs to create the '
+                                        'theoretically indicated mean')
 
     def test_pmt_detailed_noise_generator(self):
         self.PMT.seed(self.INPUT_SEED)

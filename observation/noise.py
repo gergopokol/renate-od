@@ -223,8 +223,11 @@ class PMT(Noise):
             return self.poisson(numpy.ones(signal_length)*electron_generation_rate)
         else:
             electron_generation = self.uniform(0, 1, signal_length)
-            electron_generation[electron_generation <= electron_generation_rate] = 1
-            electron_generation[electron_generation > electron_generation_rate] = 0
+            for i in range(signal_length):
+                if electron_generation[i] <= electron_generation_rate:
+                    electron_generation[i] = 1
+                else:
+                    electron_generation[i] = 0
             return electron_generation
 
     def _pmt_gaussian_noise_generator(self, signal):
@@ -251,7 +254,8 @@ class PMT(Noise):
         anode_current = anode_electron_count * self.constants.charge_electron * self.sampling_frequency
         return self.load_resistance * anode_current + self.johnson_noise_generator(self.detector_temperature,
                                                                                    self.bandwidth, self.load_resistance,
-                                                                                   self.signal_length(anode_current))
+                                                                                   self.signal_length(anode_current)), \
+               dark_electrons
 
     def add_noise_to_signal(self, signal, noise_type='detailed'):
         if noise_type == 'detailed':
