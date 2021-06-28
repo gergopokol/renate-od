@@ -321,6 +321,17 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                  msg='The Voltage Noise Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
+    def test_derive_background_emission_in_photon_count(self):
+        background = self.noise_gen.derive_background_emission_in_photon_count(self.INPUT_SIGNAL_2, self.INPUT_SBR)
+        mean = self.INPUT_SIGNAL_2.mean() * self.INPUT_SBR
+        std = numpy.sqrt(self.INPUT_SIGNAL_2.mean() * self.INPUT_SBR)
+        self.assertDistributionMean(series=background, reference_mean=mean,
+                                    msg='The derive background emission into photon count function needs to create a '
+                                        'theoretically indicated mean')
+        self.assertDistributionStandardDeviation(series=background, reference_std=std,
+                                                 msg='The derive background emission into photon count function needs'
+                                                     ' to create Poisson distribution')
+
 
 class APDGeneratorTest(NoiseBasicTestCase):
 
@@ -476,7 +487,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      ' to create Poisson distribution')
 
     def test_pmt_low_thermionic_dark_electron_generator(self):
-        dark_current_2 = 1E-7
+        dark_current_2 = 1E-6
         electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.shape,
                                                                                  dark_current=dark_current_2,
                                                                                  dynode_gain=self.INPUT_DYNODE_GAIN,
