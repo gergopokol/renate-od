@@ -458,10 +458,10 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      'distributions. The actual STD does not match.')
 
     def test_pmt_dark_noise_generation(self):
-        noisy_signal = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL)
-        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+        noisy_signal = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL_2)
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The PMT Dark Noise Generation is expected to create a similar sized signal.')
-        self.assertDistributionMean(noisy_signal, self.PMT.dark_current, precision=1E-01,
+        self.assertDistributionMean(noisy_signal, self.PMT.dark_current, precision=1.5E-01,
                                     msg='The PMT Dark Noise Generation does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, numpy.sqrt(4*self.INPUT_CONST.charge_electron *
                                                  self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
@@ -514,14 +514,9 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                                                  sampling_frequency=self.INPUT_FREQUENCY
                                                                                  )
         for index in range(self.INPUT_SIGNAL.size):
-            if electron_generation_2[index] != 0 and electron_generation_2[index] != 1:
+            if electron_generation_2[index] != 0:
                 return False, 'The pmt low thermionic dark electron generator function needs ' \
                               'to create zeros or ones'
-        mean = dark_current_2 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
-        self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
-                                    msg='The pmt low thermionic dark electron generator function needs to create the '
-                                        'theoretically indicated mean')
 
     def test_pmt_detailed_noise_generator(self):
         self.PMT.seed(self.INPUT_SEED)
