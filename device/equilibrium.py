@@ -11,7 +11,7 @@ except ImportError:
 
 
 class Equilibrium(object):
-    def __init__(self, source='renate', data_id=None, data_path='device_data/test/test_idl_data.sav'):
+    def __init__(self, equilibrium=None, source='renate', data_id=None, data_path='device_data/test/test_idl_data.sav'):
         self.data_source = source
         self.data_path = data_path
         self.imas_flag = IMAS_FLAG
