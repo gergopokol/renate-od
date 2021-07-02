@@ -208,7 +208,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                          msg='Mean value for shot noise setup is expected to be equal to theoretical indicated values.')
         self.assertEqual(std.all(), numpy.sqrt(2 * self.INPUT_CONST.charge_electron * mean * self.INPUT_AMPLIFICATION *
                                                self.INPUT_NOISE_AMPLIFICATION * self.INPUT_BANDWIDTH *
-                                               self.INPUT_LOAD_RESIST),
+                                               self.INPUT_LOAD_RESIST).all(),
                          msg='Std values for noise generator is expected to be equal to theoretical indicated value')
 
     def test_shot_noise_generator(self):
@@ -387,14 +387,16 @@ class APDGeneratorTest(NoiseBasicTestCase):
                                                quantum_efficiency=self.INPUT_QE,
                                                sampling_frequency=self.INPUT_FREQUENCY)
         self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DETECTOR_GAIN *
-                                      self.INPUT_QE * self.INPUT_CONST.charge_electron).all(),
+                                      self.INPUT_QE * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RES).all(),
                          msg='Mean value for noise generator is expected to be equal to input signal values.')
         self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean * self.INPUT_DETECTOR_GAIN **
-                                                (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH)).all(),
+                                                (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH *
+                                                self.INPUT_LOAD_RES)).all(),
                          msg='Std value for noise generator is expected to be equal to input signal values.')
 
-    def test_pmt_shot_noise_generator(self):
-        noisy_signal = self.APD.shot_noise_generator(signal=self.INPUT_SIGNAL, load_resistance=self.INPUT_LOAD_RES,
+    def test_apd_shot_noise_generator(self):
+        noisy_signal = self.APD.shot_noise_generator(signal=self.INPUT_SIGNAL,
+                                                     load_resistance=self.INPUT_LOAD_RES,
                                                      bandwidth=self.INPUT_BANDWIDTH,
                                                      amplification=self.APD._apd_amplification(self.INPUT_DETECTOR_GAIN
                                                                                                ),
@@ -403,16 +405,16 @@ class APDGeneratorTest(NoiseBasicTestCase):
                                                      quantum_efficiency=self.INPUT_QE,
                                                      sampling_frequency=self.INPUT_FREQUENCY)
         mean = (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DETECTOR_GAIN *
-                self.INPUT_QE * self.INPUT_CONST.charge_electron).mean()
+                self.INPUT_QE * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RES).mean()
         std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean * self.INPUT_DETECTOR_GAIN **
-                          (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH)).mean()
+                          (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RES)).mean()
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The function need to keep the shape of the array')
         self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
-                                    msg='The PMT shot noise generation function needs to create an array with a well '
+                                    msg='The APD shot noise generation function needs to create an array with a well '
                                         'defined mean')
         self.assertDistributionStandardDeviation(series=noisy_signal, reference_std=std,
-                                                 msg='The PMT shot noise generation function needs to create an array '
+                                                 msg='The APD shot noise generation function needs to create an array '
                                                      'with a well defined std')
 
 
@@ -466,15 +468,18 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN **
                                       self.INPUT_DYNODE_NUMBER * self.INPUT_QE *
                                       self.INPUT_CONST.charge_electron).all(),
-                         msg='Mean value for noise generator is expected to be equal to input signal values.')
+                         msg='Mean value for PMT shot noise generator is expected to be equal to theoretical indicated '
+                             'values.')
         self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
                                                 (self.INPUT_DYNODE_GAIN/(self.INPUT_DYNODE_GAIN-1)) *
-                                                self.INPUT_BANDWIDTH *
+                                                self.INPUT_BANDWIDTH * self.INPUT_LOAD_RES *
                                                 self.INPUT_DYNODE_GAIN**self.INPUT_DYNODE_NUMBER)).all(),
-                         msg='Std value for noise generator is expected to be equal to input signal values.')
+                         msg='Std value for PMT shot noise generator is expected to be equal to theoretical indicated '
+                             'values.')
 
     def test_pmt_shot_noise_generator(self):
-        noisy_signal = self.PMT.shot_noise_generator(signal=self.INPUT_SIGNAL, load_resistance=self.INPUT_LOAD_RES,
+        noisy_signal = self.PMT.shot_noise_generator(signal=self.INPUT_SIGNAL,
+                                                     load_resistance=self.INPUT_LOAD_RES,
                                                      bandwidth=self.INPUT_BANDWIDTH,
                                                      amplification=self.PMT._pmt_amplification(self.INPUT_DYNODE_GAIN,
                                                                                                self.INPUT_DYNODE_NUMBER
@@ -484,7 +489,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      quantum_efficiency=self.INPUT_QE,
                                                      sampling_frequency=self.INPUT_FREQUENCY)
         mean = (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER *
-                self.INPUT_QE * self.INPUT_CONST.charge_electron).mean()
+                self.INPUT_QE * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RES).mean()
         std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
                           (self.INPUT_DYNODE_GAIN/(self.INPUT_DYNODE_GAIN-1)) * self.INPUT_BANDWIDTH *
                           self.INPUT_DYNODE_GAIN**self.INPUT_DYNODE_NUMBER)).mean()
