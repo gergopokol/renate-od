@@ -143,7 +143,7 @@ class APD(Noise):
         return detector_gain ** noise_index
 
     def add_noise_to_signal(self, signal):
-        size = self.signal_length(signal)
+        signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
         shot_noised_signal = self.shot_noise_generator(background_noised_signal, self.load_resistance, self.bandwidth,
@@ -151,11 +151,11 @@ class APD(Noise):
                                                        self._apd_noise_amplification(self.detector_gain,
                                                                                      self.noise_index),
                                                        self.quantum_efficiency, self.sampling_frequency)
-        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
+        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, signal_size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
-                                                     self.load_capacity, self.internal_capacity, size)
+                                                     self.load_capacity, self.internal_capacity, signal_size)
         johnson_noise = self.johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance,
-                                                     size)
+                                                     signal_size)
         noised_signal = shot_noised_signal + dark_noise + voltage_noise + johnson_noise
         return noised_signal
 
@@ -292,23 +292,18 @@ class PPD(Noise):
                             * self.constants.charge_electron + self.dark_current) * self.load_resistance
         return detector_voltage
 
-    def _ppd_transfer(self, signal):
-        detector_voltage = self.poisson(signal * self.quantum_efficiency) * self.constants.charge_electron * \
-                           self.sampling_frequency * self.load_resistance
-        return detector_voltage
-
     def add_noise_to_signal(self, signal):
-        size = self.signal_length(signal)
+        signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
-        emitted_photons = self.generate_photon_noise(prepared_signal)
-        background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
-        detector_voltage = self._ppd_transfer(background_noised_signal)
-        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
+        background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
+        shot_noised_signal = self.shot_noise_generator(background_noised_signal, self.load_resistance, self.bandwidth,
+                                                       1, 0, self.quantum_efficiency, self.sampling_frequency)
+        dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, signal_size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
-                                                     self.load_capacity, self.internal_capacity, size)
+                                                     self.load_capacity, self.internal_capacity, signal_size)
         johnson_noise = self.johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance,
-                                                     size)
-        noised_signal = detector_voltage + dark_noise + voltage_noise + johnson_noise
+                                                     signal_size)
+        noised_signal = shot_noised_signal + dark_noise + voltage_noise + johnson_noise
         return noised_signal
 
 
