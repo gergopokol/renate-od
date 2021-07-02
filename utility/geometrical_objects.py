@@ -17,6 +17,15 @@ class Point(object):
         else:
             self.psi = '-'
 
+    def __repr__(self):
+        if hasattr(self, 'x'):
+            return 'Point coordinates: \n ' \
+                   'Cartesian: (x,y,z) [m,m,m] = (' + str(self.x) + '; ' + str(self.y) + '; ' + str(self.z) + ') \n ' \
+                   'Cylindrical: (r,phi,z) [m,rad,m]= (' + str(self.r) + '; ' + str(self.phi) + '; ' + str(self.z) + \
+                   ') \n Normalized flux value: Psi [-] = ' + str(self.psi)
+        else:
+            return 'Point coordinates: NOT defined.'
+
     def add_cartesian_point(self, point):
         self.x = point[0]
         self.y = point[1]
