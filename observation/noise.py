@@ -44,11 +44,6 @@ class Noise(RandomState):
     def background_addition(signal, signal_to_background):
         return signal + signal.mean() / signal_to_background
 
-    def photon_flux_to_detector_voltage(self, signal, detector_gain, quantum_efficiency, load_resistance,
-                                        sampling_frequency):
-        return signal * self.constants.charge_electron * detector_gain * quantum_efficiency * load_resistance * \
-               sampling_frequency
-
     def generate_photon_noise(self, signal):
         return self.poisson(signal)
 
@@ -57,17 +52,20 @@ class Noise(RandomState):
         noised_signal = self.normal(signal, average/snr)
         return noised_signal
 
-    def _shot_noise_setup(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
-        """
-        :return: mean (U_det) and STD (sqrt(2*q*U_det*M*F*B*R_L)), where F = M exp(x)
-        """
-        return signal, numpy.array(numpy.sqrt(2 * self.constants.charge_electron * signal *
-                                   numpy.power(detector_gain, noise_index + 1) * bandwidth * load_resistance))
+    def _shot_noise_setup(self, signal, load_resistance, bandwidth, amplification,
+                          noise_amplification, quantum_efficiency, sampling_frequency):
+        mean = signal * self.constants.charge_electron * amplification * quantum_efficiency * load_resistance * \
+               sampling_frequency
+        std = numpy.sqrt(2 * self.constants.charge_electron * mean * amplification * noise_amplification * bandwidth *
+                         load_resistance)
 
-    def shot_noise_generator(self, signal, detector_gain, load_resistance, noise_index, bandwidth):
-        expected_value, variance = self._shot_noise_setup(signal, detector_gain,
-                                                          load_resistance, noise_index, bandwidth)
-        return self.normal(expected_value, variance)
+        return mean, std
+
+    def shot_noise_generator(self, signal, load_resistance, bandwidth, amplification, noise_amplification,
+                             quantum_efficiency, sampling_frequency):
+        mean, std = self._shot_noise_setup(signal, load_resistance, bandwidth, amplification, noise_amplification,
+                                           quantum_efficiency, sampling_frequency)
+        return self.normal(mean, std)
 
     def _johnson_noise_setup(self, detector_temperature, bandwidth, load_resistance, expected_value=0):
         """
@@ -138,16 +136,23 @@ class APD(Noise):
                             + self.dark_current) * self.load_resistance
         return detector_voltage
 
+    @staticmethod
+    def _apd_amplification(detector_gain):
+        return detector_gain
+
+    @staticmethod
+    def _apd_noise_amplification(detector_gain, noise_index):
+        return detector_gain ** noise_index
+
     def add_noise_to_signal(self, signal):
         size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
-        detector_voltage = self.photon_flux_to_detector_voltage(background_noised_signal, self.detector_gain,
-                                                                self.quantum_efficiency, self.load_resistance,
-                                                                self.sampling_frequency)
-        shot_noised_signal = self.shot_noise_generator(detector_voltage, self.detector_gain, self.load_resistance,
-                                                       self.noise_index, self.bandwidth)
-        shot_noise = shot_noised_signal - detector_voltage
+        shot_noised_signal = self.shot_noise_generator(background_noised_signal, self.load_resistance, self.bandwidth,
+                                                       self._apd_amplification(self.detector_gain),
+                                                       self._apd_noise_amplification(self.detector_gain,
+                                                                                     self.noise_index),
+                                                       self.quantum_efficiency, self.sampling_frequency)
         dark_noise = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance, size)
         voltage_noise = self.voltage_noise_generator(self.voltage_noise, self.load_resistance,
                                                      self.load_capacity, self.internal_capacity, size)
@@ -183,21 +188,18 @@ class PMT(Noise):
                            + self.dark_current
         return detector_current
 
-    def _pmt_shot_noise_generation(self, signal):
-        mean, variance = self._pmt_shot_noise_setup(signal)
-        return self.normal(mean, variance)
+    @staticmethod
+    def _pmt_amplification(dynode_gain, dynode_number):
+        return dynode_gain ** dynode_number
 
-    def _pmt_shot_noise_setup(self, signal):
-        mean = signal * self.sampling_frequency * self.dynode_gain ** self.dynode_number * self.quantum_efficiency * \
-               self.constants.charge_electron
-        std = numpy.sqrt(2*self.constants.charge_electron*mean*(self.dynode_gain/(self.dynode_gain-1)) *
-                         self.bandwidth*self.dynode_gain**self.dynode_number)
-        return mean, std
+    @staticmethod
+    def _pmt_noise_amplification(dynode_gain):
+        return dynode_gain/(dynode_gain-1)
 
     def _pmt_dark_noise_generation(self, signal):
-        mean = numpy.ones(len(signal))*self.dark_current
+        mean = numpy.ones(len(signal))*self.dark_current * self.load_resistance
         std = numpy.sqrt(4*self.constants.charge_electron*mean*self.dynode_gain**self.dynode_number *
-                         (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth)
+                         (self.dynode_gain/(self.dynode_gain-1))*self.bandwidth * self.load_resistance)
         return self.normal(mean, std)
 
     def _pmt_photo_cathode_electron_generation(self, signal):
@@ -234,9 +236,14 @@ class PMT(Noise):
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         total_expected_photon_count = self.background_addition(expected_emission_photon_count,
                                                                self.signal_to_background)
-        anode_photon_current = self._pmt_shot_noise_generation(total_expected_photon_count)
+        anode_photon_current = self.shot_noise_generator(total_expected_photon_count, self.load_resistance,
+                                                         self.bandwidth, self._pmt_amplification(self.dynode_gain,
+                                                                                                 self.dynode_number),
+                                                         self._pmt_noise_amplification(self.dynode_gain),
+                                                         self.quantum_efficiency,
+                                                         self.sampling_frequency)
         anode_dark_current = self._pmt_dark_noise_generation(total_expected_photon_count)
-        noisy_voltage_signal = (anode_photon_current + anode_dark_current) * self.load_resistance + self.\
+        noisy_voltage_signal = (anode_photon_current + anode_dark_current) + self.\
             johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance, len(signal))
         return noisy_voltage_signal
 

@@ -107,8 +107,8 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
     INPUT_QE = 2
     INPUT_LOAD_RESIST = 2
     INPUT_BANDWIDTH = 2
-    INPUT_GAIN = 2
-    INPUT_NOISE_INDEX = 1
+    INPUT_AMPLIFICATION = 2
+    INPUT_NOISE_AMPLIFICATION = 2
     INPUT_DET_TEMP = 300
     INPUT_DARK_CURRENT = 10
     INPUT_VOLTAGE_NOISE = 10
@@ -181,17 +181,6 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(actual_signal.mean(), self.INPUT_PHOTON_FLUX * (1 + self.INPUT_SBR**-1),
                          msg='The background light addition should be an SBR-th portion of the modelled mean signal.')
 
-    def test_photon_flux_to_detector_voltage(self):
-        actual_signal = self.noise_gen.photon_flux_to_detector_voltage(self.INPUT_SIGNAL, self.INPUT_GAIN,
-                                                                       self.INPUT_QE, self.INPUT_LOAD_RESIST,
-                                                                       self.INPUT_FREQUENCY)
-        reference_detector_voltage = self.INPUT_PHOTON_FLUX * self.INPUT_LOAD_RESIST * self.INPUT_QE * self.\
-            INPUT_GAIN * self.INPUT_CONST.charge_electron * self.INPUT_FREQUENCY
-        self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
-                              msg='The detector voltage converter is not expected to change the output signal shape.')
-        self.assertAlmostEqual(actual_signal.mean(), reference_detector_voltage, places=self.EXPECTED_PRECISION_4,
-                               msg='The detector voltage converter is expected to be <signal*e*M*QE*R_L>')
-
     def test_photon_noise_generator(self):
         actual_signal = self.noise_gen.generate_photon_noise(self.INPUT_SIGNAL)
         self.assertTupleEqual(actual_signal.shape, self.INPUT_SIGNAL.shape,
@@ -203,31 +192,42 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                      'distributions. The actual STD does not match.')
 
     def test_shot_noise_setup(self):
-        mean, std = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, self.INPUT_GAIN, self.INPUT_LOAD_RESIST,
-                                                     self.INPUT_NOISE_INDEX, self.INPUT_BANDWIDTH)
+        mean, std = self.noise_gen._shot_noise_setup(signal=self.INPUT_SIGNAL_2,
+                                                     load_resistance=self.INPUT_LOAD_RESIST,
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     amplification=self.INPUT_AMPLIFICATION,
+                                                     noise_amplification=self.INPUT_NOISE_AMPLIFICATION,
+                                                     quantum_efficiency=self.INPUT_QE,
+                                                     sampling_frequency=self.INPUT_FREQUENCY)
         self.assertTupleEqual(mean.shape, self.INPUT_SIGNAL_2.shape, msg='The mean values for shot signal noise '
                               'generation is expected to have the same shape.')
         self.assertTupleEqual(std.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The std values for shot noise generation is expected to have the same shape.')
-        for index in range(self.INPUT_INSTANCE):
-            self.assertEqual(mean[index], self.INPUT_SIGNAL_2[index], msg='Mean value for noise generator is expected '
-                                                                          'to be equal to input signal values.')
-            self.assertEqual(std[index], numpy.sqrt(2 * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RESIST *
-                             self.INPUT_BANDWIDTH * numpy.power(self.INPUT_GAIN, self.INPUT_NOISE_INDEX+1) *
-                             self.INPUT_SIGNAL_2[index]), msg='Std values for noise generator is '
-                                                              'expected to be equal to sqrt(2*q*B*G^(x+1)*signal*R)')
+        self.assertEqual(mean.all(), (self.INPUT_SIGNAL_2 * self.INPUT_CONST.charge_electron * self.INPUT_AMPLIFICATION
+                                      * self.INPUT_QE * self.INPUT_LOAD_RESIST * self.INPUT_FREQUENCY).all(),
+                         msg='Mean value for shot noise setup is expected to be equal to theoretical indicated values.')
+        self.assertEqual(std.all(), numpy.sqrt(2 * self.INPUT_CONST.charge_electron * mean * self.INPUT_AMPLIFICATION *
+                                               self.INPUT_NOISE_AMPLIFICATION * self.INPUT_BANDWIDTH *
+                                               self.INPUT_LOAD_RESIST),
+                         msg='Std values for noise generator is expected to be equal to theoretical indicated value')
 
     def test_shot_noise_generator(self):
-        noisy_signal = self.noise_gen.shot_noise_generator(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
+        noisy_signal = self.noise_gen.shot_noise_generator(signal=self.INPUT_SIGNAL_2,
                                                            load_resistance=self.INPUT_LOAD_RESIST,
-                                                           noise_index=self.INPUT_NOISE_INDEX,
-                                                           bandwidth=self.INPUT_BANDWIDTH)
+                                                           bandwidth=self.INPUT_BANDWIDTH,
+                                                           amplification=self.INPUT_AMPLIFICATION,
+                                                           noise_amplification=self.INPUT_NOISE_AMPLIFICATION,
+                                                           quantum_efficiency=self.INPUT_QE,
+                                                           sampling_frequency=self.INPUT_FREQUENCY)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The shot noise generator routine is not expected to change the signal shape.')
-        mean, std = self.noise_gen._shot_noise_setup(self.INPUT_SIGNAL_2, detector_gain=self.INPUT_GAIN,
+        mean, std = self.noise_gen._shot_noise_setup(signal=self.INPUT_SIGNAL_2,
                                                      load_resistance=self.INPUT_LOAD_RESIST,
-                                                     noise_index=self.INPUT_NOISE_INDEX,
-                                                     bandwidth=self.INPUT_BANDWIDTH)
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     amplification=self.INPUT_AMPLIFICATION,
+                                                     noise_amplification=self.INPUT_NOISE_AMPLIFICATION,
+                                                     quantum_efficiency=self.INPUT_QE,
+                                                     sampling_frequency=self.INPUT_FREQUENCY)
         self.assertDistributionMean(noisy_signal, mean.mean(),
                                     msg='The shot noise generator does not return expected <mean> value.')
         self.assertDistributionStandardDeviation(noisy_signal, std.mean(),
@@ -343,6 +343,12 @@ class APDGeneratorTest(NoiseBasicTestCase):
     INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE_2)
     INPUT_SEED = 20
     INPUT_CONST = Constants()
+    INPUT_LOAD_RES = 1E5
+    INPUT_FREQUENCY = 1E6
+    INPUT_QE = 0.85
+    INPUT_BANDWIDTH = 2E6
+    INPUT_DETECTOR_GAIN = 50
+    INPUT_NOISE_INDEX = 3
 
     DEFAULT_APD_PATH = 'detector/apd_default.xml'
     EXPECTED_ATTRIBUTES = ['detector_temperature', 'detector_gain', 'quantum_efficiency', 'noise_index', 'bandwidth',
@@ -371,6 +377,44 @@ class APDGeneratorTest(NoiseBasicTestCase):
                          msg='The APD noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
 
+    def test_apd_shot_noise_setup(self):
+        mean, std = self.APD._shot_noise_setup(signal=self.INPUT_SIGNAL,
+                                               load_resistance=self.INPUT_LOAD_RES,
+                                               bandwidth=self.INPUT_BANDWIDTH,
+                                               amplification=self.APD._apd_amplification(self.INPUT_DETECTOR_GAIN),
+                                               noise_amplification=self.APD._apd_noise_amplification
+                                               (self.INPUT_DETECTOR_GAIN, self.INPUT_NOISE_INDEX),
+                                               quantum_efficiency=self.INPUT_QE,
+                                               sampling_frequency=self.INPUT_FREQUENCY)
+        self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DETECTOR_GAIN *
+                                      self.INPUT_QE * self.INPUT_CONST.charge_electron).all(),
+                         msg='Mean value for noise generator is expected to be equal to input signal values.')
+        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean * self.INPUT_DETECTOR_GAIN **
+                                                (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH)).all(),
+                         msg='Std value for noise generator is expected to be equal to input signal values.')
+
+    def test_pmt_shot_noise_generator(self):
+        noisy_signal = self.APD.shot_noise_generator(signal=self.INPUT_SIGNAL, load_resistance=self.INPUT_LOAD_RES,
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     amplification=self.APD._apd_amplification(self.INPUT_DETECTOR_GAIN
+                                                                                               ),
+                                                     noise_amplification=self.APD._apd_noise_amplification
+                                                     (self.INPUT_DETECTOR_GAIN, self.INPUT_NOISE_INDEX),
+                                                     quantum_efficiency=self.INPUT_QE,
+                                                     sampling_frequency=self.INPUT_FREQUENCY)
+        mean = (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DETECTOR_GAIN *
+                self.INPUT_QE * self.INPUT_CONST.charge_electron).mean()
+        std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean * self.INPUT_DETECTOR_GAIN **
+                          (self.INPUT_NOISE_INDEX + 1) * self.INPUT_BANDWIDTH)).mean()
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
+                              msg='The function need to keep the shape of the array')
+        self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
+                                    msg='The PMT shot noise generation function needs to create an array with a well '
+                                        'defined mean')
+        self.assertDistributionStandardDeviation(series=noisy_signal, reference_std=std,
+                                                 msg='The PMT shot noise generation function needs to create an array '
+                                                     'with a well defined std')
+
 
 class PMTGeneratorTest(NoiseBasicTestCase):
 
@@ -378,17 +422,17 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
     INPUT_VALUE_2 = 1E9
-    INPUT_INSTANCE_2 = 1000000
+    INPUT_INSTANCE_2 = 100000
     INPUT_SIGNAL_2 = numpy.full(INPUT_INSTANCE_2, INPUT_VALUE_2)
-    INPUT_VALUE_3 = 1E9
-    INPUT_INSTANCE_3 = 100000
-    INPUT_SIGNAL_3 = numpy.full(INPUT_INSTANCE_3, INPUT_VALUE_3)
     INPUT_SEED = 20
     INPUT_CONST = Constants()
     INPUT_DYNODE_NUMBER = 9
     INPUT_DYNODE_GAIN = 6
     INPUT_DARK_CURRENT = 10
     INPUT_FREQUENCY = 1E6
+    INPUT_QE = 0.35
+    INPUT_LOAD_RES = 1E5
+    INPUT_BANDWIDTH = 2E6
 
     DEFAULT_PMT_PATH = 'detector/pmt_default.xml'
 
@@ -410,22 +454,40 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                          'indicated value.')
 
     def test_pmt_shot_noise_setup(self):
-        mean, std = self.PMT._pmt_shot_noise_setup(signal=self.INPUT_SIGNAL)
-        self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.PMT.sampling_frequency * self.PMT.dynode_gain **
-                                      self.PMT.dynode_number * self.PMT.quantum_efficiency *
+        mean, std = self.PMT._shot_noise_setup(signal=self.INPUT_SIGNAL,
+                                               load_resistance=self.INPUT_LOAD_RES,
+                                               bandwidth=self.INPUT_BANDWIDTH,
+                                               amplification=self.PMT._pmt_amplification(self.INPUT_DYNODE_GAIN,
+                                                                                         self.INPUT_DYNODE_NUMBER),
+                                               noise_amplification=self.PMT._pmt_noise_amplification(self.
+                                                                                                     INPUT_DYNODE_GAIN),
+                                               quantum_efficiency=self.INPUT_QE,
+                                               sampling_frequency=self.INPUT_FREQUENCY)
+        self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN **
+                                      self.INPUT_DYNODE_NUMBER * self.INPUT_QE *
                                       self.INPUT_CONST.charge_electron).all(),
                          msg='Mean value for noise generator is expected to be equal to input signal values.')
-        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean *
-                                                (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) * self.PMT.bandwidth *
-                                                self.PMT.dynode_gain**self.PMT.dynode_number)).all(),
+        self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
+                                                (self.INPUT_DYNODE_GAIN/(self.INPUT_DYNODE_GAIN-1)) *
+                                                self.INPUT_BANDWIDTH *
+                                                self.INPUT_DYNODE_GAIN**self.INPUT_DYNODE_NUMBER)).all(),
                          msg='Std value for noise generator is expected to be equal to input signal values.')
 
-    def test_pmt_shot_noise_generation(self):
-        noisy_signal = self.PMT._pmt_shot_noise_generation(signal=self.INPUT_SIGNAL)
-        mean = (self.INPUT_SIGNAL * self.PMT.sampling_frequency * self.PMT.dynode_gain ** self.PMT.dynode_number *
-                self.PMT.quantum_efficiency * self.INPUT_CONST.charge_electron).mean()
-        std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron*mean*(self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
-                          self.PMT.bandwidth*self.PMT.dynode_gain**self.PMT.dynode_number)).mean()
+    def test_pmt_shot_noise_generator(self):
+        noisy_signal = self.PMT.shot_noise_generator(signal=self.INPUT_SIGNAL, load_resistance=self.INPUT_LOAD_RES,
+                                                     bandwidth=self.INPUT_BANDWIDTH,
+                                                     amplification=self.PMT._pmt_amplification(self.INPUT_DYNODE_GAIN,
+                                                                                               self.INPUT_DYNODE_NUMBER
+                                                                                               ),
+                                                     noise_amplification=self.PMT._pmt_noise_amplification
+                                                     (self.INPUT_DYNODE_GAIN),
+                                                     quantum_efficiency=self.INPUT_QE,
+                                                     sampling_frequency=self.INPUT_FREQUENCY)
+        mean = (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER *
+                self.INPUT_QE * self.INPUT_CONST.charge_electron).mean()
+        std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
+                          (self.INPUT_DYNODE_GAIN/(self.INPUT_DYNODE_GAIN-1)) * self.INPUT_BANDWIDTH *
+                          self.INPUT_DYNODE_GAIN**self.INPUT_DYNODE_NUMBER)).mean()
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The function need to keep the shape of the array')
         self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
@@ -453,12 +515,12 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         noisy_signal = self.PMT._pmt_dark_noise_generation(signal=self.INPUT_SIGNAL_2)
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
                               msg='The PMT Dark Noise Generation is expected to create a similar sized signal.')
-        self.assertDistributionMean(noisy_signal, self.PMT.dark_current, precision=1.5E-01,
+        self.assertDistributionMean(noisy_signal, self.PMT.dark_current * self.PMT.load_resistance, precision=1.5E-01,
                                     msg='The PMT Dark Noise Generation does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, numpy.sqrt(4*self.INPUT_CONST.charge_electron *
                                                  self.PMT.dark_current*self.PMT.dynode_gain ** self.PMT.dynode_number
                                                  * (self.PMT.dynode_gain/(self.PMT.dynode_gain-1)) *
-                                                 self.PMT.bandwidth),
+                                                 self.PMT.bandwidth * self.PMT.load_resistance),
                                                  msg='The PMT Dark Noise Generation does not return '
                                                      'expected std value')
 
