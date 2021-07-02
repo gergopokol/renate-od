@@ -467,7 +467,7 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                sampling_frequency=self.INPUT_FREQUENCY)
         self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN **
                                       self.INPUT_DYNODE_NUMBER * self.INPUT_QE *
-                                      self.INPUT_CONST.charge_electron).all(),
+                                      self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RES).all(),
                          msg='Mean value for PMT shot noise generator is expected to be equal to theoretical indicated '
                              'values.')
         self.assertEqual(std.all(), (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
@@ -490,9 +490,9 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      sampling_frequency=self.INPUT_FREQUENCY)
         mean = (self.INPUT_SIGNAL * self.INPUT_FREQUENCY * self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER *
                 self.INPUT_QE * self.INPUT_CONST.charge_electron * self.INPUT_LOAD_RES).mean()
-        std = (numpy.sqrt(2*self.INPUT_CONST.charge_electron * mean *
-                          (self.INPUT_DYNODE_GAIN/(self.INPUT_DYNODE_GAIN-1)) * self.INPUT_BANDWIDTH *
-                          self.INPUT_DYNODE_GAIN**self.INPUT_DYNODE_NUMBER)).mean()
+        std = (numpy.sqrt(2 * self.INPUT_CONST.charge_electron * mean *
+                          (self.INPUT_DYNODE_GAIN / (self.INPUT_DYNODE_GAIN-1)) * self.INPUT_BANDWIDTH *
+                          self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER * self.INPUT_LOAD_RES)).mean()
         self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL.shape,
                               msg='The function need to keep the shape of the array')
         self.assertDistributionMean(series=noisy_signal, reference_mean=mean,
