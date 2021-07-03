@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from lxml import etree
 from utility.getdata import GetData
+from utility.geometrical_objects import Point
 
 try:
     import imas
@@ -27,7 +28,7 @@ class Beam(object):
         self.time = data_id[4]
 
     def __get_beam_data(self):
-        if self.beam_source == 'imas' and self.imas_flag:
+        if self.beam_source == 'ids' and self.imas_flag:
             self.__load_beam_from_ids()
         elif self.beam_source == 'external':
             self.__load_beam_external_source()
@@ -41,9 +42,20 @@ class Beam(object):
         self.beam_current = float(external_beam.getroot().find('body').find('beam_current').text)
         self.beam_fwhm = float(external_beam.getroot().find('body').find('beam_fwhm').text)
         self.beam_resolution = float(external_beam.getroot().find('body').find('beam_resolution').text)
+        self.start = Point(cartesian=[float(external_beam.getroot().find('body').find('beam_start').find('x').text),
+                                      float(external_beam.getroot().find('body').find('beam_start').find('y').text),
+                                      float(external_beam.getroot().find('body').find('beam_start').find('z').text)])
+        self.end = Point(cartesian=[float(external_beam.getroot().find('body').find('beam_end').find('x').text),
+                                    float(external_beam.getroot().find('body').find('beam_end').find('y').text),
+                                    float(external_beam.getroot().find('body').find('beam_end').find('z').text)])
 
     def __load_beam_from_ids(self):
         imas_beam = NbiIds(shot=self.shot, run=self.run, machine=self.machine, user=self.user)
 
-    def generate_beamlets(self):
+    def generate_beamlets(self, singular=False):
+        points_along_beamlet = self.end.distance(self.start)/self.beam_resolution
+        if singular:
+            self.__generate_1d_beam(number_of_points=points_along_beamlet)
+
+    def __generate_1d_beam(self, number_of_points):
         pass
