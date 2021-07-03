@@ -26,9 +26,6 @@ class Point(object):
         else:
             return 'Point coordinates: NOT defined.'
 
-    def __abs__(self, other):
-        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
-
     def __sub__(self, other):
         return np.array([self.x - other.x, self.y - other.y, self.z - other.z]) / \
                math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
@@ -55,3 +52,12 @@ class Point(object):
     def from_cylindrical_to_cartesian(self):
         self.x = self.r * math.cos(self.phi)
         self.y = self.r * math.sin(self.phi)
+
+    def distance(self, other):
+        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
+
+    def direction(self, other, normalized=True):
+        if normalized:
+            return np.array([self.x - other.x, self.y - other.y, self.z - other.z]) / self.distance(other)
+        else:
+            return np.array([self.x - other.x, self.y - other.y, self.z - other.z])
