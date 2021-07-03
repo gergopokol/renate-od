@@ -26,10 +26,6 @@ class Point(object):
         else:
             return 'Point coordinates: NOT defined.'
 
-    def __sub__(self, other):
-        return np.array([self.x - other.x, self.y - other.y, self.z - other.z]) / \
-               math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
-
     def add_cartesian_point(self, point):
         self.x = point[0]
         self.y = point[1]
