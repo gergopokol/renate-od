@@ -4,7 +4,7 @@ import scipy.stats as st
 from unittest.util import safe_repr
 from utility.constants import Constants
 from utility.getdata import GetData
-from observation.noise import Noise, APD, PMT, PPD, Detector
+from observation.noise import Noise, APD, PMT, PPD, MPPC, Detector
 
 
 class NoiseBasicTestCase(unittest.TestCase):
@@ -377,6 +377,17 @@ class APDGeneratorTest(NoiseBasicTestCase):
                          msg='The APD noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
 
+    def test_apd_amplification(self):
+        amplification = self.APD._apd_amplification(detector_gain=self.INPUT_DETECTOR_GAIN)
+        self.assertEqual(amplification, self.INPUT_DETECTOR_GAIN,
+                         msg='The APD amplification function needs to get back the given value')
+
+    def test_apd_noise_amplification(self):
+        noise_amplification = self.APD._apd_noise_amplification(detector_gain=self.INPUT_DETECTOR_GAIN,
+                                                                noise_index=self.INPUT_NOISE_INDEX)
+        self.assertEqual(noise_amplification, self.INPUT_DETECTOR_GAIN ** self.INPUT_NOISE_INDEX,
+                         msg='The APD noise amplification function needs to get back the gain ^ noise_index value')
+
     def test_apd_shot_noise_setup(self):
         mean, std = self.APD._shot_noise_setup(signal=self.INPUT_SIGNAL,
                                                load_resistance=self.INPUT_LOAD_RES,
@@ -430,13 +441,16 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     INPUT_CONST = Constants()
     INPUT_DYNODE_NUMBER = 9
     INPUT_DYNODE_GAIN = 6
-    INPUT_DARK_CURRENT = 10
+    INPUT_DARK_CURRENT = 1E-3
+    INPUT_DARK_CURRENT_2 = 1E-6
     INPUT_FREQUENCY = 1E6
     INPUT_QE = 0.35
     INPUT_LOAD_RES = 1E5
     INPUT_BANDWIDTH = 2E6
 
     DEFAULT_PMT_PATH = 'detector/pmt_default.xml'
+    EXPECTED_ATTRIBUTES = ['detector_temperature', 'dynode_number', 'dynode_gain', 'quantum_efficiency',
+                           'signal_to_background', 'dark_current', 'bandwidth', 'sampling_frequency', 'load_resistance']
 
     def setUp(self):
         self.PMT = PMT(GetData(data_path_name=self.DEFAULT_PMT_PATH).data)
@@ -447,6 +461,10 @@ class PMTGeneratorTest(NoiseBasicTestCase):
     def test_class_inheritance(self):
         self.assertIsInstance(self.PMT, Noise, msg='<PMT> class is expected to be a child of <Noise>.')
 
+    def test_parameter_attributes(self):
+        self.assertHasAttributes(self.PMT, self.EXPECTED_ATTRIBUTES, msg='<PMT> class does not initiate will all '
+                                                                         'expected attributes.')
+
     def test_pmt_noiseless_transfer(self):
         detector_voltage = self.PMT._pmt_noiseless_transfer(signal=self.INPUT_SIGNAL)
         mean = self.INPUT_SIGNAL * (1 + 1 / self.PMT.signal_to_background) * self.PMT.quantum_efficiency * self.\
@@ -454,6 +472,18 @@ class PMTGeneratorTest(NoiseBasicTestCase):
         self.assertEqual(detector_voltage.all(), mean.all(),
                          msg='The PMT noiseless transfer function is expected to create a theoretical '
                          'indicated value.')
+
+    def test_pmt_amplification(self):
+        amplification = self.PMT._pmt_amplification(dynode_gain=self.INPUT_DYNODE_GAIN,
+                                                    dynode_number=self.INPUT_DYNODE_NUMBER)
+        self.assertEqual(amplification, self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER,
+                         msg='The PMT amplification function needs to get back the dynode_gain ^ dynode_number value')
+
+    def test_apd_noise_amplification(self):
+        noise_amplification = self.PMT._pmt_noise_amplification(dynode_gain=self.INPUT_DYNODE_GAIN)
+        self.assertEqual(noise_amplification, self.INPUT_DYNODE_GAIN / (self.INPUT_DYNODE_GAIN - 1),
+                         msg='The PMT noise amplification function needs to get back the dynode_gain / '
+                             '(dynode_gain -1) value')
 
     def test_pmt_shot_noise_setup(self):
         mean, std = self.PMT._shot_noise_setup(signal=self.INPUT_SIGNAL,
@@ -531,16 +561,15 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      'Poisson distribution')
 
     def test_pmt_high_thermionic_dark_electron_generator(self):
-        dark_current_1 = 1E-3
         electron_generation = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.shape,
-                                                                               dark_current=dark_current_1,
+                                                                               dark_current=self.INPUT_DARK_CURRENT,
                                                                                dynode_gain=self.INPUT_DYNODE_GAIN,
                                                                                dynode_number=self.INPUT_DYNODE_NUMBER,
                                                                                sampling_frequency=self.INPUT_FREQUENCY)
-        mean = dark_current_1 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
-        std = numpy.sqrt(dark_current_1 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                           self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
+        mean = self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                          self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        std = numpy.sqrt(self.INPUT_DARK_CURRENT / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                                    self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER))
         self.assertTupleEqual(self.INPUT_SIGNAL.shape, electron_generation.shape,
                               msg='The pmt thermionic dark electron generation function needs to keep the size of an '
                                   'array')
@@ -552,9 +581,8 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                      ' to create Poisson distribution')
 
     def test_pmt_low_thermionic_dark_electron_generator(self):
-        dark_current_2 = 1E-6
         electron_generation_2 = self.PMT._pmt_thermionic_dark_electron_generator(signal_length=self.INPUT_SIGNAL.size,
-                                                                                 dark_current=dark_current_2,
+                                                                                 dark_current=self.INPUT_DARK_CURRENT_2,
                                                                                  dynode_gain=self.INPUT_DYNODE_GAIN,
                                                                                  dynode_number=self.INPUT_DYNODE_NUMBER,
                                                                                  sampling_frequency=self.INPUT_FREQUENCY
@@ -564,11 +592,48 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                 return False, 'The pmt low thermionic dark electron generator function needs ' \
                               'to create zeros or ones'
 
-        mean = dark_current_2 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
-                                 self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
+        mean = self.INPUT_DARK_CURRENT_2 / (self.INPUT_FREQUENCY * self.INPUT_CONST.charge_electron *
+                                            self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER)
         self.assertDistributionMean(series=electron_generation_2, reference_mean=mean,
                                     msg='The pmt low thermionic dark electron generator function needs to create the '
                                         'theoretically indicated mean')
+
+    def test_pmt_dark_noise_setup(self):
+        mean, std = self.PMT._pmt_dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                   load_resistance=self.INPUT_LOAD_RES,
+                                                   amplification=self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER,
+                                                   noise_amplification=self.INPUT_DYNODE_GAIN / (self.
+                                                                                                 INPUT_DYNODE_GAIN - 1),
+                                                   bandwidth=self.INPUT_BANDWIDTH)
+        self.assertEqual(mean, self.INPUT_LOAD_RES * self.INPUT_DARK_CURRENT,
+                         msg='Mean value for pmt dark current distribution function is expected to be I_dark * R_load.')
+        self.assertEqual(std, numpy.sqrt(4 * self.INPUT_CONST.charge_electron * mean * self.INPUT_DYNODE_GAIN **
+                                         self.INPUT_DYNODE_NUMBER * self.INPUT_DYNODE_GAIN /
+                                         (self.INPUT_DYNODE_GAIN - 1) * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RES),
+                         msg='The expected STD for dark current generator function is a theoretical indicated value.')
+
+    def test_dark_noise_generator(self):
+        noisy_signal = self.PMT._pmt_dark_noise_generator(dark_current=self.INPUT_DARK_CURRENT,
+                                                          load_resistance=self.INPUT_LOAD_RES,
+                                                          amplification=self.INPUT_DYNODE_GAIN ** self.
+                                                          INPUT_DYNODE_NUMBER,
+                                                          noise_amplification=self.INPUT_DYNODE_GAIN /
+                                                                              (self.INPUT_DYNODE_GAIN - 1),
+                                                          bandwidth=self.INPUT_BANDWIDTH,
+                                                          signal_size=self.INPUT_SIGNAL_2.size)
+        self.assertTupleEqual(noisy_signal.shape, self.INPUT_SIGNAL_2.shape,
+                              msg='The Dark Current noise generator is expected to create a similar sized signal.')
+        mean, std = self.PMT._pmt_dark_noise_setup(dark_current=self.INPUT_DARK_CURRENT,
+                                                   load_resistance=self.INPUT_LOAD_RES,
+                                                   amplification=self.INPUT_DYNODE_GAIN ** self.INPUT_DYNODE_NUMBER,
+                                                   noise_amplification=self.INPUT_DYNODE_GAIN / (self.
+                                                                                                 INPUT_DYNODE_GAIN - 1),
+                                                   bandwidth=self.INPUT_BANDWIDTH)
+        self.assertDistributionMean(noisy_signal, mean,
+                                    msg='The PMT Dark Current Generator does not return expected mean value')
+        self.assertDistributionStandardDeviation(noisy_signal, std,
+                                                 msg='The PMT Dark Current Generator is expected to create Normal '
+                                                     'distributions. The actual STD does not match.')
 
 
 class PPDGeneratorTest(NoiseBasicTestCase):
@@ -579,6 +644,9 @@ class PPDGeneratorTest(NoiseBasicTestCase):
     INPUT_CONST = Constants()
 
     DEFAULT_PPD_PATH = 'detector/ppd_default.xml'
+    EXPECTED_ATTRIBUTES = ['detector_temperature', 'quantum_efficiency', 'bandwidth', 'dark_current',
+                           'load_resistance', 'load_capacity', 'voltage_noise', 'internal_capacity',
+                           'sampling_frequency', 'signal_to_background']
 
     def setUp(self):
         self.PPD = PPD(GetData(data_path_name=self.DEFAULT_PPD_PATH).data)
@@ -589,6 +657,10 @@ class PPDGeneratorTest(NoiseBasicTestCase):
     def test_class_inheritance(self):
         self.assertIsInstance(self.PPD, Noise, msg='<PPD> class is expected to be a child of <Noise>.')
 
+    def test_parameter_attributes(self):
+        self.assertHasAttributes(self.PPD, self.EXPECTED_ATTRIBUTES, msg='<PPD> class does not initiate will all '
+                                                                         'expected attributes.')
+
     def test_ppd_noiseless_transfer(self):
         detector_voltage = self.PPD._ppd_noiseless_transfer(signal=self.INPUT_SIGNAL)
         mean = (self.INPUT_SIGNAL * (1 + 1 / self.PPD.signal_to_background) * self.PPD.quantum_efficiency *
@@ -598,11 +670,38 @@ class PPDGeneratorTest(NoiseBasicTestCase):
                          'indicated value.')
 
 
+class MPPCGeneratorTest(NoiseBasicTestCase):
+
+    INPUT_VALUE = 1000
+    INPUT_INSTANCE = 1000000
+    INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_CONST = Constants()
+
+    DEFAULT_MPPC_PATH = 'detector/mppc_default.xml'
+    EXPECTED_ATTRIBUTES = ['detector_gain', 'quantum_efficiency', 'bandwidth', 'dark_count_rate',
+                           'sampling_frequency', 'signal_to_background', 'photon_detection_efficiency',
+                           'terminal_capacitance', 'total_pixel_count', 'quenching_resistance']
+
+    def setUp(self):
+        self.MPPC = PPD(GetData(data_path_name=self.DEFAULT_MPPC_PATH).data)
+
+    def tearDown(self):
+        del self.MPPC
+
+    def test_class_inheritance(self):
+        self.assertIsInstance(self.MPPC, Noise, msg='<MPPC> class is expected to be a child of <Noise>.')
+
+    def test_parameter_attributes(self):
+        self.assertHasAttributes(self.MPPC, self.EXPECTED_ATTRIBUTES, msg='<MPPC> class does not initiate will all '
+                                                                          'expected attributes.')
+
+
 class DetectorGeneratorTest(NoiseBasicTestCase):
 
     INPUT_APD_TYPE = 'apd'
     INPUT_PMT_TYPE = 'pmt'
     INPUT_PPD_TYPE = 'ppd'
+    INPUT_MPPC_TYPE = 'mppc'
     INPUT_VAL_ERROR_1 = 'bbb'
     INPUT_VAL_ERROR_2 = 123
 
@@ -617,6 +716,10 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
     def test_PPD_instantiation(self):
         actual = Detector(detector_type=self.INPUT_PPD_TYPE)
         self.assertIsInstance(actual, PPD, msg='<Detector> class is expected to return a <PPD> class.')
+
+    def test_MPPC_instantiation(self):
+        actual = Detector(detector_type=self.INPUT_MPPC_TYPE)
+        self.assertIsInstance(actual, MPPC, msg='<Detector> class is expected to return a <MPPC> class.')
 
     def test_exception_handling(self):
         with self.assertRaises(ValueError, msg='ValueError raising is expected in case of wrong str input.'):
