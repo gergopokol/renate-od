@@ -52,10 +52,14 @@ class Beam(object):
     def __load_beam_from_ids(self):
         imas_beam = NbiIds(shot=self.shot, run=self.run, machine=self.machine, user=self.user)
 
-    def generate_beamlets(self, singular=False):
-        points_along_beamlet = self.end.distance(self.start)/self.beam_resolution
+    def generate_beamlets(self, singular=False, points_along_beamlet=None):
+        if points_along_beamlet is None:
+            self.points_along_beamlet = self.end.distance(self.start)/self.beam_resolution
+        else:
+            self.points_along_beamlet = points_along_beamlet
         if singular:
-            self.__generate_1d_beam(number_of_points=points_along_beamlet)
+            self.__generate_1d_beam()
 
-    def __generate_1d_beam(self, number_of_points):
+    def __generate_1d_beam(self):
         pass
+
