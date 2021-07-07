@@ -644,10 +644,12 @@ class PMTGeneratorTest(NoiseBasicTestCase):
                                                                                         self.INPUT_DYNODE_NUMBER))
         self.assertEqual(mean, self.INPUT_LOAD_RES * self.INPUT_DARK_CURRENT,
                          msg='Mean value for pmt dark current distribution function is expected to be I_dark * R_load.')
-        self.assertEqual(std, numpy.sqrt(4 * self.INPUT_CONST.charge_electron * mean * self.INPUT_DYNODE_GAIN **
-                                         self.INPUT_DYNODE_NUMBER * self.INPUT_DYNODE_GAIN /
-                                         (self.INPUT_DYNODE_GAIN - 1) * self.INPUT_BANDWIDTH * self.INPUT_LOAD_RES),
-                         msg='The expected STD for dark current generator function is a theoretical indicated value.')
+        self.assertAlmostEqual(std, numpy.sqrt(4 * self.INPUT_CONST.charge_electron * mean * self.INPUT_DYNODE_GAIN **
+                                               self.INPUT_DYNODE_NUMBER * self.INPUT_DYNODE_GAIN /
+                                               (self.INPUT_DYNODE_GAIN - 1) * self.INPUT_BANDWIDTH *
+                                               self.INPUT_LOAD_RES), places=10,
+                               msg='The expected STD for dark current generator function is a theoretical '
+                                   'indicated value.')
 
     def test_pmt_dark_noise_generator(self):
         noisy_signal = self.PMT.dark_noise_generator(dark_current=self.INPUT_DARK_CURRENT,
