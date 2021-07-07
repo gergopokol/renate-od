@@ -307,7 +307,7 @@ class PPD(Noise):
                             * self.constants.charge_electron + self.dark_current) * self.load_resistance
         return detector_voltage
 
-    def add_noise_to_signal(self, signal):
+    def _ppd_gaussian_noise_generator(self, signal):
         signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
@@ -320,6 +320,17 @@ class PPD(Noise):
                                                      signal_size)
         noised_signal = shot_noised_signal + dark_noise + voltage_noise + johnson_noise
         return noised_signal
+
+    def _ppd_detailed_noise_generator(self, signal):
+        raise NotImplementedError('This feature is not yet implemented into the PPD detector class.')
+
+    def add_noise_to_signal(self, signal, noise_type='gaussian'):
+        if noise_type == 'detailed':
+            return self._ppd_detailed_noise_generator(signal)
+        elif noise_type == 'gaussian':
+            return self._ppd_gaussian_noise_generator(signal)
+        else:
+            raise ValueError('The requested noise type does not exist or is not implemented.', noise_type)
 
 
 class MPPC(Noise):
