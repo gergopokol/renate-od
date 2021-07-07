@@ -90,13 +90,13 @@ class Noise(RandomState):
                                                              load_capacity, internal_capacity)
         return self.normal(expected_value, variance, signal_size)
 
-    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance):
+    def _dark_noise_setup(self, dark_current, bandwidth, load_resistance, net_gain=1):
         mean = dark_current * load_resistance
-        std = numpy.sqrt(2 * self.constants.charge_electron * mean * bandwidth * load_resistance)
+        std = numpy.sqrt(2 * self.constants.charge_electron * mean * bandwidth * load_resistance * net_gain)
         return mean, std
 
-    def dark_noise_generator(self, dark_current, bandwidth, load_resistance, signal_size):
-        mean, std = self._dark_noise_setup(dark_current, bandwidth, load_resistance)
+    def dark_noise_generator(self, dark_current, bandwidth, load_resistance, signal_size, net_gain=1):
+        mean, std = self._dark_noise_setup(dark_current, bandwidth, load_resistance, net_gain)
         return self.normal(mean, std, signal_size)
 
     def derive_background_emission_in_photon_count(self, signal, sbr):
@@ -194,6 +194,9 @@ class PMT(Noise):
     def _pmt_noise_amplification(dynode_gain):
         return dynode_gain/(dynode_gain-1)
 
+    def _pmt_gaussian_net_gain(self, dynode_gain, dynode_number):
+        return 2 * self._pmt_amplification(dynode_gain, dynode_number) * self._pmt_noise_amplification(dynode_gain)
+
     def _pmt_photo_cathode_electron_generation(self, signal):
         emitted_electrons = self.poisson(signal * self.quantum_efficiency).astype(float)
         return emitted_electrons
@@ -224,18 +227,6 @@ class PMT(Noise):
                     electron_generation[i] = 0
             return electron_generation
 
-    def _pmt_dark_noise_setup(self, dark_current, load_resistance, amplification, noise_amplification, bandwidth):
-        mean = dark_current * load_resistance
-        std = numpy.sqrt(4 * self.constants.charge_electron * mean * amplification * noise_amplification * bandwidth
-                         * load_resistance)
-        return mean, std
-
-    def _pmt_dark_noise_generator(self, dark_current, load_resistance, amplification, noise_amplification, bandwidth,
-                                  signal_size):
-        mean, std = self._pmt_dark_noise_setup(dark_current, load_resistance, amplification, noise_amplification,
-                                               bandwidth)
-        return self.normal(mean, std, signal_size)
-
     def _pmt_gaussian_noise_generator(self, signal):
         signal_size = self.signal_length(signal)
         expected_emission_photon_count = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
@@ -247,11 +238,9 @@ class PMT(Noise):
                                                          self._pmt_noise_amplification(self.dynode_gain),
                                                          self.quantum_efficiency,
                                                          self.sampling_frequency)
-        anode_dark_current = self._pmt_dark_noise_generator(self.dark_current, self.load_resistance,
-                                                            self._pmt_amplification(self.dynode_gain,
-                                                                                    self.dynode_number),
-                                                            self._pmt_noise_amplification(self.dynode_gain),
-                                                            self.bandwidth, signal_size)
+        anode_dark_current = self.dark_noise_generator(self.dark_current, self.bandwidth, self.load_resistance,
+                                                       signal_size, self._pmt_gaussian_net_gain(self.dynode_gain,
+                                                                                                self.dynode_number))
         noisy_voltage_signal = (anode_photon_current + anode_dark_current) + self.\
             johnson_noise_generator(self.detector_temperature, self.bandwidth, self.load_resistance, len(signal))
         return noisy_voltage_signal
