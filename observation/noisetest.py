@@ -764,3 +764,21 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
         with self.assertRaises(AssertionError, msg='AssertionError raising is expected in case '
                                                    'of wrong detector type input.'):
             actual = Detector(detector_type=self.INPUT_VAL_ERROR_2)
+
+
+class NoiseRegressionTest(NoiseBasicTestCase):
+
+    def test_APD_Gaussian_regression(self):
+        pass
+
+    def test_PMT_Gaussian_regression(self):
+        pass
+
+    def test_PMT_Detailed_regression(self):
+        pass
+
+    def test_PPD_Gaussian_regression(self):
+        pass
+
+    def test_MPPC_Gaussian_regression(self):
+        pass
