@@ -142,7 +142,10 @@ class APD(Noise):
     def _apd_noise_amplification(detector_gain, noise_index):
         return detector_gain ** noise_index
 
-    def add_noise_to_signal(self, signal):
+    def _apd_detailed_noise_generator(self, signal):
+        raise NotImplementedError('This feature is not yet implemented into the APD detector class.')
+
+    def _apd_gaussian_noise_generator(self, signal):
         signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         background_noised_signal = self.background_addition(prepared_signal, self.signal_to_background)
@@ -158,6 +161,14 @@ class APD(Noise):
                                                      signal_size)
         noised_signal = shot_noised_signal + dark_noise + voltage_noise + johnson_noise
         return noised_signal
+
+    def add_noise_to_signal(self, signal, noise_type='gaussian'):
+        if noise_type == 'detailed':
+            return self._apd_detailed_noise_generator(signal)
+        elif noise_type == 'gaussian':
+            return self._apd_gaussian_noise_generator(signal)
+        else:
+            raise ValueError('The requested noise type does not exist or is not implemented.', noise_type)
 
 
 class PMT(Noise):
