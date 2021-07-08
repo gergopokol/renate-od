@@ -759,7 +759,7 @@ class MPPCGeneratorTest(NoiseBasicTestCase):
                          msg='The MPPC gaussian noise setup function needs to create a theoretically indicated std')
 
     def test_mppc_gaussian_noise_generator(self):
-        noisy_signal = self.MPPC._mppc_gaussian_noise_generator(signal=self.INPUT_SIGNAL,
+        noisy_signal = self.MPPC._mppc_gaussian_shot_noise_generator(signal=self.INPUT_SIGNAL,
                                                                 photon_detection_efficiency=self.INPUT_PDE,
                                                                 dark_count_rate=self.INPUT_DARK_COUNT_RATE,
                                                                 sampling_frequency=self.INPUT_SAMPLING_FREQUENCY)
