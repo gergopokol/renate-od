@@ -322,7 +322,7 @@ class NoiseGeneratorTest(NoiseBasicTestCase):
                                                         load_capacity=self.INPUT_LOAD_CAPACITY,
                                                         internal_capacity=self.INPUT_INTERNAL_CAPACITY,
                                                         expected_value=0)
-        self.assertDistributionMean(noisy_signal, mean, comparison='absolute',
+        self.assertDistributionMean(noisy_signal, mean, comparison='absolute', precision=0.02,
                                     msg='The Voltage Noise Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, std,
                                                  msg='The Voltage Noise Generator is expected to create Normal '
