@@ -344,37 +344,41 @@ class MPPC(Noise):
         assert detector_parameters.getroot().find('head').find('type').text == 'mppc', \
             'The detector type to be set is MPPC, Please check input data.'
         self.detector_gain = float(detector_parameters.getroot().find('body').find('detector_gain').text)
-        self.quantum_efficiency = float(detector_parameters.getroot().find('body').find('quantum_efficiency').text)
         self.bandwidth = float(detector_parameters.getroot().find('body').find('bandwidth').text)
         self.dark_count_rate = float(detector_parameters.getroot().find('body').find('dark_count_rate').text)
         self.sampling_frequency = float(detector_parameters.getroot().find('body').find('sampling_frequency').text)
         self.signal_to_background = float(detector_parameters.getroot().find('body').find('signal_to_background').text)
         self.photon_detection_efficiency = float(detector_parameters.getroot().find('body').
                                                  find('photon_detection_efficiency').text)
-        self.terminal_capacitance = float(detector_parameters.getroot().find('body').find('terminal_capacitance').text)
-        self.total_pixel_count = float(detector_parameters.getroot().find('body').find('total_pixel_count').text)
         self.quenching_resistance = float(detector_parameters.getroot().find('body').find('quenching_resistance').text)
+        self.detector_temperature = float(detector_parameters.getroot().find('body').find('detector_temperature').text)
 
-    def _mppc_gaussian_noise_setup(self, signal):
-        mean = signal * self.photon_detection_efficiency
-        std = numpy.sqrt(signal * self.photon_detection_efficiency + self.dark_count_rate / self.sampling_frequency)
+    def _mppc_gaussian_noise_setup(self, signal, photon_detection_efficiency, dark_count_rate, sampling_frequency):
+        mean = signal * photon_detection_efficiency
+        std = numpy.sqrt(signal * photon_detection_efficiency + dark_count_rate / sampling_frequency)
         return mean, std
 
-    def _mppc_gaussian_noise_generator(self, signal):
-        mean, std = self._mppc_gaussian_noise_setup(signal)
-        noisy_signal = self.normal(mean, std)
-        return noisy_signal * self.sampling_frequency
+    def _mppc_gaussian_noise_generator(self, signal, photon_detection_efficiency, dark_count_rate, sampling_frequency):
+        mean, std = self._mppc_gaussian_noise_setup(signal, photon_detection_efficiency, dark_count_rate,
+                                                    sampling_frequency)
+        return self.normal(mean, std) * sampling_frequency
 
-    def _mppc_transfer(self, signal, photon_detection_efficiency, detector_gain, quenching_resistance):
+    def _mppc_noiseless_transfer(self, signal, photon_detection_efficiency, detector_gain, quenching_resistance):
         detector_voltage = signal * photon_detection_efficiency * detector_gain * quenching_resistance \
                            * self.constants.charge_electron
         return detector_voltage
 
     def add_noise_to_signal(self, signal):
+        signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
-        noisy_signal = self._mppc_gaussian_noise_generator(background_noised_signal)
+        shot_noised_signal = self._mppc_gaussian_noise_generator(background_noised_signal,
+                                                                 self.photon_detection_efficiency,
+                                                                 self.dark_count_rate, self.sampling_frequency)
+        johnson_noise = self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
+                                                     self.quenching_resistance, signal_size)
+        noisy_signal = shot_noised_signal + johnson_noise
         return noisy_signal
 
 

@@ -457,9 +457,9 @@ class APDGeneratorTest(NoiseBasicTestCase):
                                                bandwidth=self.INPUT_BANDWIDTH,
                                                load_resistance=self.INPUT_LOAD_RES)
         self.assertDistributionMean(noisy_signal, mean,
-                                    msg='The PMT Dark Current Generator does not return expected mean value')
+                                    msg='The APD Dark Current Generator does not return expected mean value')
         self.assertDistributionStandardDeviation(noisy_signal, std,
-                                                 msg='The PMT Dark Current Generator is expected to create Normal '
+                                                 msg='The APD Dark Current Generator is expected to create Normal '
                                                      'distributions. The actual STD does not match.')
 
 
@@ -714,12 +714,22 @@ class MPPCGeneratorTest(NoiseBasicTestCase):
     INPUT_VALUE = 1000
     INPUT_INSTANCE = 1000000
     INPUT_SIGNAL = numpy.full(INPUT_INSTANCE, INPUT_VALUE)
+    INPUT_DETECTOR_GAIN = 1E6
+    INPUT_BANDWIDTH = 2E6
+    INPUT_DARK_COUNT_RATE = 1E5
+    INPUT_SAMPLING_FREQUENCY = 1E6
+    INPUT_SIGNAL_TO_BACKGROUND = 10
+    INPUT_PDE = 0.5
+    INPUT_TERMINAL_CAPACITANCE = 1E-9
+    INPUT_TOTAL_PIXEL_COUNT = 2000
+    INPUT_QUENCHING_RESIST = 1E5
+    INPUT_DETECTOR_TEMPERATURE = 300
     INPUT_CONST = Constants()
 
     DEFAULT_MPPC_PATH = 'detector/mppc_default.xml'
-    EXPECTED_ATTRIBUTES = ['detector_gain', 'quantum_efficiency', 'bandwidth', 'dark_count_rate',
-                           'sampling_frequency', 'signal_to_background', 'photon_detection_efficiency',
-                           'terminal_capacitance', 'total_pixel_count', 'quenching_resistance']
+    EXPECTED_ATTRIBUTES = ['detector_gain', 'bandwidth', 'dark_count_rate', 'sampling_frequency',
+                           'signal_to_background', 'photon_detection_efficiency', 'quenching_resistance',
+                           'detector_temperature']
 
     def setUp(self):
         self.MPPC = MPPC(GetData(data_path_name=self.DEFAULT_MPPC_PATH).data)
@@ -733,6 +743,50 @@ class MPPCGeneratorTest(NoiseBasicTestCase):
     def test_parameter_attributes(self):
         self.assertHasAttributes(self.MPPC, self.EXPECTED_ATTRIBUTES, msg='<MPPC> class does not initiate will all '
                                                                           'expected attributes.')
+
+    def test_mppc_gaussian_noise_setup(self):
+        mean, std = self.MPPC._mppc_gaussian_noise_setup(signal=self.INPUT_SIGNAL,
+                                                         photon_detection_efficiency=self.INPUT_PDE,
+                                                         dark_count_rate=self.INPUT_DARK_COUNT_RATE,
+                                                         sampling_frequency=self.INPUT_SAMPLING_FREQUENCY)
+        self.assertTupleEqual(self.INPUT_SIGNAL.shape, mean.shape,
+                              msg='The MPPC gaussian noise setup function needs to keep the size of an array')
+        self.assertTupleEqual(self.INPUT_SIGNAL.shape, std.shape,
+                              msg='The MPPC gaussian noise setup function needs to keep the size of an array')
+        self.assertEqual(mean.all(), (self.INPUT_SIGNAL * self.INPUT_PDE).all(),
+                         msg='The MPPC gaussian noise setup function needs to create a theoretically indicated mean')
+        self.assertEqual(std.all(), numpy.sqrt(mean + self.INPUT_DARK_COUNT_RATE / self.INPUT_SAMPLING_FREQUENCY).all(),
+                         msg='The MPPC gaussian noise setup function needs to create a theoretically indicated std')
+
+    def test_mppc_gaussian_noise_generator(self):
+        noisy_signal = self.MPPC._mppc_gaussian_noise_generator(signal=self.INPUT_SIGNAL,
+                                                                photon_detection_efficiency=self.INPUT_PDE,
+                                                                dark_count_rate=self.INPUT_DARK_COUNT_RATE,
+                                                                sampling_frequency=self.INPUT_SAMPLING_FREQUENCY)
+        self.assertTupleEqual(self.INPUT_SIGNAL.shape, noisy_signal.shape,
+                              msg='The MPPC gaussian noise generator function needs to keep the size of an array')
+        self.assertDistributionMean(series=noisy_signal, reference_mean=(self.INPUT_SIGNAL * self.INPUT_PDE *
+                                                                         self.INPUT_SAMPLING_FREQUENCY).mean(),
+                                    msg='The MPPC gaussian noise generator function needs to create a theoretically '
+                                        'indicated mean')
+        self.assertDistributionStandardDeviation(series=noisy_signal,
+                                                 reference_std=numpy.sqrt(self.INPUT_SIGNAL * self.INPUT_PDE +
+                                                                          self.INPUT_DARK_COUNT_RATE /
+                                                                          self.INPUT_SAMPLING_FREQUENCY).mean() * self.
+                                                 INPUT_SAMPLING_FREQUENCY,
+                                                 msg='The MPPC gaussian noise generator function needs to create a '
+                                                     'theoretically indicated std')
+
+    def test_mppc_noiseless_transfer(self):
+        detector_voltage = self.MPPC._mppc_noiseless_transfer(signal=self.INPUT_SIGNAL,
+                                                              photon_detection_efficiency=self.INPUT_PDE,
+                                                              detector_gain=self.INPUT_DETECTOR_GAIN,
+                                                              quenching_resistance=self.INPUT_QUENCHING_RESIST)
+        self.assertTupleEqual(detector_voltage.shape, self.INPUT_SIGNAL.shape,
+                              msg='The MPPC noiseless transfer function needs to keep the size of an array')
+        self.assertEqual(detector_voltage.all(), (self.INPUT_SIGNAL * self.INPUT_PDE * self.INPUT_DETECTOR_GAIN *
+                                                  self.INPUT_QUENCHING_RESIST * self.INPUT_CONST.charge_electron).all(),
+                         msg='The MPPC noiseless transfer function needs to create a theoretically indicated values')
 
 
 class DetectorGeneratorTest(NoiseBasicTestCase):
