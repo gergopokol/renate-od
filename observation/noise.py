@@ -353,14 +353,14 @@ class MPPC(Noise):
         self.quenching_resistance = float(detector_parameters.getroot().find('body').find('quenching_resistance').text)
         self.detector_temperature = float(detector_parameters.getroot().find('body').find('detector_temperature').text)
 
-    def _mppc_gaussian_noise_setup(self, signal, photon_detection_efficiency, dark_count_rate, sampling_frequency):
+    def _mppc_gaussian_shot_noise_setup(self, signal, photon_detection_efficiency, dark_count_rate, sampling_frequency):
         mean = signal * photon_detection_efficiency
         std = numpy.sqrt(signal * photon_detection_efficiency + dark_count_rate / sampling_frequency)
         return mean, std
 
     def _mppc_gaussian_shot_noise_generator(self, signal, photon_detection_efficiency,
                                             dark_count_rate, sampling_frequency):
-        mean, std = self._mppc_gaussian_noise_setup(signal, photon_detection_efficiency, dark_count_rate,
+        mean, std = self._mppc_gaussian_shot_noise_setup(signal, photon_detection_efficiency, dark_count_rate,
                                                     sampling_frequency)
         return self.normal(mean, std) * sampling_frequency
 
