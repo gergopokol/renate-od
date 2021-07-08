@@ -841,6 +841,8 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
 
 class NoiseRegressionTest(NoiseBasicTestCase):
 
+    INPUT_PRECISION = 1e-3
+
     INPUT_APD = 'apd'
     INPUT_PMT = 'pmt'
     INPUT_PPD = 'ppd'
@@ -868,7 +870,8 @@ class NoiseRegressionTest(NoiseBasicTestCase):
         detector.seed(signal_data['seed'][0])
         actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
         self.assertArrayAlmostEqual(actual=actual, reference=numpy.array(signal_data['noisy_signal']),
-                                    msg='The ADP noise generation does not reproduce expected data')
+                                    precision= self.INPUT_PRECISION,
+                                    msg='The APD Gaussian noise generation does not reproduce expected data')
 
     def test_PMT_Gaussian_regression(self):
         detector = Detector(detector_type=self.INPUT_PMT,
@@ -877,7 +880,9 @@ class NoiseRegressionTest(NoiseBasicTestCase):
                               self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
         detector.seed(signal_data['seed'][0])
         actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
-        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
+        self.assertArrayAlmostEqual(actual=actual, reference=numpy.array(signal_data['noisy_signal']),
+                                    precision= self.INPUT_PRECISION,
+                                    msg='The PMT Gaussian noise generation does not reproduce expected data')
 
     def test_PMT_Detailed_regression(self):
         detector = Detector(detector_type=self.INPUT_PMT,
@@ -886,7 +891,9 @@ class NoiseRegressionTest(NoiseBasicTestCase):
                               self.INPUT_DETALIED_NOISE + '_detector.h5', data_key=['signals']).data
         detector.seed(signal_data['seed'][0])
         actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_DETALIED_NOISE)
-        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
+        self.assertArrayAlmostEqual(actual=actual, reference=numpy.array(signal_data['noisy_signal']),
+                                    precision= self.INPUT_PRECISION,
+                                    msg='The PMT Detailed noise generation does not reproduce expected data')
 
     def test_PPD_Gaussian_regression(self):
         detector = Detector(detector_type=self.INPUT_PPD,
@@ -895,4 +902,6 @@ class NoiseRegressionTest(NoiseBasicTestCase):
                               self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
         detector.seed(signal_data['seed'][0])
         actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
-        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
+        self.assertArrayAlmostEqual(actual=actual, reference=numpy.array(signal_data['noisy_signal']),
+                                    precision= self.INPUT_PRECISION,
+                                    msg='The PPD Gaussian noise generation does not reproduce expected data')
