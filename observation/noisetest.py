@@ -744,8 +744,8 @@ class MPPCGeneratorTest(NoiseBasicTestCase):
         self.assertHasAttributes(self.MPPC, self.EXPECTED_ATTRIBUTES, msg='<MPPC> class does not initiate will all '
                                                                           'expected attributes.')
 
-    def test_mppc_gaussian_noise_setup(self):
-        mean, std = self.MPPC._mppc_gaussian_noise_setup(signal=self.INPUT_SIGNAL,
+    def test_mppc_gaussian_shot_noise_setup(self):
+        mean, std = self.MPPC._mppc_gaussian_shot_noise_setup(signal=self.INPUT_SIGNAL,
                                                          photon_detection_efficiency=self.INPUT_PDE,
                                                          dark_count_rate=self.INPUT_DARK_COUNT_RATE,
                                                          sampling_frequency=self.INPUT_SAMPLING_FREQUENCY)
