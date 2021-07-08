@@ -1,7 +1,10 @@
 import unittest
 import numpy
 import scipy.stats as st
+import os
+from shutil import rmtree
 from unittest.util import safe_repr
+from utility.accessdata import AccessData
 from utility.constants import Constants
 from utility.getdata import GetData
 from observation.noise import Noise, APD, PMT, PPD, MPPC, Detector
@@ -768,17 +771,57 @@ class DetectorGeneratorTest(NoiseBasicTestCase):
 
 class NoiseRegressionTest(NoiseBasicTestCase):
 
+    INPUT_APD = 'apd'
+    INPUT_PMT = 'pmt'
+    INPUT_PPD = 'ppd'
+
+    INPUT_GAUSSIAN_NOISE = 'gaussian'
+    INPUT_DETALIED_NOISE = 'detailed'
+
+    def setUp(self):
+        self.path = 'test_dataset/noise_regressiontests/actual/'
+
+    def tearDown(self):
+        public_folder = os.path.join(os.getcwd(), 'data', 'dummy', 'test_dataset')
+        private_folder = os.path.join(os.getcwd(), 'data', 'test_dataset')
+        access = AccessData(None)
+        if access.private_key is None:
+            rmtree(public_folder)
+        else:
+            rmtree(private_folder)
+
     def test_APD_Gaussian_regression(self):
-        pass
+        detector = Detector(detector_type=self.INPUT_APD,
+                            data_path=self.path + 'test_' + self.INPUT_APD + '_detector.xml')
+        signal_data = GetData(data_path_name=self.path + 'test_' + self.INPUT_APD + '_' +
+                              self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
+        detector.seed(signal_data['seed'][0])
+        actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
+        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.',places=8)
 
     def test_PMT_Gaussian_regression(self):
-        pass
+        detector = Detector(detector_type=self.INPUT_PMT,
+                            data_path=self.path + 'test_' + self.INPUT_PMT + '_detector.xml')
+        signal_data = GetData(data_path_name=self.path + 'test_' + self.INPUT_PMT + '_' +
+                              self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
+        detector.seed(signal_data['seed'][0])
+        actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
+        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
 
     def test_PMT_Detailed_regression(self):
-        pass
+        detector = Detector(detector_type=self.INPUT_PMT,
+                            data_path=self.path + 'test_' + self.INPUT_PMT + '_detector.xml')
+        signal_data = GetData(data_path_name=self.path + 'test_' + self.INPUT_PMT + '_' +
+                              self.INPUT_DETALIED_NOISE + '_detector.h5', data_key=['signals']).data
+        detector.seed(signal_data['seed'][0])
+        actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_DETALIED_NOISE)
+        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
 
     def test_PPD_Gaussian_regression(self):
-        pass
-
-    def test_MPPC_Gaussian_regression(self):
-        pass
+        detector = Detector(detector_type=self.INPUT_PPD,
+                            data_path=self.path + 'test_' + self.INPUT_PPD + '_detector.xml')
+        signal_data = GetData(data_path_name=self.path + 'test_' + self.INPUT_PPD + '_' +
+                              self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
+        detector.seed(signal_data['seed'][0])
+        actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
+        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.', places=8)
