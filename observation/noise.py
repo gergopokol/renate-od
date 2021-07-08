@@ -358,7 +358,8 @@ class MPPC(Noise):
         std = numpy.sqrt(signal * photon_detection_efficiency + dark_count_rate / sampling_frequency)
         return mean, std
 
-    def _mppc_gaussian_noise_generator(self, signal, photon_detection_efficiency, dark_count_rate, sampling_frequency):
+    def _mppc_gaussian_shot_noise_generator(self, signal, photon_detection_efficiency,
+                                            dark_count_rate, sampling_frequency):
         mean, std = self._mppc_gaussian_noise_setup(signal, photon_detection_efficiency, dark_count_rate,
                                                     sampling_frequency)
         return self.normal(mean, std) * sampling_frequency
@@ -368,18 +369,29 @@ class MPPC(Noise):
                            * self.constants.charge_electron
         return detector_voltage
 
-    def add_noise_to_signal(self, signal):
+    def _mppc_gaussian_noise_generator(self, signal):
         signal_size = self.signal_length(signal)
         prepared_signal = self._photon_flux_to_photon_number(signal, self.sampling_frequency)
         emitted_photons = self.generate_photon_noise(prepared_signal)
         background_noised_signal = self.background_addition(emitted_photons, self.signal_to_background)
-        shot_noised_signal = self._mppc_gaussian_noise_generator(background_noised_signal,
-                                                                 self.photon_detection_efficiency,
-                                                                 self.dark_count_rate, self.sampling_frequency)
+        shot_noised_signal = self._mppc_gaussian_shot_noise_generator(background_noised_signal,
+                                                                      self.photon_detection_efficiency,
+                                                                      self.dark_count_rate, self.sampling_frequency)
         johnson_noise = self.johnson_noise_generator(self.detector_temperature, self.bandwidth,
                                                      self.quenching_resistance, signal_size)
         noisy_signal = shot_noised_signal + johnson_noise
         return noisy_signal
+
+    def _mppc_detailed_noise_generator(self, signal):
+        raise NotImplementedError
+
+    def add_noise_to_signal(self, signal, noise_type='gaussian'):
+        if noise_type == 'detailed':
+            return self._mppc_detailed_noise_generator(signal)
+        elif noise_type == 'gaussian':
+            return self._mppc_gaussian_noise_generator(signal)
+        else:
+            raise ValueError('The requested noise type does not exist or is not implemented.', noise_type)
 
 
 class Detector(object):
