@@ -96,6 +96,22 @@ class NoiseBasicTestCase(unittest.TestCase):
             msg = self._formatMessage(msg, standard_msg)
             self.fail(msg)
 
+    def assertArrayAlmostEqual(self, actual, reference, precision=1e-2, msg=''):
+        status = True
+        statement = 'Actual series: \t Reference series: \t Almost Equal: \n'
+        if len(actual)!=len(reference):
+            self.failureException('Actual series has %s elements whereas Reference series %s elements \n' %
+                                 (safe_repr(len(actual)), safe_repr(len(reference))))
+        for index in range(len(actual)-1):
+            if not abs(actual[index] - reference[index])/actual[index] <= precision:
+                status = False
+            statement += '\n %s, \t %s, \t %s' % (safe_repr(actual[index]), safe_repr(reference[index]),
+                         safe_repr(abs(actual[index] - reference[index])/actual[index] <= precision))
+        if not status:
+            standard_msg = '\n Data in actual series doe not match data in reference series. \n' + statement
+            msg = self._formatMessage(msg, standard_msg)
+            self.fail(msg)
+
 
 class NoiseGeneratorTest(NoiseBasicTestCase):
 
@@ -851,7 +867,8 @@ class NoiseRegressionTest(NoiseBasicTestCase):
                               self.INPUT_GAUSSIAN_NOISE + '_detector.h5', data_key=['signals']).data
         detector.seed(signal_data['seed'][0])
         actual = detector.add_noise_to_signal(signal_data['expected_signal'], noise_type=self.INPUT_GAUSSIAN_NOISE)
-        self.assertAlmostEqual(actual[0], signal_data['noisy_signal'][0], msg='The values are not equal.',places=8)
+        self.assertArrayAlmostEqual(actual=actual, reference=numpy.array(signal_data['noisy_signal']),
+                                    msg='The ADP noise generation does not reproduce expected data')
 
     def test_PMT_Gaussian_regression(self):
         detector = Detector(detector_type=self.INPUT_PMT,
