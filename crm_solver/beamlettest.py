@@ -8,7 +8,7 @@ import numpy
 
 class BeamletTest(unittest.TestCase):
     EXPECTED_ATTR = ['param', 'components', 'profiles', 'coefficient_matrix', 'atomic_db', 'initial_condition']
-    EXPECTED_INITIAL_CONDITION = [4832583711.839067, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    EXPECTED_INITIAL_CONDITION = [4832583106.4753895, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     EXPECTED_PARAM_ATTR = ['beamlet_source', 'beamlet_energy', 'beamlet_species', 'beamlet_current']
     EXPECTED_COMPONENTS_KEYS = ['q', 'Z', 'A']
     EXPECTED_COMPONENTS_SPECIES = ['electron', 'ion1', 'ion2']

@@ -13,7 +13,7 @@ class RenateDBTest(unittest.TestCase):
     EXPECTED_ATOM = ['dummy', 'Li', 'Na', 'T', 'H', 'D']
     EXPECTED_ATOMIC_LEVELS = [3, 9, 8, 6, 6, 6]
     EXPECTED_ENERGY = 60
-    EXPECTED_VELOCITY = 1291547.13488556
+    EXPECTED_VELOCITY = 1291547.19
     EXPECTED_MASS = 1.15258e-26
     EXPECTED_ATOMIC_DICT = [{'1': 1, '0': 0, '2': 2},
                             {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8},
@@ -30,6 +30,7 @@ class RenateDBTest(unittest.TestCase):
                                       ['3n', '2n', '1n', '3n-->2n'],
                                       ['3n', '2n', '1n', '3n-->2n'],
                                       ['3n', '2n', '1n', '3n-->2n']]
+    EXPECTED_DECIMAL_PRECISION_2 = 2
     EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DIMENSION_1 = 1
     EXPECTED_DIMENSION_2 = 2
@@ -68,7 +69,7 @@ class RenateDBTest(unittest.TestCase):
     def test_projectile_velocity(self):
         self.assertIsInstance(self.renate_db.velocity, float,
                               msg='Projectile velocity is expected to be given as float.')
-        self.assertAlmostEqual(self.renate_db.velocity, self.EXPECTED_VELOCITY, self.EXPECTED_DECIMAL_PRECISION_4,
+        self.assertAlmostEqual(self.renate_db.velocity, self.EXPECTED_VELOCITY, self.EXPECTED_DECIMAL_PRECISION_2,
                                msg='Projectile velocity is expected to match the velocity of Li @ 60 keV.')
 
     def test_atomic_species(self):
