@@ -42,12 +42,12 @@ class Point(object):
         self.psi = interpolator(self.r, self.z)
 
     def from_cartesian_to_cylindrical(self):
-        self.r = round(math.sqrt(self.x**2 + self.y**2), 4)
-        self.phi = round(math.atan2(self.y, self.x), 4)
+        self.r = math.sqrt(self.x**2 + self.y**2)
+        self.phi = math.atan2(self.y, self.x)
 
     def from_cylindrical_to_cartesian(self):
-        self.x = round(self.r * math.cos(self.phi), 4)
-        self.y = round(self.r * math.sin(self.phi), 4)
+        self.x = self.r * math.cos(self.phi)
+        self.y = self.r * math.sin(self.phi)
 
     def distance(self, other):
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
