@@ -66,16 +66,34 @@ class Atom(Ion):
         self.atomic_number += other.atomic_number
         self.mass_number += other.mass_number
         self.label += other.label
+        self.mass += other.mass
 
     def __mul__(self, other):
         self.atomic_number *= other
         self.mass_number *= other
         self.label = str(other) + self.label
+        self.mass *= other
 
 
-class Molecule(object):
+class Molecule(Atom):
     def __init__(self, atoms=list, mass=None):
-        pass
+        Atom.__init__(self, label='', mass_number=0, atomic_number=0, mass=mass)
+        for atom in atoms:
+            self += atom
+
+    def __repr__(self):
+        return 'Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
+               ' Nucleons = ' + str(self.mass_number)
+
+
+class IonizedMolecule(Molecule):
+    def __init__(self, atoms=list, mass=None, charge=int):
+        Molecule.__init__(self, atoms=atoms, mass=mass)
+        self.update_charge(charge=charge)
+
+    def __repr__(self):
+        return 'Ionized Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
+               ' Nucleons = ' + str(self.mass_number) + ' Charge = ' + str(self.charge)
 
 
 class Transition(object):
