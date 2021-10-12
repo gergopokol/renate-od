@@ -62,6 +62,21 @@ class Atom(Ion):
     def __repr__(self):
         return 'Atom: ' + str(self.label) + '\t Z = ' + str(self.atomic_number) + ' N = ' + str(self.mass_number)
 
+    def __add__(self, other):
+        self.atomic_number += other.atomic_number
+        self.mass_number += other.mass_number
+        self.label += other.label
+
+    def __mul__(self, other):
+        self.atomic_number *= other
+        self.mass_number *= other
+        self.label = str(other) + self.label
+
+
+class Molecule(object):
+    def __init__(self, atoms=list, mass=None):
+        pass
+
 
 class Transition(object):
     def __init__(self, projectile=Particle, target=Particle, from_level=str, to_level=str, trans=str):
