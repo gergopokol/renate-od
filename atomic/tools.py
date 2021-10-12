@@ -59,6 +59,9 @@ class Atom(Ion):
     def __init__(self, label=str, mass_number=int, atomic_number=int, mass=None):
         Ion.__init__(self, label=label, mass_number=mass_number, mass=mass, atomic_number=atomic_number, charge=0)
 
+    def __repr__(self):
+        return 'Atom: ' + str(self.label) + '\t Z = ' + str(self.atomic_number) + ' N = ' + str(self.mass_number)
+
 
 class Transition(object):
     def __init__(self, projectile=Particle, target=Particle, from_level=str, to_level=str, trans=str):
