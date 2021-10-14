@@ -79,7 +79,10 @@ class Molecule(Atom):
     def __init__(self, atoms=list, mass=None):
         Atom.__init__(self, label='', mass_number=0, atomic_number=0, mass=mass)
         for atom in atoms:
-            self += atom
+            self.mass += atom.mass
+            self.mass_number += atom.mass_number
+            self.atomic_number += atom.atomic_number
+            self.label += atom.label
 
     def __repr__(self):
         return 'Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
