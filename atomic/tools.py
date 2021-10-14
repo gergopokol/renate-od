@@ -103,6 +103,13 @@ class Transition(object):
     def __init__(self, projectile=Particle, target=Particle, from_level=str, to_level=str, trans=str):
         self.projectile = projectile
         self.target = target
-        if isinstance(from_level, str):
+        if isinstance(from_level, str) and isinstance(to_level, str) and isinstance(trans, str):
             self.from_level = from_level
-
+            self.to_level = to_level
+            if trans in ['ex', 'de-ex', 'eloss', 'ion', 'cx']:
+                self.transition = trans
+            else:
+                InputError('The provided transition is not supported. '
+                           'Supported transitions are: ex, de-ex, eloss, ion and cx.')
+        else:
+            InputError('Expected input data format for <from_level>, <to_level> and <trans> to be of str type.')
