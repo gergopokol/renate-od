@@ -86,7 +86,7 @@ class Molecule(Atom):
 
     def __repr__(self):
         return 'Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
-               ' Nucleons = ' + str(self.mass_number)
+               ' Neutrons = ' + str(self.mass_number - self.atomic_number)
 
 
 class IonizedMolecule(Molecule):
