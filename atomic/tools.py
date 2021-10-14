@@ -106,7 +106,7 @@ class Transition(object):
         if isinstance(from_level, str) and isinstance(trans, str):
             self.from_level = from_level
             if trans in ['ex', 'de-ex', 'eloss', 'ion', 'cx']:
-                self.transition = trans
+                self.name = trans
             else:
                 InputError('The provided transition is not supported. '
                            'Supported transitions are: ex, de-ex, eloss, ion and cx.')
@@ -117,6 +117,12 @@ class Transition(object):
         else:
             InputError('Expected input data format for <from_level>, <to_level> and <trans> to be of str type.')
 
+    def __str__(self):
+        if self.name in ['cx', 'eloss', 'ion']:
+            return self.from_level + '-i'
+        else:
+            return self.from_level + '-' + self.to_level
+
     def __repr__(self):
         return 'Collision of: '+str(self.projectile)+' + '+str(self.target)+' with transition: ' + \
-               self.transition+' | from level: '+self.from_level+' | to_level: '+str(self.to_level)
+               self.name+' | from level: '+self.from_level+' | to_level: '+str(self.to_level)
