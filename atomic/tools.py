@@ -119,7 +119,7 @@ class Transition(object):
 
     def __str__(self):
         if self.name in ['cx', 'eloss', 'ion']:
-            return self.from_level + '-i'
+            return self.from_level + '-' + self.name
         else:
             return self.from_level + '-' + self.to_level
 
