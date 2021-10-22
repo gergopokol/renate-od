@@ -1,5 +1,7 @@
 from atomic.tools import Transition
 import numpy as np
+import matplotlib.pyplot as plt
+import scipy.constants as sc
 
 """
 Li references: 
@@ -186,9 +188,20 @@ class CrossSection(object):
         self.transition = transition
         self.impact_energy = impact_energy
         self.generate_function()
-
+		
     def generate_function(self):
-        pass
-
+        projectile=str(self.transition.projectile)
+        target=str(self.transition.target)
+        cross_dict=ATOMIC_DICT[projectile][target][str(self.transition)]
+        cross=CROSS_FUNC[cross_dict['eq']](self.impact_energy,cross_dict['param'])
+        self.function=cross
+        return cross
+		
     def show(self):
-        pass
+        plt.plot(self.impact_energy,self.function)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.show()
+    
+
+        
