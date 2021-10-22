@@ -204,4 +204,26 @@ class CrossSection(object):
         plt.show()
     
 
+class RateCoeff():
+    def __init__(self,transition,crossection):
+        self.transition=transition
+        self.crossection=crossection
         
+    def generate_rate(self,temperature,beamenergy):
+        self.temperature=temperature
+        self.beamenergy=beamenergy
+        
+        m_t=self.transition.target.mass
+        w=np.sqrt(2*self.temperature*sc.eV/m_t)
+        
+        m_b=self.transition.projectile.mass
+        v_b=np.sqrt(2*self.beamenergy*sc.eV/m_b)
+        
+        E_range=self.crossection.impact_energy
+        v=np.sqrt(2*E_range*sc.eV/m_t)
+        self.velocity=v
+        kernel=v**2*self.crossection.function*(np.exp(-((v-v_b)/w)**2)-np.exp(-((v+v_b)/w)**2))/(np.sqrt(np.pi)*w*v_b**2)
+        self.kernel=kernel
+        
+        self.rate=np.trapz(self.kernel,self.velocity)
+        return self.rate
