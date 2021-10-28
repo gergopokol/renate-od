@@ -268,25 +268,30 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
               }
 
 
+ATOMIC_SOURCES={'Li_Schweinzer':Li_Schweinzer,
+                'Li_Wutte':Li_Wutte}
+
+
 class CrossSection(object):
-    def __init__(self, transition=Transition, impact_energy=float, extrapolate=False):
+    def __init__(self, transition=Transition, impact_energy=float, atomic_dict=None, extrapolate=False):
         self.transition = transition
         self.impact_energy = impact_energy
-        self.generate_function()
+        self.ATOMIC_DICT=atomic_dict
+        self.__generate_function()
 		
-    def generate_function(self):
-        projectile=str(self.transition.projectile)
+    def __generate_function(self):
         target=str(self.transition.target)
-        cross_dict=ATOMIC_DICT[projectile][target][str(self.transition)]
+        cross_dict=self.ATOMIC_DICT[target][str(self.transition)]
         cross=CROSS_FUNC[cross_dict['eq']](self.impact_energy,cross_dict['param'])
         self.function=cross
         return cross
 		
     def show(self):
-        plt.plot(self.impact_energy,self.function)
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.show()
+        fig,ax=plt.subplots()
+        ax.plot(self.impact_energy,self.function)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        return fig,ax
     
 
 class RateCoeff():
