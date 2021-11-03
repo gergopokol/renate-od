@@ -5,12 +5,19 @@ CONST = Constants()
 
 
 class Particle(object):
-    def __init__(self, label=str, charge=0, mass=None):
+    def __init__(self, label='', charge=0, mass_number=0, atomic_number=0, mass=None):
         if isinstance(label, str):
             self.label = label
         else:
             raise InputError('Label is expected to be of string type.')
-        if isinstance(charge, int) and (charge >= -1):
+        if isinstance(atomic_number, int):
+            self.atomic_number = atomic_number
+        if isinstance(mass_number, int) and (self.atomic_number - mass_number) >= 0:
+            self.mass_number = mass_number
+            self.neutron_number = self.mass_number - self.atomic_number
+        if self.label is 'e':
+            self.charge = -1
+        elif isinstance(charge, int):
             self.charge = charge
         else:
             raise InputError('The charge '+str(charge) + ' of the particle must exceed -1 and be an integer.')
@@ -22,6 +29,13 @@ class Particle(object):
     def update_mass(self, mass):
         self.mass = mass
 
+    def update_atomic_number(self, atomic_number):
+        self.atomic_number = atomic_number
+
+    def update_mass_number(self, mass_number):
+        self.mass_number = mass_number
+        self.neutron_number = self.mass_number - self.atomic_number
+
     def update_charge(self, charge):
         self.charge = charge
 
@@ -29,11 +43,12 @@ class Particle(object):
         return str(self.label)
 
     def __repr__(self):
-        return 'Particle: ' + str(self.label) + '\t charge = ' + str(self.charge)
+        return 'Particle: ' + str(self.label) + '\t (q,Z,A) =  (' + str(self.charge) + ',' + str(self.atomic_number) + \
+               ',' + str(self.mass_number) + ')'
 
 
 class Ion(Particle):
-    def __init__(self, label=str, charge=int, mass=None, atomic_number=int, mass_number=int):
+    def __init__(self, label='', charge=int, mass=None, atomic_number=int, mass_number=int):
         Particle.__init__(self, label=label, mass=mass, charge=charge)
         if (atomic_number >= 0) and isinstance(atomic_number, int) and (atomic_number >= self.charge):
             self.atomic_number = atomic_number
@@ -56,7 +71,7 @@ class Ion(Particle):
 
 
 class Atom(Ion):
-    def __init__(self, label=str, mass_number=int, atomic_number=int, mass=None):
+    def __init__(self, label='', mass_number=int, atomic_number=int, mass=None):
         Ion.__init__(self, label=label, mass_number=mass_number, mass=mass, atomic_number=atomic_number, charge=0)
 
     def __repr__(self):
