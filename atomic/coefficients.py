@@ -1,8 +1,13 @@
+import numpy as np
+
 """
 Li references:
 [1] Wutte et.al. ADNDT 65, 155 (1997) https://www.sciencedirect.com/science/article/abs/pii/S0092640X97907361
 [2] Schweinzer et.al. ADNDT 72, 239 (1999)  https://www.sciencedirect.com/science/article/abs/pii/S0092640X9990815X
 [3] Schweinzer et.al. JPB 27, 137 (1994) https://iopscience.iop.org/article/10.1088/0953-4075/27/1/017
+
+H references:
+[4] Janev et.al. IAEA-APID-4 (1993) https://inis.iaea.org/search/search.aspx?orig_q=RN:25024275
 """
 
 Li_Schweinzer = {'e': {'2s-eloss': {'param': [5.39, 0.085, -0.004, 0.757, -0.178], 'eq': '0'},  # [1] Table p165
@@ -126,5 +131,14 @@ Li_Wutte = {'e': {'2s-2p': {'param': [1.847, 4.1818, -27.335, 89.34, 0, 52.788, 
                      '3p-3d': {},
                      '3d-eloss': {}}}
 
+
+
+H_ALADDIN={'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4.4979], 'eq': '10'},
+                 '1-3': {'param': [0.42956, -0.58288, 1.0693, 0.0, 0.75448, 0.38277, 12.09], 'eq': '11'},
+                 '1-4': {'param': [0.24846, 0.19701, 0.0, 0.0, 0.243, 0.41844, 12.75], 'eq':'11'},
+                 '1-5': {'param': [0.13092, 0.23581, 0.0, 0.0, 0.11508, 0.45929, 13.06], 'eq':'11'},
+                 }}
+
 ATOMIC_SOURCES={'Li_Schweinzer': Li_Schweinzer,
-                'Li_Wutte': Li_Wutte}
+                'Li_Wutte': Li_Wutte,
+                'H_ALADDIN': H_ALADDIN}
