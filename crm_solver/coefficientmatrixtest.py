@@ -259,7 +259,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_trans_np, numpy.ndarray,
                               msg='The electron impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_trans_np.shape,
-                              (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              (self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                                self.PROFILES['beamlet grid'].size), msg='The electron impact transition '
                                                                         'terms is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_impact_trans_np,
@@ -269,7 +269,7 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_electron_impact_loss(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
                               'ionization terms is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_levels,
+        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
                                                                        'not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_impact_loss_np,
@@ -281,7 +281,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The ion impact '
                               'ionization terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_impact_loss_np.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size), msg='The ion impact '
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size), msg='The ion impact '
                               'ionization term is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_impact_loss_np, self.EXPECTED_ION_LOSS_TERMS,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Interpolation failure '
@@ -291,7 +291,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.ion_impact_trans_np, numpy.ndarray,
                               msg='The ion impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_impact_trans_np.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The ion impact transition term is not '
                                                                        'dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_impact_trans_np, self.EXPECTED_ION_TRANSITION_TERMS,
@@ -301,8 +301,8 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_rate_matrix(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.matrix, numpy.ndarray,
                               msg='The rate coefficient matrix is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.matrix.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.matrix.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The rate coefficient matrix is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_RATE_COEFFICIENT_MATRIX,
                                           self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Rate coefficient matrix assembly '
@@ -311,8 +311,8 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_spontaneous_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.photon_terms, numpy.ndarray,
                               msg='The spontaneous photon term is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.photon_terms.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.photon_terms.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The photon term is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.photon_terms, self.EXPECTED_PHOTON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Photon term assembly failed.')
@@ -327,15 +327,15 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_electron_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_terms, numpy.ndarray,
                               msg='The electron rate term is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_terms.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_terms.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The electron term is dimensionally not accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_terms, self.EXPECTED_ELECTRON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Electron term assembly failed.')
 
     def test_electron_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
-        actual = numpy.zeros((self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+        actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
         for step in range(self.PROFILES['beamlet grid'].size):
             self.RATE_COEFFICIENT.apply_electron_density(step)
@@ -348,7 +348,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.ion_terms, numpy.ndarray,
                               msg='The ion term is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_terms.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The ion term is dimensionally not accurate.')
         print(self.RATE_COEFFICIENT.ion_terms)
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_terms, self.EXPECTED_ION_TERM,
@@ -356,7 +356,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_ion_rate_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
-        actual = numpy.zeros((self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+        actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
         for ion in range(len(self.COMPONENTS.T.keys())-1):
             for step in range(self.PROFILES['beamlet grid'].size):
