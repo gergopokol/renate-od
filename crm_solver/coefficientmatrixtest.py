@@ -51,9 +51,9 @@ class CoefficientMatrixTest(unittest.TestCase):
                                       [[0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031],
                                        [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032],
                                        [0.,     0.,     0.,     0.,     0.,     0.,     0.]]]
-    EXPECTED_ELECTRON_LOSS_TERMS = [[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
-                                    [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
-                                    [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]]
+    EXPECTED_ELECTRON_LOSS_TERMS = numpy.array([[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
+                                                [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
+                                                [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]])
     EXPECTED_ION_LOSS_TERMS = [[[0.0012, 0.0112, 0.0212, 0.0262, 0.0312, 0.0812, 0.1012],
                                 [0.0022, 0.0122, 0.0222, 0.0272, 0.0322, 0.0822, 0.1022],
                                 [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032]],
@@ -364,3 +364,17 @@ class CoefficientMatrixTest(unittest.TestCase):
                                            self.EXPECTED_ION_TERM[ion, :, :, step]
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Ion term and density application failed.')
+
+    def test_ceiled_electron_impact_loss(self):
+        CEILED_ATOMIC_DB = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS, atomic_ceiling=2)
+        CEILED_RATE_COEFFICIENT = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES,
+                                                    self.COMPONENTS, CEILED_ATOMIC_DB)
+        self.assertIsInstance(CEILED_RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
+                              'ionization terms is not in the expected format.')
+        self.assertTupleEqual(CEILED_RATE_COEFFICIENT.electron_impact_loss_np.shape, (CEILED_ATOMIC_DB.atomic_ceiling,
+                              self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
+                                                                       'not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(CEILED_RATE_COEFFICIENT.electron_impact_loss_np,
+                                          self.EXPECTED_ELECTRON_LOSS_TERMS[0:CEILED_ATOMIC_DB.atomic_ceiling, :],
+                                          self.EXPECTED_DECIMAL_PRECISION_6,
+                                          err_msg='Interpolation failure for electron impact loss.')
