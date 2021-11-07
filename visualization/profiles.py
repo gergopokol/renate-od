@@ -6,15 +6,21 @@ from crm_solver.atomic_db import RenateDB
 
 
 class BeamletProfiles:
-    def __init__(self, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
-        self.param_path = param_path
-        self.param = utility.getdata.GetData(data_path_name=self.param_path).data
-        self.access_path = self.param.getroot().find('body').find('beamlet_source').text
-        self.key = key
-        self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key)
-        self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
-        self.atomic_db = RenateDB(self.param, 'default', self.access_path)
-        self.title = None
+    def __init__(self, beamlet=None, param_path='output/beamlet/beamlet_test.xml', key=['profiles']):
+        if beamlet is None:
+            self.param_path = param_path
+            self.param = utility.getdata.GetData(data_path_name=self.param_path).data
+            self.access_path = self.param.getroot().find('body').find('beamlet_source').text
+            self.key = key
+            self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key)
+            self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
+            self.atomic_db = RenateDB(self.param, 'default', self.access_path)
+            self.title = None
+        else:
+            self.param = beamlet.param
+            self.profiles = beamlet.profiles
+            self.components = beamlet.components
+            self.atomic_db = beamlet.atomic_db
 
     def set_x_range(self, x_min=None, x_max=None):
         self.x_limits = [x_min, x_max]
