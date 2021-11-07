@@ -118,15 +118,29 @@ class RenateDB:
 
 class AtomicDB(RenateDB):
     def __init__(self, atomic_source='renate', param=None, rate_type='default',
-                 data_path='beamlet/testimp0001.xml', components=None):
+                 data_path='beamlet/testimp0001.xml', components=None, atomic_ceiling=False):
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
+            self.__set_ceiling_for_atomic_levels(atomic_ceiling=atomic_ceiling)
             self.__generate_rate_function_db()
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
+
+    def __set_ceiling_for_atomic_levels(self, atomic_ceiling):
+        if not atomic_ceiling:
+            self.atomic_ceiling = self.atomic_levels
+        else:
+            if isinstance(atomic_ceiling, int):
+                raise TypeError('The atomic ceil is considered to be and integer '
+                                'that caps the considered atomic levels.')
+            elif atomic_ceiling > self.atomic_levels:
+                raise ValueError('The atomic ceil can not be above available atomic levels. '
+                                 'Current max nr of supported levels are ' + str(self.atomic_levels))
+            else:
+                self.atomic_ceiling = atomic_ceiling
 
     def __generate_rate_function_db(self):
         self.__set_temperature_axis()
