@@ -169,7 +169,7 @@ class AtomicDB(RenateDB):
         '''''
         raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
         self.electron_impact_loss, self.ion_impact_loss = [], []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
             self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                 raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
@@ -187,9 +187,9 @@ class AtomicDB(RenateDB):
         '''''
         raw_electron_transition = self.get_from_renate_atomic('electron_transition')
         self.electron_impact_trans = []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
-            for to_level in range(self.atomic_levels):
+            for to_level in range(self.atomic_ceiling):
                 from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                     raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
             self.electron_impact_trans.append(tuple(from_level_functions))
@@ -203,9 +203,9 @@ class AtomicDB(RenateDB):
         raw_proton_transition = self.get_from_renate_atomic('ion_transition')
         raw_impurity_transition = self.get_from_renate_atomic('impurity_transition')
         self.ion_impact_trans = []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
-            for to_level in range(self.atomic_levels):
+            for to_level in range(self.atomic_ceiling):
                 to_level_functions = []
                 for target in self.components.T.keys():
                     if self.components['q'][target] == 1:
