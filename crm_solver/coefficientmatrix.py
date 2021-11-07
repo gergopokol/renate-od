@@ -1,7 +1,6 @@
 import numpy
 from lxml import etree
 import pandas
-from utility import convert
 
 
 class CoefficientMatrix:
