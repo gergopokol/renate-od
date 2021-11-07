@@ -159,7 +159,7 @@ class BeamletProfiles:
 
     def __setup_population_axis(self, axis, kind='absolute'):
         pandas_key, axis_name = self.set_axis_parameters(kind)
-        for level in range(self.atomic_db.atomic_levels):
+        for level in range(self.atomic_db.atomic_ceiling):
             label = pandas_key + self.atomic_db.inv_atomic_dict[level]
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         if hasattr(self, 'x_limits'):
@@ -185,7 +185,7 @@ class BeamletProfiles:
 
     def setup_benchmark_axis(self, benchmark_profiles, axis):
         benchmark_profiles = benchmark_profiles
-        for level in range(self.atomic_db.atomic_levels):
+        for level in range(self.atomic_db.atomic_ceiling):
             label = 'level ' + str(level)
             axis.plot(benchmark_profiles['beamlet grid'], benchmark_profiles[label], '--', label=label+' ref.')
         return axis
