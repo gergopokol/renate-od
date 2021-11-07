@@ -350,7 +350,6 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_terms.shape, (len(self.COMPONENTS.T.keys()) - 1,
                               self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The ion term is dimensionally not accurate.')
-        print(self.RATE_COEFFICIENT.ion_terms)
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_terms, self.EXPECTED_ION_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Ion rate term assembly failure.')
 
