@@ -385,3 +385,22 @@ class AtomicDBTest(unittest.TestCase):
                     numpy.testing.assert_almost_equal(self.EXPECTED_ION_IMPACT_TRANS[from_level][to_level][target],
                                                       rates, self.EXPECTED_DECIMAL_PRECISION_5,
                                                       err_msg='Ion impact transition interpolator failure.')
+
+    def test_ceiled_electron_impact_loss_terms(self):
+        ceiled_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS, atomic_ceiling=2)
+        self.assertIsInstance(ceiled_db.electron_impact_loss, tuple,
+                              msg='Electron impact loss functions are stored in wrong data format.')
+        self.assertEqual(len(ceiled_db.electron_impact_loss), ceiled_db.atomic_ceiling,
+                         msg='Number of expected interpolator functions is inconsistent with number of atomic levels.')
+        for index in range(ceiled_db.atomic_ceiling):
+            self.assertIsInstance(ceiled_db.electron_impact_loss[index], scipy.interpolate.interp1d,
+                                  msg='Provided electron impact loss functions are of wrong type.')
+
+    def test_ceiled_electron_impact_loss_interpolator(self):
+        ceiled_db = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS, atomic_ceiling=2)
+        for level in range(ceiled_db.atomic_ceiling):
+            rates = ceiled_db.electron_impact_loss[level](self.INTERPOLATION_TEST_TEMPERATURE)
+            self.assertIsInstance(rates, numpy.ndarray, msg='Interpolator output expected to be numpy.')
+            numpy.testing.assert_almost_equal(self.EXPECTED_ELECTRON_IMPACT_LOSS[level], rates,
+                                              self.EXPECTED_DECIMAL_PRECISION_5, err_msg='Electron impact loss '
+                                                                                         'interpolator failure.')
