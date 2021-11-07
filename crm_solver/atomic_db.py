@@ -133,7 +133,7 @@ class AtomicDB(RenateDB):
         if not atomic_ceiling:
             self.atomic_ceiling = self.atomic_levels
         else:
-            if isinstance(atomic_ceiling, int):
+            if not isinstance(atomic_ceiling, int):
                 raise TypeError('The atomic ceil is considered to be and integer '
                                 'that caps the considered atomic levels.')
             elif atomic_ceiling > self.atomic_levels:
