@@ -2,7 +2,7 @@ from utility.getdata import GetData
 
 
 class NeutralDB(object):
-    def __init__(self, path=None, param=None, components=None, resolved='bundled_n'):
+    def __init__(self, param=None, resolved='bundled_n'):
         self.param = param
         self.resolved = resolved
         self.__load_neutral_cross_section()
@@ -17,7 +17,7 @@ class NeutralDB(object):
 
     def __set_neutral_cross_section_path(self, target='H'):
         cross_section_path = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
-                             'cross_sections/neutral/'
+                             '/cross_sections/neutral/'
         file_name = target + '_' + self.resolved + '_' + \
                     self.param.getroot().find('body').find('beamlet_energy').text + '.txt'
         return cross_section_path + file_name
