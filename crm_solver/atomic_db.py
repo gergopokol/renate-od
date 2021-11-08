@@ -5,6 +5,7 @@ import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import pandas
+from crm_solver.neutral_db import NeutralDB
 
 
 class RenateDB:
@@ -122,6 +123,7 @@ class AtomicDB(RenateDB):
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
+        self.__set_neutral_db(param=param)
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
             self.__set_ceiling_for_atomic_levels(atomic_ceiling=atomic_ceiling)
@@ -129,9 +131,21 @@ class AtomicDB(RenateDB):
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
 
+    def __set_neutral_db(self, param):
+        if (self.components['q'] == 0).any():
+            self.are_neutrals = True
+            self.neutral_db = NeutralDB(param=param)
+        else:
+            self.are_neutrals = False
+
     def __set_ceiling_for_atomic_levels(self, atomic_ceiling):
         if not atomic_ceiling:
-            self.atomic_ceiling = self.atomic_levels
+            if not self.are_neutrals:
+                self.atomic_ceiling = self.atomic_levels
+            elif self.atomic_levels <= self.neutral_db.atomic_levels:
+                self.atomic_ceiling = self.atomic_levels
+            else:
+                self.atomic_ceiling = self.neutral_db.atomic_levels
         else:
             if not isinstance(atomic_ceiling, int):
                 raise TypeError('The atomic ceil is considered to be and integer '
@@ -139,6 +153,11 @@ class AtomicDB(RenateDB):
             elif atomic_ceiling > self.atomic_levels:
                 raise ValueError('The atomic ceil can not be above available atomic levels. '
                                  'Current max nr of supported levels are ' + str(self.atomic_levels))
+            elif self.are_neutrals:
+                if atomic_ceiling > self.neutral_db.atomic_levels:
+                    raise ValueError('The atomic ceil can not be above available neutral atomic levels. '
+                                     'Current max nr of supported levels for neutrals are ' + \
+                                     str(self.neutral_db.atomic_levels))
             else:
                 self.atomic_ceiling = atomic_ceiling
 
