@@ -29,6 +29,16 @@ class CoefficientMatrix:
         self.ion_terms = numpy.concatenate([[ion_terms] * len([comp for comp in plasma_components['Z'] if comp > 0])])
         self.photon_terms = numpy.zeros(
             (atomic_db.atomic_ceiling, atomic_db.atomic_ceiling, self.beamlet_profiles['beamlet grid'].size))
+
+        # Add neutrals to the coefficient matrix if there are any.
+        if atomic_db.are_neutrals:
+            self.neutral_impact_trans_np = numpy.zeros((atomic_db.atomic_ceiling, atomic_db.atomic_ceiling,
+                                                        self.beamlet_profiles['beamlet grid'].size))
+            self.neutral_impact_loss_np = numpy.zeros((atomic_db.atomic_ceiling,
+                                                       self.beamlet_profiles['beamlet grid'].size))
+            self.neutral_terms = numpy.zeros(
+                (atomic_db.atomic_ceiling, atomic_db.atomic_ceiling, self.beamlet_profiles['beamlet grid'].size))
+
         self.interpolate_rates(atomic_db, plasma_components)
         self.assemble_matrix(atomic_db, plasma_components)
 
@@ -44,6 +54,12 @@ class CoefficientMatrix:
                 for to_level in range(atomic_db.atomic_ceiling):
                     if to_level != from_level:
                         self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db)
+        if atomic_db.are_neutrals:
+            for from_level in range(atomic_db.atomic_ceiling):
+                self.fetch_neutral_impact_loss(from_level, atomic_db)
+                for to_level in range(atomic_db.atomic_ceiling):
+                    if to_level != from_level:
+                        self.fetch_neutral_impact_trans(from_level, to_level, atomic_db)
 
     def assemble_matrix(self, atomic_db, plasma_components):
         for from_level in range(atomic_db.atomic_ceiling):
@@ -90,6 +106,13 @@ class CoefficientMatrix:
         self.ion_impact_loss_np[ion, from_level, :] = \
             atomic_db.ion_impact_loss[from_level][ion](
                 self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
+
+    def fetch_neutral_impact_loss(self, from_level, atomic_db):
+        self.neutral_impact_loss_np[from_level, :] = atomic_db.neutral_db.get_neutral_impact_loss(from_level)
+
+    def fetch_neutral_impact_trans(self, from_level, to_level, atomic_db):
+        self.neutral_impact_trans_np[from_level, to_level, :] = \
+            atomic_db.neutral_db.get_neutral_impact_trans(from_level, to_level)
 
     def assemble_electron_impact_population_loss_terms(self, from_level, to_level, atomic_db):
         self.electron_terms[from_level, to_level, :] = \
