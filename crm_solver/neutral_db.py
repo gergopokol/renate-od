@@ -1,4 +1,5 @@
 from utility.getdata import GetData
+import utility.convert as uc
 
 
 class NeutralDB(object):
@@ -23,7 +24,7 @@ class NeutralDB(object):
         return cross_section_path + file_name
 
     def get_neutral_impact_loss(self, from_level):
-        return self.neutral_cross_sections[from_level, from_level]
+        return uc.convert_from_cm2_to_m2(self.neutral_cross_sections[from_level, from_level])
 
     def get_neutral_impact_transition(self, from_level, to_level):
-        return self.neutral_cross_sections[from_level, to_level]
+        return uc.convert_from_cm2_to_m2(self.neutral_cross_sections[from_level, to_level])
