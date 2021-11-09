@@ -133,11 +133,153 @@ Li_Wutte = {'e': {'2s-2p': {'param': [1.847, 4.1818, -27.335, 89.34, 0, 52.788, 
 
 
 
+def get_Johnson_osc_coeff(n):
+    if n==1:
+        return [1.1330, -0.4059, 0.0714]
+    if n==2:
+        return [1.0785, -0.2319, 0.02947]
+    if n>=3:
+        g0=0.9935+0.2328/n-0.1296/n**2
+        g1=-1/n*(0.6282-0.5598/n+0.5299/n**2)
+        g2=-1/n**2*(0.3887-1.181/n+1.470/n**2)
+        return [g0,g1,g2]
+    
+def get_Johnson_osc_str(n,m):
+    x=1-(n/m)**2
+    g0,g1,g2=get_Johnson_osc_coeff(n)
+    g=g0+g1/x+g2/x**2
+    f=32/(3*3**0.5*np.pi)*n/m**3/x**3*g
+    return f
+
+def get_Janev_params(cross):
+    transition=cross.transition
+    e=cross.impact_energy
+    
+    if str(transition.target)=='e':
+        if transition.name=='ex':
+            
+            if transition.from_level=='1':                         #NOT GOOD!!!!!!!!
+                n=int(transition.to_level)
+                y=1-(1/n)**2
+                dE=13.6*(1-1/n**2)
+                r=0.45
+                f=get_Johnson_osc_str(1, n)
+                A=2*n**2*f/y
+                b=1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
+                B=2/3*n**2*(5+b)
+                return {'param': [1,n,y,r,A,B,dE], 'eq':'12'}
+            
+            if int(transition.from_level)>1:
+                n=int(transition.from_level)
+                m=int(transition.to_level)
+                y=1-(n/m)**2
+                dE=13.6*(1/n**2-1/m**2)
+                r=1.94*n**(-1.57)
+                f=get_Johnson_osc_str(n, m)
+                A=2*n**2*f/y
+                b=1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
+                B=4*n**4/(m**3*y**2)*(1+4/(3*y)+b/y**2)
+                return {'param': [n,m,y,r,A,B,dE], 'eq': '12'}
+            
+        if transition.name=='eloss':
+            
+            if int(transition.from_level)>3:                       #NOT GOOD!!!!!!!
+                n=int(transition.from_level)
+                y=1-(1/n)**2
+                dE=13.6/n**2
+                r=1.94*n**(-1.57)
+                f=get_Johnson_osc_str(1, n)
+                A=2*n**2*f/y
+                b=1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
+                B=2/3*n**2*(5+b)
+                return {'param': [n,y,r,A,B,dE], 'eq': '14'}
+            
+    if str(transition.target)=='1H1+':
+        if transition.name=='ex':
+            
+            if transition.from_level=='1':
+                n=int(transition.to_level)
+                return {'param': [0.63771, 37.174, 0.39265, 3.2949e-4, 0.25757, -2.2950, 0.050796, -5.5986, n], 'eq': '17'}
+            
+            if transition.from_level=='2' and int(transition.to_level)<11:
+                n=transition.to_level
+                ratio={'6':0.4610, '7': 0.2475, '8':0.1465, '9':0.0920, '10':0.0605}
+                return {'param': [18.264, 18.973, 2.9056, 0.013701, 0.31711, -1.4775, ratio[n]], 'eq': '19'}
+            
+            if transition.from_level=='3' and int(transition.to_level)<11:
+                n=transition.to_level
+                ratio={'7': 0.4670, '8':0.2545, '9':0.1540, '10':0.10}
+                return {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881, ratio[n]], 'eq': '19'}
+            
+            if int(transition.from_level)>3:
+                n=int(transition.from_level)
+                m=int(transition.to_level)
+                eps=e/25e3
+                s=m-n
+                D=np.exp(-1/(n*m*eps**2))
+                A=8/(3*s)*(m/(s*n))**3*(0.184-0.04/s**(2/3))*(1-0.2*s/(n*m))**(1+2*s)
+                G=0.5*(eps*n**2/(m-1/m))**3
+                L=np.log((1+0.53*eps**2*n*(m-2/m))/(1+0.4*eps))
+                F=(1-0.3*s*D/(n*m))**(1+2*s)
+                zp=2/(eps*n**2*((2-n**2/m**2)**0.5+1))
+                zm=2/(eps*n**2*((2-n**2/m**2)**0.5-1))
+                y=1/(1-D*np.log(18*s)/(4*s))
+                C=lambda z,y: z**2*np.log(1+2*z/3)/(2*y+3*z/2)
+                H=C(zm,y)-C(zp,y)
+                return {'param': [n,eps,A,D,L,F,G,H], 'eq':'110'}
+            
+        if transition.name=='ion':
+            
+            if int(transition.from_level)>3:                       #NOT GOOD!!!!!!!!!!!
+                n=int(transition.from_level)
+                e_red=(3/n)**2*e/1e3
+                return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924, 3.1525, -1.6314, n, e_red], 'eq': '111'}
+            
+        if transition.name=='cx':
+            n=int(transition.from_level)
+            
+            if n==2:
+                e_red=e*n**2/1e3
+                return {'param': [0.92750, 6.5040e+3, 1.3405e-2, 20.699, n, e_red], 'eq': '113'}
+            
+            if n==3:
+                e_red=e*n**2/1e3
+                return {'param': [0.37271, 2.7645e+6, 1.5720e-3, 1.4857e+3, n, e_red], 'eq': '113'}
+            
+            if n>=4:
+                e_red=e*n**2/1e3
+                return {'param': [0.21336, 1.0e+10, 1.8184e-3, 1.3426e+6, n, e_red], 'eq': '113'}
+                
+            
+    
+    
+
 H_ALADDIN={'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4.4979], 'eq': '10'},
                  '1-3': {'param': [0.42956, -0.58288, 1.0693, 0.0, 0.75448, 0.38277, 12.09], 'eq': '11'},
                  '1-4': {'param': [0.24846, 0.19701, 0.0, 0.0, 0.243, 0.41844, 12.75], 'eq':'11'},
                  '1-5': {'param': [0.13092, 0.23581, 0.0, 0.0, 0.11508, 0.45929, 13.06], 'eq':'11'},
-                 }}
+                 '2-3': {'param': [5.2373, 119.25, -595.39, 816.71, 38.906, 1.3196, 1.889], 'eq':'11'},
+                 '1-eloss': {'param': [0.18450, -0.032226, -0.034539, 1.4003, -2.8115, 2.2986, 13.6], 'eq': '13'},
+                 '2-eloss': {'param': [0.14784, 0.0080871, -0.062270, 1.9414, -2.1980, 0.95894, 3.4], 'eq': '13'},
+                 '3-eloss': {'param': [0.058463, -0.051272, 0.85310, -0.57014, 0.76684, 0.0, 1.511], 'eq': '13'}
+                 },
+           '1H1+': {'1-2': {'param': [34.433, 44.507, 0.56870, 8.5476, 7.8501, -9.2217, 1.8020e-2, 1.6931, 1.9422e-3, 2.9068], 'eq': '15'},
+                    '1-3': {'param': [6.1950, 35.773, 0.54818, 5.5162e-3, 0.291114, -4.5264, 6.0311, -2.0679], 'eq': '16'},
+                    '1-4': {'param': [2.0661, 34.975, 0.91213, 5.133e-4, 0.28953, -2.2849, 0.11528, -4.8970], 'eq': '16'},
+                    '1-5': {'param': [1.2449, 32.291, 0.21176, 3.0826e-4, 0.31063, -2.4161, 0.024664, -6.3726], 'eq': '16'},
+                    '1-6': {'param': [0.63771, 37.174, 0.39265, 3.2949e-4, 0.25757, -2.2950, 0.050796, -5.5986], 'eq': '16'},
+                    '2-3': {'param': [394.51, 21.606, 0.62426, 0.013597, 0.16565, -0.8949], 'eq': '18'},
+                    '2-4': {'param': [50.744, 19.416, 4.0262, 0.014398, 0.31584, -1.4799], 'eq': '18'},
+                    '2-5': {'param': [18.264, 18.973, 2.9056, 0.013701, 0.31711, -1.4775], 'eq': '18'},
+                    '3-4': {'param': [1247.5, 11.319, 2.6235, 0.068781, 0.521176, -1.2722], 'eq': '18'},
+                    '3-5': {'param': [190.59, 11.096, 2.9098, 0.073307, 0.54177, -1.2894], 'eq': '18'},
+                    '3-6': {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881], 'eq': '18'},
+                    '1-ion': {'param': [12.899, 61.897, 9.2731e+3, 4.9749e-4, 3.9890e-2, -1.590, 3.1834, -3.7154], 'eq': '16'},
+                    '2-ion': {'param': [107.63, 29.860, 1.0176e+6, 6.9713e-3, 2.8448e-2, -1.80, 4.7852e-2, -0.20923], 'eq': '16'},
+                    '3-ion': {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924, 3.1525, -1.6314], 'eq': '16'},
+                    '1-cx': {'param': [3.2345, 235.88, 0.038371, 3.8068e-6, 1.1832e-10, 2.3713], 'eq': '112'},
+                    },
+           'generalized': get_Janev_params}
 
 ATOMIC_SOURCES={'Li_Schweinzer': Li_Schweinzer,
                 'Li_Wutte': Li_Wutte,

@@ -38,6 +38,55 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
                                                                      par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
               # [4] e[eV]>par[6]
               
+              '12': lambda e, par: 1.76e-16*par[0]**2/(par[2]*e/par[6])*(1-np.exp(-1*par[3]*par[2]*e/par[6]))*
+                                      (par[4]*(np.log(e/par[6])+1/(2*e/par[6]))+(par[5]-par[4]*np.log(2*par[0]**2/par[2]))*
+                                       (1-1/(e/par[6]))),
+              # [4] e[eV]>par[6]
+              
+              '13': lambda e, par: 1e-13/(e*par[6])*(par[0]*np.log(e/par[6])+par[1]*(1-par[6]/e)+
+                                                   par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3+
+                                                   par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
+              # [4] e[eV]>13.6 eV
+              
+              '14': lambda e, par: 1.76e-16/(e/par[5])*(1-np.exp(-par[2]*e/par[5]))*
+                                      (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2))*
+                                       (1-1/(e/par[5]))**2),
+              # [4] e[eV]>par[5]
+              
+              '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+par[3]*
+                                                 np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]+par[6]*np.exp(-par[7]/(e/1e3))/
+                                                 (1+par[8]*(e/1e3)**par[9])),
+              # [4] e[keV]>0.6 keV
+              
+              '16': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+                                                 par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
+              # [4] e[keV]>0.5 keV
+              
+              '17': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+                                                 par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
+              # [4] e[keV]>0.5 keV
+              
+              '18': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+                                                 par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
+              # [4] e[keV]>0.5 keV
+              '19': lambda e, par: par[6]*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+                                                 par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
+              # [4] e[keV]>0.5 keV
+              
+              '110': lambda e, par: 8.8e-17*par[0]**4/par[1]*(par[2]*par[3]*par[4]+par[5]*par[6]*par[7]),
+              # [4] e[keV]>0.1 keV
+              
+              '111': lambda e, par: (par[8]/3)**4*1e-16*par[0]*(np.exp(-par[1]/(par[9]))*np.log(1+par[2]*par[9])/(par[9])+
+                                                 par[3]*np.exp(-par[4]*par[9])/((par[9])**par[5]+par[6]*(par[9])**par[7])),
+              # [4] e[keV]>0.1 keV
+              
+              '112': lambda e, par: 1e-16*par[0]*np.log(par[1]/(e/1e3)+par[5])/(1+par[2]*e/1e3+par[3]*(e/1e3)**3.5+
+                                                                                par[4]*(e/1e3)**5.4),
+              # [4] e[keV]>1 eV
+              
+              '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3])/(1+
+                                                par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
+              # [4] e[keV]>1 eV
               }
 
 
@@ -45,13 +94,20 @@ class CrossSection(object):
     def __init__(self, transition=Transition, impact_energy=float, atomic_dict=None, extrapolate=False):
         self.transition = transition
         self.impact_energy = impact_energy
-        self.ATOMIC_DICT=atomic_dict
+        self.atomic_dict=atomic_dict
         self.__generate_function()
+        
+    def __get_generating_params(self):
+        target=str(self.transition.target)
+        if str(self.transition) in self.atomic_dict[target].keys():
+            param_dict=self.atomic_dict[target][str(self.transition)]
+        else:
+            param_dict=self.atomic_dict['generalized'](self)
+        return param_dict
 		
     def __generate_function(self):
-        target=str(self.transition.target)
-        cross_dict=self.ATOMIC_DICT[target][str(self.transition)]
-        cross=CROSS_FUNC[cross_dict['eq']](self.impact_energy,cross_dict['param'])
+        param_dict=self.__get_generating_params()
+        cross=CROSS_FUNC[param_dict['eq']](self.impact_energy,param_dict['param'])
         self.function=cross
         return cross
 		
