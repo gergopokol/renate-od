@@ -152,17 +152,14 @@ def get_Johnson_osc_str(n, m):
 def get_Janev_params(cross):
     transition = cross.transition
     e = cross.impact_energy
-    
     if str(transition.target) == 'e':
         if transition.name == 'ex':
-            
             if transition.from_level == '1':  # NOT GOOD!!!!!!!! [1, n, y, r, A, B, dE]
                 n = int(transition.to_level)
                 y = 1-(1/n)**2
                 f = get_Johnson_osc_str(1, n)
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 return {'param': [1, n, y, 0.45, 2*n**2*f/y, 2/3*n**2*(5+b), 13.6*(1-1/n**2)], 'eq': '12'}
-            
             if int(transition.from_level) > 1:
                 n = int(transition.from_level)
                 m = int(transition.to_level)
@@ -171,34 +168,27 @@ def get_Janev_params(cross):
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 return {'param': [n, m, y, 1.94*n**(-1.57), 2*n**2*f/y, 4*n**4/(m**3*y**2)*(1+4/(3*y)+b/y**2),
                                   13.6*(1/n**2-1/m**2)], 'eq': '12'}
-            
         if transition.name == 'eloss':
-            
             if int(transition.from_level) > 3:  # NOT GOOD!!!!!!!
                 n = int(transition.from_level)
                 y = 1-(1/n)**2
                 f = get_Johnson_osc_str(1, n)
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 return {'param': [n, y, 1.94*n**(-1.57), 2*n**2*f/y, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14'}
-            
     if str(transition.target) == '1H1+':
         if transition.name == 'ex':
-            
             if transition.from_level == '1':
                 n = int(transition.to_level)
                 return {'param': [0.63771, 37.174, 0.39265, 3.2949e-4, 0.25757, -2.2950,
                                   0.050796, -5.5986, n], 'eq': '17'}
-            
             if transition.from_level == '2' and int(transition.to_level) < 11:
                 n = transition.to_level
                 ratio = {'6': 0.4610, '7': 0.2475, '8': 0.1465, '9': 0.0920, '10': 0.0605}
                 return {'param': [18.264, 18.973, 2.9056, 0.013701, 0.31711, -1.4775, ratio[n]], 'eq': '19'}
-            
             if transition.from_level == '3' and int(transition.to_level) < 11:
                 n = transition.to_level
                 ratio = {'7': 0.4670, '8': 0.2545, '9': 0.1540, '10': 0.10}
                 return {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881, ratio[n]], 'eq': '19'}
-            
             if int(transition.from_level) > 3:
                 n = int(transition.from_level)
                 m = int(transition.to_level)
@@ -213,26 +203,20 @@ def get_Janev_params(cross):
                                   D, np.log((1+0.53*eps**2*n*(m-2/m))/(1+0.4*eps)),
                                   (1-0.3*s*D/(n*m))**(1+2*s), 0.5*(eps*n**2/(m-1/m))**3,
                                   C(zm, y)-C(zp, y)], 'eq': '110'}
-            
         if transition.name == 'ion':
-            
             if int(transition.from_level) > 3:  # NOT GOOD!!!!!!!!!!!
                 n = int(transition.from_level)
                 e_red = (3/n)**2*e/1e3
                 return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924,
                                   3.1525, -1.6314, n, e_red], 'eq': '111'}
-            
         if transition.name == 'cx':
             n = int(transition.from_level)
-            
             if n == 2:
                 e_red = e*n**2/1e3
                 return {'param': [0.92750, 6.5040e+3, 1.3405e-2, 20.699, n, e_red], 'eq': '113'}
-            
             if n == 3:
                 e_red = e*n**2/1e3
                 return {'param': [0.37271, 2.7645e+6, 1.5720e-3, 1.4857e+3, n, e_red], 'eq': '113'}
-            
             if n >= 4:
                 e_red = e*n**2/1e3
                 return {'param': [0.21336, 1.0e+10, 1.8184e-3, 1.3426e+6, n, e_red], 'eq': '113'}
@@ -240,9 +224,9 @@ def get_Janev_params(cross):
 
 H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4.4979], 'eq': '10'},
                    '1-3': {'param': [0.42956, -0.58288, 1.0693, 0.0, 0.75448, 0.38277, 12.09], 'eq': '11'},
-                   '1-4': {'param': [0.24846, 0.19701, 0.0, 0.0, 0.243, 0.41844, 12.75], 'eq':'11'},
-                   '1-5': {'param': [0.13092, 0.23581, 0.0, 0.0, 0.11508, 0.45929, 13.06], 'eq':'11'},
-                   '2-3': {'param': [5.2373, 119.25, -595.39, 816.71, 38.906, 1.3196, 1.889], 'eq':'11'},
+                   '1-4': {'param': [0.24846, 0.19701, 0.0, 0.0, 0.243, 0.41844, 12.75], 'eq': '11'},
+                   '1-5': {'param': [0.13092, 0.23581, 0.0, 0.0, 0.11508, 0.45929, 13.06], 'eq': '11'},
+                   '2-3': {'param': [5.2373, 119.25, -595.39, 816.71, 38.906, 1.3196, 1.889], 'eq': '11'},
                    '1-eloss': {'param': [0.18450, -0.032226, -0.034539, 1.4003, -2.8115, 2.2986, 13.6], 'eq': '13'},
                    '2-eloss': {'param': [0.14784, 0.0080871, -0.062270, 1.9414, -2.1980, 0.95894, 3.4], 'eq': '13'},
                    '3-eloss': {'param': [0.058463, -0.051272, 0.85310, -0.57014, 0.76684, 0.0, 1.511], 'eq': '13'}
