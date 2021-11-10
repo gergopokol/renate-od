@@ -23,69 +23,71 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
               # [2] eq.(2) electron impact ionisation for n <= 3
               
               '2': lambda x, par: 5.984*1e-16/x * ((x - par[0])/x)**par[6] * (par[1] + par[2]/(x/par[0]) +
-                                         par[3]/(x/par[0])**2 + par[4]/(x/par[0])**3 + par[5]*np.log(x/par[0])),
+                                                                              par[3]/(x/par[0])**2 + par[4] /
+                                                                              (x/par[0])**3 + par[5]*np.log(x/par[0])),
               # [1,2] eq.(1) electron impact excitation
               
               '3': lambda x, par: 1e-14*(4*1*(np.log(x/par[0]))*(1-0.7*np.exp(-2.4*((x/par[0])-1)))/(x*par[0]) +
                                          2*4.2*(np.log(x/58))*(1-0.6*np.exp(-0.6*((x/58)-1)))/(x*58)),
               # [1] eq on p166 electron impact ionization for n,l > 2s
               
-              '10': lambda e, par: 5.984e-16/e*(par[0]+par[1]/(e/10.2)+par[2]/(e/10.2)**2+
+              '10': lambda e, par: 5.984e-16/e*(par[0]+par[1]/(e/10.2)+par[2]/(e/10.2)**2 +
                                                 par[3]/(e/10.2)**3+par[4]/(e/10.2)**4+par[5]*np.log(e/10.2)),
               # [4] e[eV]>12.23 eV
               
-              '11': lambda e, par: 5.984e-16/e*((e-par[6])/e)**par[5]*(par[0]+par[1]/(e/par[6])+par[2]/(e/par[6])**2+
-                                                                     par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
+              '11': lambda e, par: 5.984e-16/e*((e-par[6])/e)**par[5]*(par[0]+par[1]/(e/par[6])+par[2]/(e/par[6])**2 +
+                                                                       par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
               # [4] e[eV]>par[6]
               
-              '12': lambda e, par: 1.76e-16*par[0]**2/(par[2]*e/par[6])*(1-np.exp(-1*par[3]*par[2]*e/par[6]))*
-                                      (par[4]*(np.log(e/par[6])+1/(2*e/par[6]))+(par[5]-par[4]*np.log(2*par[0]**2/par[2]))*
-                                       (1-1/(e/par[6]))),
+              '12': lambda e, par: 1.76e-16*par[0]**2/(par[2]*e/par[6])*(1-np.exp(-1*par[3]*par[2]*e/par[6])) *
+                                (par[4]*(np.log(e/par[6])+1/(2*e/par[6])) +
+                                 (par[5]-par[4] * np.log(2*par[0]**2/par[2]))*(1-1/(e/par[6]))),
               # [4] e[eV]>par[6]
               
-              '13': lambda e, par: 1e-13/(e*par[6])*(par[0]*np.log(e/par[6])+par[1]*(1-par[6]/e)+
-                                                   par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3+
-                                                   par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
+              '13': lambda e, par: 1e-13/(e*par[6])*(par[0]*np.log(e/par[6])+par[1]*(1-par[6]/e) +
+                                                     par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3 +
+                                                     par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
               # [4] e[eV]>13.6 eV
               
-              '14': lambda e, par: 1.76e-16/(e/par[5])*(1-np.exp(-par[2]*e/par[5]))*
-                                      (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2))*
-                                       (1-1/(e/par[5]))**2),
+              '14': lambda e, par: 1.76e-16/(e/par[5])*(1-np.exp(-par[2]*e/par[5])) *
+                                   (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
               # [4] e[eV]>par[5]
               
-              '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+par[3]*
-                                                 np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]+par[6]*np.exp(-par[7]/(e/1e3))/
+              '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+par[3] *
+                                                 np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]+par[6]*np.exp(-par[7]/(e/1e3)) /
                                                  (1+par[8]*(e/1e3)**par[9])),
               # [4] e[keV]>0.6 keV
               
-              '16': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+              '16': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
                                                  par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
               # [4] e[keV]>0.5 keV
               
-              '17': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
-                                                 par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
+              '17': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
+                                    par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
               # [4] e[keV]>0.5 keV
               
-              '18': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+              '18': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
                                                  par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
               # [4] e[keV]>0.5 keV
-              '19': lambda e, par: par[6]*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+
+              '19': lambda e, par: par[6]*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
                                                  par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
               # [4] e[keV]>0.5 keV
               
               '110': lambda e, par: 8.8e-17*par[0]**4/par[1]*(par[2]*par[3]*par[4]+par[5]*par[6]*par[7]),
               # [4] e[keV]>0.1 keV
               
-              '111': lambda e, par: (par[8]/3)**4*1e-16*par[0]*(np.exp(-par[1]/(par[9]))*np.log(1+par[2]*par[9])/(par[9])+
-                                                 par[3]*np.exp(-par[4]*par[9])/((par[9])**par[5]+par[6]*(par[9])**par[7])),
+              '111': lambda e, par: (par[8]/3)**4*1e-16*par[0]*(np.exp(-par[1]/(par[9])) *
+                                                                np.log(1+par[2]*par[9])/(par[9]) +
+                                                                par[3]*np.exp(-par[4]*par[9]) /
+                                                                ((par[9])**par[5]+par[6]*(par[9])**par[7])),
               # [4] e[keV]>0.1 keV
               
-              '112': lambda e, par: 1e-16*par[0]*np.log(par[1]/(e/1e3)+par[5])/(1+par[2]*e/1e3+par[3]*(e/1e3)**3.5+
+              '112': lambda e, par: 1e-16*par[0]*np.log(par[1]/(e/1e3)+par[5])/(1+par[2]*e/1e3+par[3]*(e/1e3)**3.5 +
                                                                                 par[4]*(e/1e3)**5.4),
               # [4] e[keV]>1 eV
               
-              '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3])/(1+
-                                                par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
+              '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3]) /
+                                    (1+par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
               # [4] e[keV]>1 eV
               }
 
@@ -94,51 +96,52 @@ class CrossSection(object):
     def __init__(self, transition=Transition, impact_energy=float, atomic_dict=None, extrapolate=False):
         self.transition = transition
         self.impact_energy = impact_energy
-        self.atomic_dict=atomic_dict
+        self.atomic_dict = atomic_dict
         self.__generate_function()
         
     def __get_generating_params(self):
-        target=str(self.transition.target)
+        target = str(self.transition.target)
         if str(self.transition) in self.atomic_dict[target].keys():
-            param_dict=self.atomic_dict[target][str(self.transition)]
+            param_dict = self.atomic_dict[target][str(self.transition)]
         else:
-            param_dict=self.atomic_dict['generalized'](self)
+            param_dict = self.atomic_dict['generalized'](self)
         return param_dict
-		
+
     def __generate_function(self):
-        param_dict=self.__get_generating_params()
-        cross=CROSS_FUNC[param_dict['eq']](self.impact_energy,param_dict['param'])
-        self.function=cross
+        param_dict = self.__get_generating_params()
+        cross = CROSS_FUNC[param_dict['eq']](self.impact_energy, param_dict['param'])
+        self.function = cross
         return cross
-		
+
     def show(self):
-        fig,ax=plt.subplots()
-        ax.plot(self.impact_energy,self.function)
+        fig, ax = plt.subplots()
+        ax.plot(self.impact_energy, self.function)
         ax.set_xscale('log')
         ax.set_yscale('log')
-        return fig,ax
+        return fig, ax
     
 
-class RateCoeff():
-    def __init__(self,transition,crossection):
-        self.transition=transition
-        self.crossection=crossection
+class RateCoeff:
+    def __init__(self, transition, crossection):
+        self.transition = transition
+        self.crossection = crossection
         
-    def generate_rate(self,temperature,beamenergy):
-        self.temperature=temperature
-        self.beamenergy=beamenergy
+    def generate_rate(self, temperature, beamenergy):
+        self.temperature = temperature
+        self.beamenergy = beamenergy
         
-        m_t=self.transition.target.mass
-        w=np.sqrt(2*self.temperature*sc.eV/m_t)
+        m_t = self.transition.target.mass
+        w = np.sqrt(2*self.temperature*sc.eV/m_t)
         
-        m_b=self.transition.projectile.mass
-        v_b=np.sqrt(2*self.beamenergy*sc.eV/m_b)
+        m_b = self.transition.projectile.mass
+        v_b = np.sqrt(2*self.beamenergy*sc.eV/m_b)
         
-        E_range=self.crossection.impact_energy
-        v=np.sqrt(2*E_range*sc.eV/m_t)
-        self.velocity=v
-        kernel=v**2*self.crossection.function*(np.exp(-((v-v_b)/w)**2)-np.exp(-((v+v_b)/w)**2))/(np.sqrt(np.pi)*w*v_b**2)
-        self.kernel=kernel
+        E_range = self.crossection.impact_energy
+        v = np.sqrt(2*E_range*sc.eV/m_t)
+        self.velocity = v
+        kernel = v**2*self.crossection.function*(np.exp(-((v-v_b)/w)**2) -
+                                                 np.exp(-((v+v_b)/w)**2))/(np.sqrt(np.pi)*w*v_b**2)
+        self.kernel = kernel
         
-        self.rate=np.trapz(self.kernel,self.velocity)
+        self.rate = np.trapz(self.kernel, self.velocity)
         return self.rate
