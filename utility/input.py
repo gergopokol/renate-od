@@ -9,6 +9,15 @@ class BeamletInput(object):
         self.projectile = projectile
         self.source = source
 
+    def _build_param(self):
+        pass
+
+    def _build_components(self):
+        pass
+
+    def _build_profiles(self):
+        pass
+
     def add_grid(self, grid):
         self.grid = np.array(grid)
 
