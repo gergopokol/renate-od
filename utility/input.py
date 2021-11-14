@@ -73,6 +73,9 @@ class BeamletInput(AtomicInput):
     def __init__(self, energy, projectile, source, current, param_name):
         AtomicInput.__init__(self, energy=energy, projectile=projectile, source=source,
                              current=current, param_name=param_name)
+        self.profiles = None
+        self.grid = None
+        self.profile_data = []
 
     def _build_profiles(self):
         pass
@@ -80,8 +83,9 @@ class BeamletInput(AtomicInput):
     def add_grid(self, grid):
         self.grid = np.array(grid)
 
-    def add_target_profiles(self, charge, atomic_number, mass_number, molecular_number, density, temperature):
-        pass
+    def add_target_profiles(self, charge, atomic_number, mass_number, molecule_name, density, temperature):
+        self.add_target_component(charge=charge, atomic_number=atomic_number,
+                                  mass_number=mass_number, molecule_name=molecule_name)
 
     def get_beamlet_input(self):
         pass
