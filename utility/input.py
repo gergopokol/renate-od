@@ -43,7 +43,7 @@ class AtomicInput(object):
     def _next_element(self, name):
         return name + str(len([component for component in self.component_index if name in component])+1)
 
-    def add_target_species(self, charge, atomic_number, mass_number, molecule_name):
+    def add_target_component(self, charge, atomic_number, mass_number, molecule_name):
         element = [charge, atomic_number, mass_number, molecule_name]
         if charge == -1:
             if 'electron' in self.component_index:
