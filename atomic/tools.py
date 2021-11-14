@@ -1,6 +1,6 @@
 from utility.constants import Constants
 from utility.exceptions import InputError
-from atomic.coefficients import ATOMIC_SOURCES
+#from atomic.coefficients import ATOMIC_SOURCES
 
 CONST = Constants()
 

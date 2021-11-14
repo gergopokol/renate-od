@@ -89,6 +89,8 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
               '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3]) /
                                     (1+par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
               # [4] e[keV]>1 eV
+              
+              '114': lambda e, par: par #de-excitation
               }
 
 
@@ -108,9 +110,24 @@ class CrossSection(object):
         return param_dict
 
     def __generate_function(self):
+        trans_og_switch=False
+        if self.transition.name == 'de-ex':
+            print('The crossection will be given for the excitation counterpart of \
+                  the de-excitation transition given. The appropriate scaling is done \
+                      when calculating the rate coefficients.')
+            trans_og=self.transition
+            trans_og_switch=True
+            trans_ex=Transition(projectile=self.transition.projectile,
+                                  target=self.transition.target,
+                                  from_level=self.transition.to_level,
+                                  to_level=self.transition.from_level,
+                                  trans='ex')
+            self.transition=trans_ex
         param_dict = self.__get_generating_params()
         cross = CROSS_FUNC[param_dict['eq']](self.impact_energy, param_dict['param'])
         self.function = cross
+        if trans_og_switch:
+            self.transition=trans_og
         return cross
 
     def show(self):
@@ -144,4 +161,7 @@ class RateCoeff:
         self.kernel = kernel
         
         self.rate = np.trapz(self.kernel, self.velocity)
+        if self.transition.name=='de-ex':
+            self.rate=self.crossection.atomic_dict['de-ex'](self)
+            
         return self.rate

@@ -1,4 +1,7 @@
 import numpy as np
+from renate_od.atomic import tools
+from renate_od.atomic import cross_section
+import scipy.constants as sc
 
 """
 Li references:
@@ -152,9 +155,9 @@ def get_Johnson_osc_str(n, m):
 def get_Janev_params(cross):
     transition = cross.transition
     e = cross.impact_energy
-    if str(transition.target) == 'e':
-        if transition.name == 'ex':
-            if transition.from_level == '1':  # NOT GOOD!!!!!!!! [1, n, y, r, A, B, dE]
+    if transition.name == 'ex':
+        if str(transition.target) == 'e':
+            if transition.from_level == '1':  # NOT GOOD!!!!!!!!
                 n = int(transition.to_level)
                 y = 1-(1/n)**2
                 f = get_Johnson_osc_str(1, n)
@@ -168,15 +171,7 @@ def get_Janev_params(cross):
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 return {'param': [n, m, y, 1.94*n**(-1.57), 2*n**2*f/y, 4*n**4/(m**3*y**2)*(1+4/(3*y)+b/y**2),
                                   13.6*(1/n**2-1/m**2)], 'eq': '12'}
-        if transition.name == 'eloss':
-            if int(transition.from_level) > 3:  # NOT GOOD!!!!!!!
-                n = int(transition.from_level)
-                y = 1-(1/n)**2
-                f = get_Johnson_osc_str(1, n)
-                b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
-                return {'param': [n, y, 1.94*n**(-1.57), 2*n**2*f/y, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14'}
-    if str(transition.target) == '1H1+':
-        if transition.name == 'ex':
+        if str(transition.target) == '1H1+':
             if transition.from_level == '1':
                 n = int(transition.to_level)
                 return {'param': [0.63771, 37.174, 0.39265, 3.2949e-4, 0.25757, -2.2950,
@@ -203,13 +198,37 @@ def get_Janev_params(cross):
                                   D, np.log((1+0.53*eps**2*n*(m-2/m))/(1+0.4*eps)),
                                   (1-0.3*s*D/(n*m))**(1+2*s), 0.5*(eps*n**2/(m-1/m))**3,
                                   C(zm, y)-C(zp, y)], 'eq': '110'}
-        if transition.name == 'ion':
+    if transition.name == 'eloss':
+        if str(transition.target) == 'e':
+            if int(transition.from_level) > 3:  # NOT GOOD!!!!!!!
+                n = int(transition.from_level)
+                y = 1-(1/n)**2
+                f = get_Johnson_osc_str(1, n)
+                b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
+                return {'param': [n, y, 1.94*n**(-1.57), 2*n**2*f/y, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14'}
+        if str(transition.target) == '1H1+':
+            trans_ion=tools.Transition(projectile=transition.projectile,
+                                       target=transition.target,
+                                       from_level=transition.from_level,
+                                       to_level='ion', trans='ion')
+            cross_ion=cross_section.CrossSection(transition=trans_ion,
+                                                 impact_energy=e,atomic_dict=cross.atomic_dict)
+            trans_cx=tools.Transition(projectile=transition.projectile,
+                                       target=transition.target,
+                                       from_level=transition.from_level,
+                                       to_level='cx', trans='cx')
+            cross_cx=cross_section.CrossSection(transition=trans_cx,
+                                                 impact_energy=e,atomic_dict=cross.atomic_dict)
+            return {'param': cross_ion.function+cross_cx.function, 'eq': '114'}
+    if transition.name == 'ion':
+        if str(transition.target) == '1H1+':
             if int(transition.from_level) > 3:  # NOT GOOD!!!!!!!!!!!
                 n = int(transition.from_level)
                 e_red = (3/n)**2*e/1e3
                 return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924,
                                   3.1525, -1.6314, n, e_red], 'eq': '111'}
-        if transition.name == 'cx':
+    if transition.name == 'cx':
+        if str(transition.target) == '1H1+':
             n = int(transition.from_level)
             if n == 2:
                 e_red = e*n**2/1e3
@@ -220,7 +239,18 @@ def get_Janev_params(cross):
             if n >= 4:
                 e_red = e*n**2/1e3
                 return {'param': [0.21336, 1.0e+10, 1.8184e-3, 1.3426e+6, n, e_red], 'eq': '113'}
-                
+
+
+def H_deex_modifier(rate):
+    g1=int(rate.transition.to_level)**2
+    g2=int(rate.transition.from_level)**2
+    if str(rate.transition.target) == 'e':
+        deltaE=13.605693122994*(1/g1-1/g2)
+        return rate.rate*g1/g2*np.exp(deltaE/rate.temperature)
+    if str(rate.transition.target) == '1H1+':
+        return rate.rate*g1/g2
+
+            
 
 H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4.4979], 'eq': '10'},
                    '1-3': {'param': [0.42956, -0.58288, 1.0693, 0.0, 0.75448, 0.38277, 12.09], 'eq': '11'},
@@ -255,7 +285,8 @@ H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4
                                           -0.14924, 3.1525, -1.6314], 'eq': '16'},
                       '1-cx': {'param': [3.2345, 235.88, 0.038371, 3.8068e-6, 1.1832e-10, 2.3713], 'eq': '112'},
                       },
-             'generalized': get_Janev_params}
+             'generalized': get_Janev_params,
+             'de-ex': H_deex_modifier}
 
 ATOMIC_SOURCES = {'Li_Schweinzer': Li_Schweinzer,
                   'Li_Wutte': Li_Wutte,
