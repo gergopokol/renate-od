@@ -1,6 +1,7 @@
 import pandas as pd
 from lxml import etree
 import numpy as np
+from crm_solver.atomic_db import AtomicDB
 
 
 class AtomicInput(object):
@@ -67,6 +68,10 @@ class AtomicInput(object):
     def get_atomic_db_input(self):
         self._build_components()
         return self.param, self.components
+
+    def generate_atomic_db(self, atomic_source='renate', max_level=False, rate_type='default'):
+        return AtomicDB(atomic_source=atomic_source, param=self.param, components=self.components,
+                        atomic_ceiling=max_level, rate_type=rate_type)
 
 
 class BeamletInput(AtomicInput):
