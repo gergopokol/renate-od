@@ -76,19 +76,47 @@ class BeamletInput(AtomicInput):
         self.profiles = None
         self.grid = None
         self.profile_data = []
+        self.type_labels = []
+        self.property_labels = []
+        self.unit_labels = []
 
     def _build_profiles(self):
-        pass
+        profiles = np.swapaxes(np.array(self.profile_data), 0, 1)
+        row_index = [i for i in range(len(self.grid))]
+        column_index = pd.MultiIndex.from_arrays([self.type_labels, self.property_labels, self.unit_labels],
+                                                 names=['type', 'property', 'unit'])
+        self.profiles = pd.DataFrame(data=profiles, columns=column_index, index=row_index)
 
     def add_grid(self, grid):
+        self.type_labels.append('beamlet grid')
+        self.property_labels.append('distance')
+        self.unit_labels.append('m')
         self.grid = np.array(grid)
+        self.profile_data.append(self.grid)
 
     def add_target_profiles(self, charge, atomic_number, mass_number, molecule_name, density, temperature):
-        self.add_target_component(charge=charge, atomic_number=atomic_number,
-                                  mass_number=mass_number, molecule_name=molecule_name)
+        if self.grid is None:
+            print('The profiles grid has not been added first.')
+        elif (len(self.grid) != len(density)) or (len(self.grid) != len(temperature)):
+            print('The density or temperature profiles do not match with the provided grid.')
+        else:
+            self.add_target_component(charge=charge, atomic_number=atomic_number,
+                                      mass_number=mass_number, molecule_name=molecule_name)
+
+            self.type_labels.append(self.component_index[-1])
+            self.property_labels.append('density')
+            self.unit_labels.append('m-3')
+            self.profile_data.append(density)
+
+            self.type_labels.append(self.component_index[-1])
+            self.property_labels.append('temperature')
+            self.unit_labels.append('eV')
+            self.profile_data.append(temperature)
 
     def get_beamlet_input(self):
-        pass
+        self._build_components()
+        self._build_profiles()
+        return self.param, self.components, self.profiles
 
     def from_text(self, source, charges, atomic_numbers, mass_numbers, molecular_numbers):
         pass
