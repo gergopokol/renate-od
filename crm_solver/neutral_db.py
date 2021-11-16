@@ -20,7 +20,7 @@ class NeutralDB(object):
         cross_section_path = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
                              '/cross_sections/neutral/'
         file_name = target + '_' + self.resolved + '_' + \
-                    self.param.getroot().find('body').find('beamlet_energy').text + '.txt'
+            self.param.getroot().find('body').find('beamlet_energy').text + '.txt'
         return cross_section_path + file_name
 
     def get_neutral_impact_loss(self, from_level):
