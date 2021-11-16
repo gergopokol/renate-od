@@ -70,7 +70,7 @@ class CoefficientMatrix:
                     self.assemble_electron_impact_population_gain_terms(from_level, to_level)
         for step in range(self.beamlet_profiles['beamlet grid'].size):
             self.apply_electron_density(step)
-        for ion in range(len([comp for comp in plasma_components['Z'] if comp > 0])):
+        for ion in range(len([comp for comp in plasma_components['q'] if comp > 0])):
             for from_level in range(atomic_db.atomic_ceiling):
                 for to_level in range(atomic_db.atomic_ceiling):
                     if to_level == from_level:
