@@ -118,12 +118,12 @@ class RenateDB:
 
 
 class AtomicDB(RenateDB):
-    def __init__(self, atomic_source='renate', param=None, rate_type='default',
+    def __init__(self, atomic_source='renate', param=None, rate_type='default', resolution=None,
                  data_path='beamlet/testimp0001.xml', components=None, atomic_ceiling=False):
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
-        self.__set_neutral_db(param=param)
+        self.__set_neutral_db(param=param, resolution=resolution)
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
             self.__set_ceiling_for_atomic_levels(atomic_ceiling=atomic_ceiling)
@@ -131,10 +131,10 @@ class AtomicDB(RenateDB):
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
 
-    def __set_neutral_db(self, param):
+    def __set_neutral_db(self, param, resolution):
         if (self.components['q'] == 0).any():
             self.are_neutrals = True
-            self.neutral_db = NeutralDB(param=param)
+            self.neutral_db = NeutralDB(param=param, resolved=resolution, components=self.components)
         else:
             self.are_neutrals = False
 
