@@ -133,7 +133,7 @@ class CoefficientMatrix:
         self.neutral_terms[from_level, to_level, :] = (
             - numpy.sum(self.neutral_impact_trans_np[from_level, :to_level, :], axis=0)
             - numpy.sum(self.neutral_impact_trans_np[from_level, (to_level + 1):atomic_db.atomic_ceiling, :], axis=0)
-            - self.neutral_impact_loss_np[from_level, :]) #* atomic_db.velocity
+            - self.neutral_impact_loss_np[from_level, :])
 
     def assemble_ion_impact_population_loss_terms(self, ion, from_level, to_level, atomic_db):
         self.ion_terms[ion, from_level, to_level, :] = \
@@ -145,9 +145,9 @@ class CoefficientMatrix:
         self.electron_terms[from_level, to_level, :] = \
             self.electron_impact_trans_np[from_level, to_level, :]
 
-    def assemble_neutral_impact_population_gain_terms(self, from_level, to_level, atomic_db):
+    def assemble_neutral_impact_population_gain_terms(self, from_level, to_level):
         self.neutral_terms[from_level, to_level, :] = \
-            self.neutral_impact_trans_np[from_level, to_level, :] #* atomic_db.velocity
+            self.neutral_impact_trans_np[from_level, to_level, :]
 
     def assemble_ion_impact_population_gain_terms(self, ion, from_level, to_level):
         self.ion_terms[ion, from_level, to_level, :] = \
