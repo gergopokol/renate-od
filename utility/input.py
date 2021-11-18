@@ -1,7 +1,6 @@
 import pandas as pd
 from lxml import etree
 import numpy as np
-from crm_solver.atomic_db import AtomicDB
 
 
 class AtomicInput(object):
