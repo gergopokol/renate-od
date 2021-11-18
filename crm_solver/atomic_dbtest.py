@@ -411,7 +411,15 @@ class AtomicDBTest(unittest.TestCase):
         actual_param, actual_components = self.build_atomic_neutral_input()
         actual_db = AtomicDB(param=actual_param, components=actual_components)
         self.assertTrue(actual_db.are_neutrals, msg='The atomic_db is expected to have neutral cross-section data.')
-        
+
+    def test_atomic_ceiling(self):
+        actual_param, actual_components = self.build_atomic_neutral_input()
+        actual_db = AtomicDB(param=actual_param, components=actual_components)
+        self.assertLessEqual(actual_db.atomic_ceiling, actual_db.atomic_levels, msg='The atomic ceiling is expected to '
+                             'be less or equal to the atomic levels from beam with plasma interaction.')
+        self.assertLessEqual(actual_db.atomic_ceiling, actual_db.neutral_db.atomic_levels, msg='The atomic ceiling is '
+                             'expected to be less or equal to the atomic levels from beam with neutral interaction.')
+
     def build_atomic_input(self):
         input_gen = AtomicInput(energy=60, projectile='dummy', param_name='AtomicDB_test',
                                 source='Unittest', current=0.001)
