@@ -21,7 +21,7 @@ class NeutralDB(object):
 
     def __create_neutral_cross_section_db(self, components):
         self.neutral_cross_sections = {}
-        self.neutral_target_count = len([comp for comp in components['q'] if comp == 0])
+        self.neutral_target_count = len([comp for comp in components['q'] if int(comp) == 0])
         for index in range(self.neutral_target_count):
             self.neutral_cross_sections.update({'neutral'+str(index+1): None})
 
