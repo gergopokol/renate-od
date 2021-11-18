@@ -15,9 +15,9 @@ class CoefficientMatrix:
         self.electron_impact_loss_np = numpy.zeros((atomic_db.atomic_ceiling,
                                                     self.beamlet_profiles['beamlet grid'].size))
         self.ion_impact_trans_np = numpy.concatenate([[self.electron_impact_trans_np] * len(
-            [comp for comp in plasma_components['q'] if comp > 0])])
+            [comp for comp in plasma_components['q'] if int(comp) > 0])])
         self.ion_impact_loss_np = numpy.concatenate([[self.electron_impact_loss_np] * len(
-            [comp for comp in plasma_components['q'] if comp > 0])])
+            [comp for comp in plasma_components['q'] if int(comp) > 0])])
 
         # Initialize assembly matrices
         self.matrix = numpy.zeros(
@@ -26,7 +26,8 @@ class CoefficientMatrix:
             (atomic_db.atomic_ceiling, atomic_db.atomic_ceiling, self.beamlet_profiles['beamlet grid'].size))
         ion_terms = numpy.zeros(
             (atomic_db.atomic_ceiling, atomic_db.atomic_ceiling, self.beamlet_profiles['beamlet grid'].size))
-        self.ion_terms = numpy.concatenate([[ion_terms] * len([comp for comp in plasma_components['q'] if comp > 0])])
+        self.ion_terms = numpy.concatenate([[ion_terms] *
+                                            len([comp for comp in plasma_components['q'] if int(comp) > 0])])
         self.photon_terms = numpy.zeros(
             (atomic_db.atomic_ceiling, atomic_db.atomic_ceiling, self.beamlet_profiles['beamlet grid'].size))
 
@@ -50,7 +51,7 @@ class CoefficientMatrix:
             for to_level in range(atomic_db.atomic_ceiling):
                 if to_level != from_level:
                     self.interpolate_electron_impact_trans(from_level, to_level, atomic_db)
-        for ion in range(len([comp for comp in plasma_components['q'] if comp > 0])):
+        for ion in range(len([comp for comp in plasma_components['q'] if int(comp) > 0])):
             for from_level in range(atomic_db.atomic_ceiling):
                 self.interpolate_ion_impact_loss(ion, from_level, atomic_db)
                 for to_level in range(atomic_db.atomic_ceiling):
@@ -73,7 +74,7 @@ class CoefficientMatrix:
                     self.assemble_electron_impact_population_gain_terms(from_level, to_level)
         for step in range(self.beamlet_profiles['beamlet grid'].size):
             self.apply_electron_density(step)
-        for ion in range(len([comp for comp in plasma_components['q'] if comp > 0])):
+        for ion in range(len([comp for comp in plasma_components['q'] if int(comp) > 0])):
             for from_level in range(atomic_db.atomic_ceiling):
                 for to_level in range(atomic_db.atomic_ceiling):
                     if to_level == from_level:
