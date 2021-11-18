@@ -69,10 +69,6 @@ class AtomicInput(object):
         self._build_components()
         return self.param, self.components
 
-    def generate_atomic_db(self, atomic_source='renate', max_level=False, rate_type='default'):
-        return AtomicDB(atomic_source=atomic_source, param=self.param, components=self.components,
-                        atomic_ceiling=max_level, rate_type=rate_type)
-
 
 class BeamletInput(AtomicInput):
     def __init__(self, energy, projectile, source, current, param_name):
