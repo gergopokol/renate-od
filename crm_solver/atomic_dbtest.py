@@ -1,11 +1,11 @@
 from crm_solver.atomic_db import AtomicDB
 from crm_solver.atomic_db import RenateDB
+from crm_solver.neutral_db import NeutralDB
 from utility.input import AtomicInput
 import unittest
 import numpy
 import scipy
 import utility.convert as uc
-import pandas
 
 
 class RenateDBTest(unittest.TestCase):
@@ -177,6 +177,10 @@ class AtomicDBTest(unittest.TestCase):
     INPUT_z = [1, 1, 2, 2, 4]
     INPUT_a = [1, 2, 3, 4, 9]
     INPUT_m = [None, None, None, None, None]
+    INPUT_neutral_q = [-1, 0, 1, 1]
+    INPUT_neutral_z = [0, 1, 1, 1]
+    INPUT_neutral_a = [0, 1, 1, 2]
+    INPUT_neutral_m = [None, None, None, None]
     INTERPOLATION_TEST_TEMPERATURE = [0, 1, 2, 2.5, 3, 8, 10]
     EXPECTED_DECIMAL_PRECISION_5 = 5
     EXPECTED_ELECTRON_IMPACT_LOSS = uc.convert_from_cm2_to_m2(numpy.asarray(
@@ -403,6 +407,11 @@ class AtomicDBTest(unittest.TestCase):
                                               self.EXPECTED_DECIMAL_PRECISION_5, err_msg='Electron impact loss '
                                                                                          'interpolator failure.')
 
+    def test_neutral_db_init(self):
+        actual_param, actual_components = self.build_atomic_neutral_input()
+        actual_db = AtomicDB(param=actual_param, components=actual_components)
+        self.assertTrue(actual_db.are_neutrals, msg='The atomic_db is expected to have neutral cross-section data.')
+        
     def build_atomic_input(self):
         input_gen = AtomicInput(energy=60, projectile='dummy', param_name='AtomicDB_test',
                                 source='Unittest', current=0.001)
@@ -410,4 +419,14 @@ class AtomicDBTest(unittest.TestCase):
         for index in range(len(self.INPUT_q)):
             input_gen.add_target_component(charge=self.INPUT_q[index], atomic_number=self.INPUT_z[index],
                                            mass_number=self.INPUT_a[index], molecule_name=self.INPUT_m[index])
+        return input_gen.get_atomic_db_input()
+
+    def build_atomic_neutral_input(self):
+        input_gen = AtomicInput(energy=50, projectile='H', param_name='AtomicDB_test',
+                                source='Unittest', current=0.001)
+        for index in range(len(self.INPUT_neutral_q)):
+            input_gen.add_target_component(charge=self.INPUT_neutral_q[index],
+                                           atomic_number=self.INPUT_neutral_z[index],
+                                           mass_number=self.INPUT_neutral_a[index],
+                                           molecule_name=self.INPUT_neutral_m[index])
         return input_gen.get_atomic_db_input()
