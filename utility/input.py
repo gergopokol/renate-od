@@ -119,4 +119,4 @@ class BeamletInput(AtomicInput):
         return self.param, self.components, self.profiles
 
     def from_text(self, source, charges, atomic_numbers, mass_numbers, molecular_numbers):
-        pass
+        raise NotImplementedError('Loading from txt file is not yet implemented.')
