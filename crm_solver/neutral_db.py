@@ -1,5 +1,6 @@
-from utility.getdata import GetData
 import utility.convert as uc
+from utility.getdata import GetData
+from utility.exceptions import RenateNotValidTransitionError
 
 
 class NeutralDB(object):
@@ -65,4 +66,7 @@ class NeutralDB(object):
         return uc.convert_from_cm2_to_m2(self.neutral_cross_sections[target][from_level, from_level])
 
     def get_neutral_impact_transition(self, target, from_level, to_level):
+        if from_level == to_level:
+            raise RenateNotValidTransitionError('The requested atomic transition is not valid. '
+                                                'Requested transition is an ionization.')
         return uc.convert_from_cm2_to_m2(self.neutral_cross_sections[target][from_level, to_level])
