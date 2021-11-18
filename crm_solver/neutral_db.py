@@ -49,7 +49,7 @@ class NeutralDB(object):
         self.__create_neutral_cross_section_db(components=components)
         for index in range(self.neutral_target_count):
             name = 'neutral'+str(index+1)
-            target = self.__identify_neutral_target(component=components[name])
+            target = self.__identify_neutral_target(component=components.T[name])
             path = self.__set_neutral_cross_section_path(target=target)
             self.neutral_cross_sections[name] = GetData(data_path_name=path, data_format="array").data
 
