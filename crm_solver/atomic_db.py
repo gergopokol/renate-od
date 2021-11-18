@@ -193,7 +193,8 @@ class AtomicDB(RenateDB):
             self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                 raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
             for target in self.components.T.keys():
-                if target not in ['electron', 'neutral']:
+                if not (target != 'electron') ^ (not('neutral' in target)):
+                    print(type(target))
                     from_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                         raw_impact_loss_transition[self.components['q'][target], from_level, :]), target))
             self.ion_impact_loss.append(tuple(from_level_functions))
