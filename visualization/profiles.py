@@ -2,7 +2,7 @@ import matplotlib.pyplot
 import utility
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
-from crm_solver.atomic_db import RenateDB
+from crm_solver.atomic_db import AtomicDB
 
 
 class BeamletProfiles:
@@ -12,9 +12,9 @@ class BeamletProfiles:
             self.param = utility.getdata.GetData(data_path_name=self.param_path).data
             self.access_path = self.param.getroot().find('body').find('beamlet_source').text
             self.key = key
-            self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key)
+            self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
             self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
-            self.atomic_db = RenateDB(self.param, 'default', self.access_path)
+            self.atomic_db = AtomicDB(param=self.param, components=self.components)
             self.title = None
         else:
             self.param = beamlet.param
@@ -142,8 +142,9 @@ class BeamletProfiles:
         matplotlib.pyplot.show()
 
     def __setup_density_axis(self, axis):
-        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']
-                  ['density']['m-3'], label='Density', color='b')
+        for comp in self.components.T.keys():
+            axis.plot(self.profiles['beamlet grid'], self.profiles[str(comp)]
+                      ['density']['m-3'], label=str(comp), color='b')
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
         axis.set_ylabel('Density [1/m3]')
@@ -155,8 +156,8 @@ class BeamletProfiles:
     def __setup_temperature_axis(self, axis):
         axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['temperature']['eV'], color='r',
                   label='Electron_temperature')
-        axis.plot(self.profiles['beamlet grid'], self.profiles['ion1']['temperature']['eV'], '--', label='Ion_temperature',
-                  color='m')
+        axis.plot(self.profiles['beamlet grid'], self.profiles['ion1']['temperature']['eV'], '--',
+                  label='Ion_temperature', color='m')
         axis.set_ylabel('Temperature [eV]')
         axis.yaxis.label.set_color('r')
         axis.legend(loc='lower right')
