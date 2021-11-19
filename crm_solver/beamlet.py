@@ -43,7 +43,7 @@ class Beamlet:
 
     def __initialize_ode(self):
         self.coefficient_matrix = CoefficientMatrix(self.param, self.profiles, self.components, self.atomic_db)
-        self.initial_condition = [self.__get_linear_density()] + [0.] * (self.atomic_db.atomic_levels - 1)
+        self.initial_condition = [self.__get_linear_density()] + [0.] * (self.atomic_db.atomic_ceiling - 1)
 
     def __get_linear_density(self):
         current = float(self.param.getroot().find('body').find('beamlet_current').text)
@@ -56,7 +56,7 @@ class Beamlet:
         ode = Ode(coeff_matrix=self.coefficient_matrix.matrix, init_condition=self.initial_condition)
         numerical = ode.calculate_numerical_solution(self.profiles['beamlet grid']['distance']['m'])
 
-        for level in range(self.atomic_db.atomic_levels):
+        for level in range(self.atomic_db.atomic_ceiling):
             label = 'level ' + self.atomic_db.inv_atomic_dict[level]
             self.profiles[label] = numerical[:, level]
         return
@@ -103,7 +103,7 @@ class Beamlet:
     def compute_linear_density_attenuation(self):
         if self.__was_beamevolution_performed():
             self.profiles['linear_density_attenuation'] = self.profiles['level ' + self.atomic_db.inv_atomic_dict[0]]
-            for level in range(1, self.atomic_db.atomic_levels):
+            for level in range(1, self.atomic_db.atomic_ceiling):
                 self.profiles['linear_density_attenuation'] += self.profiles['level ' +
                                                                              self.atomic_db.inv_atomic_dict[level]]
         else:
@@ -114,7 +114,7 @@ class Beamlet:
             if reference_level is None:
                 reference_level = self.atomic_db.set_default_atomic_levels()[2]
             assert isinstance(reference_level, str)
-            for level in range(self.atomic_db.atomic_levels):
+            for level in range(self.atomic_db.atomic_ceiling):
                 self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]] = \
                     self.profiles['level ' + self.atomic_db.inv_atomic_dict[level]] / \
                     self.profiles['level ' + reference_level]

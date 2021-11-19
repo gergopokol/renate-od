@@ -36,3 +36,7 @@ class RenateAuthorizedUserError(Exception):
     def __new__(*args, **kwargs):
         """ Create and return a new object.  See help(type) for accurate signature. """
         pass
+
+
+class RenateNotValidTransitionError(Exception):
+    pass
