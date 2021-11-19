@@ -61,6 +61,22 @@ class CoefficientMatrixTest(unittest.TestCase):
                                                   [0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042],
                                                   [0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043],
                                                   [0.,     0.,     0.,     0.,     0.,     0.,     0.]]]])
+    EXPECTED_NEUTRAL_TERMS = numpy.array([[[[-0.004, -0.004, -0.004, -0.004, -0.004, -0.004, -0.004],
+                                            [0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012],
+                                            [0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013],
+                                            [0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014]],
+                                           [[0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021],
+                                            [-0.007, -0.007, -0.007, -0.007, -0.007, -0.007, -0.007],
+                                            [0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023],
+                                            [0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024]],
+                                           [[0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031],
+                                            [0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032],
+                                            [-0.01,  - 0.01, - 0.01, - 0.01, - 0.01, - 0.01, - 0.01],
+                                            [0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034]],
+                                           [[0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041],
+                                            [0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042],
+                                            [0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043],
+                                            [-0.013, - 0.013, - 0.013, - 0.013, - 0.013, - 0.013, - 0.013]]]])
     EXPECTED_ION_LOSS_TERMS = [[[0.0012, 0.0112, 0.0212, 0.0262, 0.0312, 0.0812, 0.1012],
                                 [0.0022, 0.0122, 0.0222, 0.0272, 0.0322, 0.0822, 0.1022],
                                 [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032]],
@@ -410,16 +426,20 @@ class CoefficientMatrixTest(unittest.TestCase):
                                self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
                                self.PROFILES['beamlet grid'].size), msg='The neutral impact '
                               'transition term is not dimensionally accurate.')
-        print(self.neutral_rate_coefficient.neutral_impact_trans_np)
         numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_impact_trans_np,
                                           self.EXPECTED_NEUTRAL_TRANS_TERMS, self.EXPECTED_DECIMAL_PRECISION_4,
                                           err_msg='Interpolation failure for neutral impact transition.')
 
-    def test_neutral_term_application(self):
-        pass
-
     def test_neutral_assembly(self):
-        pass
+        self.setup_neutral()
+        self.assertIsInstance(self.neutral_rate_coefficient.neutral_terms, numpy.ndarray,
+                              msg='The neutral rate term is not in the expected format.')
+        self.assertTupleEqual(self.neutral_rate_coefficient.neutral_terms.shape, (self.EXPECTED_NEUTRAL_COUNT,
+                              self.EXPECTED_NEUTRAL_ATOMIC_LEVELS, self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                              self.PROFILES['beamlet grid'].size),
+                              msg='The neutral term is dimensionally not accurate.')
+        numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_terms, self.EXPECTED_NEUTRAL_TERMS,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Neutral term assembly failed.')
 
     def _build_beamlet_input(self):
         input_gen = BeamletInput(energy=60, projectile='dummy', param_name='Coefficient Matrix Test',
@@ -439,7 +459,7 @@ class CoefficientMatrixTest(unittest.TestCase):
                                  source='Unittest', current=0.001)
         input_gen.add_grid(self.INPUT_GRID)
         for index in range(len(self.INPUT_neutral_q)):
-            if self.INPUT_neutral_q is not 0:
+            if self.INPUT_neutral_q != 0:
                 density = self.INPUT_DENSITY * 0
             else:
                 density = self.INPUT_DENSITY * 2
