@@ -1,41 +1,21 @@
 import unittest
 from crm_solver.atomic_db import AtomicDB
 from crm_solver.coefficientmatrix import CoefficientMatrix
-from utility.getdata import GetData
+from utility.input import BeamletInput
 import numpy
 import pandas
 
 
 class CoefficientMatrixTest(unittest.TestCase):
 
-    elements = ['1H+', '1D+', '3He+', '4He++', '9Be++++']
-    q = [1, 1, 1, 2, 4]
-    z = [1, 1, 2, 2, 4]
-    a = [1, 2, 3, 4, 9]
-    COMPONENTS = pandas.DataFrame([[-1] + q, [0] + z, [0] + a], index=['q', 'Z', 'A'],
-                                  columns=['electron'] + ['ion' + str(i + 1) for i in
-                                  range(len(elements))]).transpose()
+    INPUT_q = [1, 1, 1, 2, 4]
+    INPUT_z = [1, 1, 2, 2, 4]
+    INPUT_a = [1, 2, 3, 4, 9]
+    INPUT_m = [None, None, None, None, None]
 
-    grid = numpy.array([1., 2., 3., 4., 5., 6., 7.])
-    temperature = numpy.array([0, 1, 2, 2.5, 3, 8, 10])
-    density = numpy.array([1]*len(grid))
-    profile = numpy.stack([grid, density, temperature])
-
-    comp = ['beamlet grid', 'electron', 'electron']
-    properties = ['distance', 'density', 'temperature']
-    units = ['m', 'm-3', 'eV']
-
-    for item in range(len(a)):
-        profile = numpy.vstack([profile, numpy.array([a[item]]*len(grid)), temperature])
-        comp = comp + ['ion' + str(item + 1)] * 2
-        properties = properties + ['density'] + ['temperature']
-        units = units + ['m-3'] + ['eV']
-
-    PROFILES = pandas.DataFrame(profile, pandas.MultiIndex.from_arrays([comp, properties, units],
-                                                                       names=['type', 'property', 'unit'])).transpose()
-    INPUT_DUMMY_PATH = 'beamlet/dummy0001.xml'
-    ATOMIC_DB = AtomicDB(data_path=INPUT_DUMMY_PATH, components=COMPONENTS)
-    BEAMLET_PARAM = GetData(data_path_name=INPUT_DUMMY_PATH).data
+    INPUT_GRID = numpy.array([1., 2., 3., 4., 5., 6., 7.])
+    INPUT_TEMPERATURE = numpy.array([0, 1, 2, 2.5, 3, 8, 10])
+    INPUT_DENSITY = numpy.array([1]*len(INPUT_GRID))
 
     EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DECIMAL_PRECISION_6 = 6
@@ -142,7 +122,8 @@ class CoefficientMatrixTest(unittest.TestCase):
           [0., 0., 0., 0., 0., 0., 0.]],
          [[865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608],
           [893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434],
-          [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042]]]
+          [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042,
+           -1759.70707042, -1759.70707042, -1759.70707042]]]
     EXPECTED_ELECTRON_TERM = \
         numpy.array([[[-0.0036, -0.0336, -0.0636, -0.0786, -0.0936, -0.2436, -0.3036],
                       [0.0012,   0.0112,  0.0212,  0.0262,  0.0312,  0.0812,  0.1012],
@@ -246,6 +227,8 @@ class CoefficientMatrixTest(unittest.TestCase):
                         -1.74710000e+00, -2.16710000e+00]]]])
 
     def setUp(self):
+        self.BEAMLET_PARAM, self.COMPONENTS, self.PROFILES = self.build_beamlet_input()
+        self.ATOMIC_DB = AtomicDB(param=self.BEAMLET_PARAM, components=self.COMPONENTS)
         self.RATE_COEFFICIENT = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
 
     def tearDown(self):
@@ -366,15 +349,28 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           err_msg='Ion term and density application failed.')
 
     def test_ceiled_electron_impact_loss(self):
-        CEILED_ATOMIC_DB = AtomicDB(data_path=self.INPUT_DUMMY_PATH, components=self.COMPONENTS, atomic_ceiling=2)
-        CEILED_RATE_COEFFICIENT = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES,
-                                                    self.COMPONENTS, CEILED_ATOMIC_DB)
-        self.assertIsInstance(CEILED_RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
+        ceiled_atomic_db = AtomicDB(param=self.BEAMLET_PARAM, components=self.COMPONENTS, atomic_ceiling=2)
+        ceiled_rate_coefficient = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES,
+                                                    self.COMPONENTS, ceiled_atomic_db)
+        self.assertIsInstance(ceiled_rate_coefficient.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
                               'ionization terms is not in the expected format.')
-        self.assertTupleEqual(CEILED_RATE_COEFFICIENT.electron_impact_loss_np.shape, (CEILED_ATOMIC_DB.atomic_ceiling,
+        self.assertTupleEqual(ceiled_rate_coefficient.electron_impact_loss_np.shape, (ceiled_atomic_db.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
                                                                        'not dimensionally accurate.')
-        numpy.testing.assert_almost_equal(CEILED_RATE_COEFFICIENT.electron_impact_loss_np,
-                                          self.EXPECTED_ELECTRON_LOSS_TERMS[0:CEILED_ATOMIC_DB.atomic_ceiling, :],
+        numpy.testing.assert_almost_equal(ceiled_rate_coefficient.electron_impact_loss_np,
+                                          self.EXPECTED_ELECTRON_LOSS_TERMS[0:ceiled_atomic_db.atomic_ceiling, :],
                                           self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Interpolation failure for electron impact loss.')
+
+    def build_beamlet_input(self):
+        input_gen = BeamletInput(energy=60, projectile='dummy', param_name='Coefficient Matrix Test',
+                                 source='Unittest', current=0.001)
+        input_gen.add_grid(self.INPUT_GRID)
+        input_gen.add_target_profiles(charge=-1, atomic_number=0, mass_number=0, molecule_name=None,
+                                      density=self.INPUT_DENSITY, temperature=self.INPUT_TEMPERATURE)
+        for index in range(len(self.INPUT_q)):
+            input_gen.add_target_profiles(charge=self.INPUT_q[index], atomic_number=self.INPUT_z[index],
+                                          mass_number=self.INPUT_a[index], molecule_name=self.INPUT_m[index],
+                                          density=self.INPUT_DENSITY*self.INPUT_a[index],
+                                          temperature=self.INPUT_TEMPERATURE)
+        return input_gen.get_beamlet_input()
