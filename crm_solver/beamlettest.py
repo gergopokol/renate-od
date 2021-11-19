@@ -8,7 +8,7 @@ import numpy
 
 class BeamletTest(unittest.TestCase):
     EXPECTED_ATTR = ['param', 'components', 'profiles', 'coefficient_matrix', 'atomic_db', 'initial_condition']
-    EXPECTED_INITIAL_CONDITION = [4832583711.839067, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    EXPECTED_INITIAL_CONDITION = [4832583106.4753895, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     EXPECTED_PARAM_ATTR = ['beamlet_source', 'beamlet_energy', 'beamlet_species', 'beamlet_current']
     EXPECTED_COMPONENTS_KEYS = ['q', 'Z', 'A']
     EXPECTED_COMPONENTS_SPECIES = ['electron', 'ion1', 'ion2']
@@ -37,7 +37,7 @@ class BeamletTest(unittest.TestCase):
     def test_initial_conditions(self):
         self.assertIsInstance(self.beamlet.initial_condition, list, msg='Initial condition is of wrong type. '
                                                                         'Expected type: list')
-        self.assertEqual(len(self.beamlet.initial_condition), self.beamlet.atomic_db.atomic_levels,
+        self.assertEqual(len(self.beamlet.initial_condition), self.beamlet.atomic_db.atomic_ceiling,
                          msg='Initial conditions must match number of atomic levels.')
         for element in range(len(self.beamlet.initial_condition)):
             self.assertIsInstance(self.beamlet.initial_condition[element], float, msg='Expected type for initial'
@@ -99,14 +99,14 @@ class BeamletTest(unittest.TestCase):
 
     def test_numerical_solver(self):
         self.assertTupleEqual(self.beamlet.profiles.shape, (self.EXPECTED_PROFILES_LENGTH,
-                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1+self.beamlet.atomic_db.atomic_levels),
+                              2*len(self.EXPECTED_COMPONENTS_KEYS)+1+self.beamlet.atomic_db.atomic_ceiling),
                               msg='Numerical solver failed to provide expected output into plasma profiles.')
         for key_index in range(2*len(self.EXPECTED_COMPONENTS_KEYS)+1,
                                len(self.beamlet.profiles.keys())):
             self.assertEqual(self.beamlet.profiles.keys()[key_index][0], 'level '+self.beamlet.atomic_db.inv_atomic_dict
                              [key_index - 2*len(self.EXPECTED_COMPONENTS_KEYS)-1],
                              msg='Pandas keys for labeling electron population evolution on atomic levels fails.')
-        for level in range(self.beamlet.atomic_db.atomic_levels):
+        for level in range(self.beamlet.atomic_db.atomic_ceiling):
             self.assertIsInstance(self.beamlet.profiles['level '+self.beamlet.atomic_db.inv_atomic_dict[level]],
                                   pandas.core.series.Series, msg='Expected data type of beam evolution '
                                                                  'process are pandas series.')
@@ -127,7 +127,7 @@ class BeamletTest(unittest.TestCase):
         self.assertEqual(len(self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY]), self.EXPECTED_PROFILES_LENGTH,
                          msg='Beam attenuation calculation is expected to be returned on the input grid.')
         test = self.beamlet.profiles['level 2s']
-        for level in range(1, self.beamlet.atomic_db.atomic_levels):
+        for level in range(1, self.beamlet.atomic_db.atomic_ceiling):
             test += self.beamlet.profiles['level ' + self.beamlet.atomic_db.inv_atomic_dict[level]]
         for index in range(self.EXPECTED_PROFILES_LENGTH):
             self.assertEqual(test[index], self.beamlet.profiles[self.EXPECTED_ATTENUATION_KEY][index],
@@ -166,9 +166,9 @@ class BeamletTest(unittest.TestCase):
     def test_relative_population_calculator(self):
         self.beamlet.compute_relative_populations(reference_level=self.INPUT_TRANSITION[0])
         self.assertTupleEqual(self.beamlet.profiles.filter(like='rel.pop').shape,
-                              (self.EXPECTED_PROFILES_LENGTH, self.beamlet.atomic_db.atomic_levels),
+                              (self.EXPECTED_PROFILES_LENGTH, self.beamlet.atomic_db.atomic_ceiling),
                               msg='Relative populations calculated do not match input level number.')
-        for level in range(self.beamlet.atomic_db.atomic_levels):
+        for level in range(self.beamlet.atomic_db.atomic_ceiling):
             for index in range(len(self.beamlet.profiles)):
                 if self.beamlet.atomic_db.inv_atomic_dict[level] == self.INPUT_TRANSITION[0]:
                     self.assertEqual(self.beamlet.profiles['rel.pop ' +
@@ -201,8 +201,8 @@ class BeamletTest(unittest.TestCase):
                                                            'objects is required to be equal.')
         self.assertEqual(actual.profiles.shape[0], self.beamlet.profiles.shape[0],
                          msg='Copy and Actual of Beamlet profiles are expected to have the same number of elements.')
-        self.assertEqual(actual.profiles.shape[1], self.beamlet.profiles.shape[1]-self.beamlet.atomic_db.atomic_levels,
+        self.assertEqual(actual.profiles.shape[1], self.beamlet.profiles.shape[1]-self.beamlet.atomic_db.atomic_ceiling,
                          msg='Copy of Actual Beamlet object profiles is expected to have nr of atomic levels: ' +
-                             str(self.beamlet.atomic_db.atomic_levels) + ' less columns.')
+                             str(self.beamlet.atomic_db.atomic_ceiling) + ' less columns.')
         self.assertEqual(actual.profiles.filter(like='level').shape[1], 0,
                          msg='The copy without results is expected NOT to contain any columns labeled <level>.')

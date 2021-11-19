@@ -42,5 +42,8 @@ target/
 # dotenv
 .env
 
+# UnitTest Fails
+.cache
+
 ### RENATE OD specific ###
 data/

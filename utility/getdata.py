@@ -2,6 +2,7 @@ import os
 import urllib.request
 import pandas
 import h5py
+import numpy
 from lxml import etree
 from utility.accessdata import AccessData
 
@@ -53,7 +54,10 @@ class GetData(AccessData):
                 else:
                     self.read_h5_to_array()
             elif self.data_path_name.endswith('.txt'):
-                self.read_txt()
+                if self.data_format == "array":
+                    self.read_txt_to_array()
+                else:
+                    self.read_txt_to_str()
             elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
@@ -97,10 +101,14 @@ class GetData(AccessData):
             print("Data could NOT be read to array from HD5 file: " + self.access_path +
                   " with key: " + str(self.data_key) + '. Check if the key sequence fits the groups of the HDF5 file!')
 
-    def read_txt(self):
+    def read_txt_to_str(self):
         with open(self.access_path, 'r') as file:
             self.data = file.read()
             print('Data read to string from: ' + self.access_path)
+
+    def read_txt_to_array(self):
+        self.data = numpy.loadtxt(self.access_path)
+        print('Data read to numpy array from : ' + self.access_path)
 
     def read_xml(self):
         if not self.data_key:
