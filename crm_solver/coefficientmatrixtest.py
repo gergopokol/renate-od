@@ -13,10 +13,17 @@ class CoefficientMatrixTest(unittest.TestCase):
     INPUT_a = [1, 2, 3, 4, 9]
     INPUT_m = [None, None, None, None, None]
 
+    INPUT_neutral_q = [-1, 0, 1]
+    INPUT_neutral_z = [0, 1, 1]
+    INPUT_neutral_a = [0, 1, 1]
+    INPUT_neutral_m = [None, None, None]
+
     INPUT_GRID = numpy.array([1., 2., 3., 4., 5., 6., 7.])
     INPUT_TEMPERATURE = numpy.array([0, 1, 2, 2.5, 3, 8, 10])
     INPUT_DENSITY = numpy.array([1]*len(INPUT_GRID))
 
+    EXPECTED_NEUTRAL_COUNT = 1
+    EXPECTED_NEUTRAL_ATOMIC_LEVELS = 4
     EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DECIMAL_PRECISION_6 = 6
     EXPECTED_ATTRIBUTES = ['matrix', 'electron_terms', 'ion_terms', 'photon_terms', 'beamlet_profiles',
@@ -34,6 +41,10 @@ class CoefficientMatrixTest(unittest.TestCase):
     EXPECTED_ELECTRON_LOSS_TERMS = numpy.array([[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
                                                 [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
                                                 [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]])
+    EXPECTED_NEUTRAL_LOSS_TERMS = numpy.array([[[0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001],
+                                                [0.0002, 0.0002, 0.0002, 0.0002, 0.0002, 0.0002, 0.0002],
+                                                [0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003],
+                                                [0.0004, 0.0004, 0.0004, 0.0004, 0.0004, 0.0004, 0.0004]]])
     EXPECTED_ION_LOSS_TERMS = [[[0.0012, 0.0112, 0.0212, 0.0262, 0.0312, 0.0812, 0.1012],
                                 [0.0022, 0.0122, 0.0222, 0.0272, 0.0322, 0.0822, 0.1022],
                                 [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032]],
@@ -227,7 +238,7 @@ class CoefficientMatrixTest(unittest.TestCase):
                         -1.74710000e+00, -2.16710000e+00]]]])
 
     def setUp(self):
-        self.BEAMLET_PARAM, self.COMPONENTS, self.PROFILES = self.build_beamlet_input()
+        self.BEAMLET_PARAM, self.COMPONENTS, self.PROFILES = self._build_beamlet_input()
         self.ATOMIC_DB = AtomicDB(param=self.BEAMLET_PARAM, components=self.COMPONENTS)
         self.RATE_COEFFICIENT = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
 
@@ -344,7 +355,7 @@ class CoefficientMatrixTest(unittest.TestCase):
             for step in range(self.PROFILES['beamlet grid'].size):
                 self.RATE_COEFFICIENT.apply_ion_density(ion, step)
                 actual[:, :, step] += self.PROFILES['ion'+str(ion+1)]['density']['m-3'][step] * \
-                                           self.EXPECTED_ION_TERM[ion, :, :, step]
+                                      self.EXPECTED_ION_TERM[ion, :, :, step]
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Ion term and density application failed.')
 
@@ -362,7 +373,28 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Interpolation failure for electron impact loss.')
 
-    def build_beamlet_input(self):
+    def test_neutral_impact_loss(self):
+        self.setup_neutral()
+        self.assertIsInstance(self.neutral_rate_coefficient.neutral_impact_loss_np, numpy.ndarray, msg='The neutral '
+                              'impact ionization terms is not in the expected format.')
+        self.assertTupleEqual(self.neutral_rate_coefficient.neutral_impact_loss_np.shape,
+                              (self.EXPECTED_NEUTRAL_COUNT, self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                               self.PROFILES['beamlet grid'].size), msg='The neutral impact '
+                              'ionization term is not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_impact_loss_np,
+                                          self.EXPECTED_NEUTRAL_LOSS_TERMS, self.EXPECTED_DECIMAL_PRECISION_4,
+                                          err_msg='Interpolation failure for neutral impact loss.')
+
+    def test_neutral_impact_transition(self):
+        pass
+
+    def test_neutral_term_application(self):
+        pass
+
+    def test_neutral_assembly(self):
+        pass
+
+    def _build_beamlet_input(self):
         input_gen = BeamletInput(energy=60, projectile='dummy', param_name='Coefficient Matrix Test',
                                  source='Unittest', current=0.001)
         input_gen.add_grid(self.INPUT_GRID)
@@ -374,3 +406,28 @@ class CoefficientMatrixTest(unittest.TestCase):
                                           density=self.INPUT_DENSITY*self.INPUT_a[index],
                                           temperature=self.INPUT_TEMPERATURE)
         return input_gen.get_beamlet_input()
+
+    def _build_beamlet_neutral_input(self):
+        input_gen = BeamletInput(energy=50, projectile='H', param_name='Coefficient Neutral Matrix Test',
+                                 source='Unittest', current=0.001)
+        input_gen.add_grid(self.INPUT_GRID)
+        for index in range(len(self.INPUT_neutral_q)):
+            if self.INPUT_neutral_q is not 0:
+                density = self.INPUT_DENSITY * 0
+            else:
+                density = self.INPUT_DENSITY * 2
+            input_gen.add_target_profiles(charge=self.INPUT_neutral_q[index],
+                                          atomic_number=self.INPUT_neutral_z[index],
+                                          mass_number=self.INPUT_neutral_a[index],
+                                          molecule_name=self.INPUT_neutral_m[index],
+                                          density=density,
+                                          temperature=self.INPUT_TEMPERATURE)
+        return input_gen.get_beamlet_input()
+
+    def setup_neutral(self):
+        self.neutral_param, self.neutral_components, self.neutral_profiles = self._build_beamlet_neutral_input()
+        self.neutral_atomic = AtomicDB(param=self.neutral_param, components=self.neutral_components, resolution='test')
+        self.neutral_rate_coefficient = CoefficientMatrix(beamlet_param=self.neutral_param,
+                                                          beamlet_profiles=self.neutral_profiles,
+                                                          plasma_components=self.neutral_components,
+                                                          atomic_db=self.neutral_atomic)
