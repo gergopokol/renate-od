@@ -11,12 +11,15 @@ script:
   - python -m unittest -v crm_solver.atomic_dbtest.AtomicDBTest
   - python -m unittest -v crm_solver.beamlettest.BeamletTest
   - python -m unittest -v crm_solver.atomic_dbtest.RenateDBTest
+  - python -m unittest -v crm_solver.neutral_dbtest.NeutralDBTest
   - python -m unittest -v crm_solver.coefficientmatrixtest.CoefficientMatrixTest
   - python -m unittest -v utility.accessdatatest.AccessDataTest
   - python -m unittest -v utility.getdatatest.GetDataTest
   - python -m unittest -v utility.putdatatest.PutDataTest
   - python -m unittest -v utility.managetest.VersionTest
   - python -m unittest -v utility.managetest.CodeInfoTest
+  - python -m unittest -v utility.inputtest.AtomicInputTest
+  - python -m unittest -v utility.inputtest.BeamletInputTest
   - python -m unittest -v observation.noisetest.NoiseGeneratorTest
   - python -m unittest -v observation.noisetest.APDGeneratorTest
   - python -m unittest -v observation.noisetest.PMTGeneratorTest

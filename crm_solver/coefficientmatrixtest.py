@@ -1,42 +1,29 @@
 import unittest
 from crm_solver.atomic_db import AtomicDB
 from crm_solver.coefficientmatrix import CoefficientMatrix
-from utility.getdata import GetData
+from utility.input import BeamletInput
 import numpy
 import pandas
 
 
 class CoefficientMatrixTest(unittest.TestCase):
 
-    elements = ['1H+', '1D+', '3He+', '4He++', '9Be++++']
-    q = [1, 1, 1, 2, 4]
-    z = [1, 1, 2, 2, 4]
-    a = [1, 2, 3, 4, 9]
-    COMPONENTS = pandas.DataFrame([[-1] + q, [0] + z, [0] + a], index=['q', 'Z', 'A'],
-                                  columns=['electron'] + ['ion' + str(i + 1) for i in
-                                  range(len(elements))]).transpose()
+    INPUT_q = [1, 1, 1, 2, 4]
+    INPUT_z = [1, 1, 2, 2, 4]
+    INPUT_a = [1, 2, 3, 4, 9]
+    INPUT_m = [None, None, None, None, None]
 
-    grid = numpy.array([1., 2., 3., 4., 5., 6., 7.])
-    temperature = numpy.array([0, 1, 2, 2.5, 3, 8, 10])
-    density = numpy.array([1]*len(grid))
-    profile = numpy.stack([grid, density, temperature])
+    INPUT_neutral_q = [-1, 0, 1]
+    INPUT_neutral_z = [0, 1, 1]
+    INPUT_neutral_a = [0, 1, 1]
+    INPUT_neutral_m = [None, None, None]
 
-    comp = ['beamlet grid', 'electron', 'electron']
-    properties = ['distance', 'density', 'temperature']
-    units = ['m', 'm-3', 'eV']
+    INPUT_GRID = numpy.array([1., 2., 3., 4., 5., 6., 7.])
+    INPUT_TEMPERATURE = numpy.array([0, 1, 2, 2.5, 3, 8, 10])
+    INPUT_DENSITY = numpy.array([1]*len(INPUT_GRID))
 
-    for item in range(len(a)):
-        profile = numpy.vstack([profile, numpy.array([a[item]]*len(grid)), temperature])
-        comp = comp + ['ion' + str(item + 1)] * 2
-        properties = properties + ['density'] + ['temperature']
-        units = units + ['m-3'] + ['eV']
-
-    PROFILES = pandas.DataFrame(profile, pandas.MultiIndex.from_arrays([comp, properties, units],
-                                                                       names=['type', 'property', 'unit'])).transpose()
-    INPUT_DUMMY_PATH = 'beamlet/dummy0001.xml'
-    ATOMIC_DB = AtomicDB(data_path=INPUT_DUMMY_PATH, components=COMPONENTS)
-    BEAMLET_PARAM = GetData(data_path_name=INPUT_DUMMY_PATH).data
-
+    EXPECTED_NEUTRAL_COUNT = 1
+    EXPECTED_NEUTRAL_ATOMIC_LEVELS = 4
     EXPECTED_DECIMAL_PRECISION_4 = 4
     EXPECTED_DECIMAL_PRECISION_6 = 6
     EXPECTED_ATTRIBUTES = ['matrix', 'electron_terms', 'ion_terms', 'photon_terms', 'beamlet_profiles',
@@ -51,9 +38,45 @@ class CoefficientMatrixTest(unittest.TestCase):
                                       [[0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031],
                                        [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032],
                                        [0.,     0.,     0.,     0.,     0.,     0.,     0.]]]
-    EXPECTED_ELECTRON_LOSS_TERMS = [[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
-                                    [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
-                                    [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]]
+    EXPECTED_ELECTRON_LOSS_TERMS = numpy.array([[0.0011, 0.0111, 0.0211, 0.0261, 0.0311, 0.0811, 0.1011],
+                                                [0.0021, 0.0121, 0.0221, 0.0271, 0.0321, 0.0821, 0.1021],
+                                                [0.0031, 0.0131, 0.0231, 0.0281, 0.0331, 0.0831, 0.1031]])
+    EXPECTED_NEUTRAL_LOSS_TERMS = numpy.array([[[0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001],
+                                                [0.0002, 0.0002, 0.0002, 0.0002, 0.0002, 0.0002, 0.0002],
+                                                [0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003, 0.0003],
+                                                [0.0004, 0.0004, 0.0004, 0.0004, 0.0004, 0.0004, 0.0004]]])
+    EXPECTED_NEUTRAL_TRANS_TERMS = numpy.array([[[[0.,     0.,     0.,     0.,     0.,     0.,     0.],
+                                                  [0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012],
+                                                  [0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013],
+                                                  [0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014]],
+                                                 [[0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021],
+                                                  [0.,     0.,     0.,     0.,     0.,     0.,     0.],
+                                                  [0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023],
+                                                  [0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024]],
+                                                 [[0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031],
+                                                  [0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032],
+                                                  [0.,    0.,    0.,    0.,    0.,    0.,    0.],
+                                                  [0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034]],
+                                                 [[0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041],
+                                                  [0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042],
+                                                  [0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043],
+                                                  [0.,     0.,     0.,     0.,     0.,     0.,     0.]]]])
+    EXPECTED_NEUTRAL_TERMS = numpy.array([[[[-0.004, -0.004, -0.004, -0.004, -0.004, -0.004, -0.004],
+                                            [0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012, 0.0012],
+                                            [0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013, 0.0013],
+                                            [0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014, 0.0014]],
+                                           [[0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021, 0.0021],
+                                            [-0.007, -0.007, -0.007, -0.007, -0.007, -0.007, -0.007],
+                                            [0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023, 0.0023],
+                                            [0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024, 0.0024]],
+                                           [[0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031, 0.0031],
+                                            [0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032, 0.0032],
+                                            [-0.01,  - 0.01, - 0.01, - 0.01, - 0.01, - 0.01, - 0.01],
+                                            [0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034, 0.0034]],
+                                           [[0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041, 0.0041],
+                                            [0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042, 0.0042],
+                                            [0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043, 0.0043],
+                                            [-0.013, - 0.013, - 0.013, - 0.013, - 0.013, - 0.013, - 0.013]]]])
     EXPECTED_ION_LOSS_TERMS = [[[0.0012, 0.0112, 0.0212, 0.0262, 0.0312, 0.0812, 0.1012],
                                 [0.0022, 0.0122, 0.0222, 0.0272, 0.0322, 0.0822, 0.1022],
                                 [0.0032, 0.0132, 0.0232, 0.0282, 0.0332, 0.0832, 0.1032]],
@@ -142,7 +165,8 @@ class CoefficientMatrixTest(unittest.TestCase):
           [0., 0., 0., 0., 0., 0., 0.]],
          [[865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608, 865.88760608],
           [893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434, 893.81946434],
-          [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042]]]
+          [-1759.70707042, -1759.70707042, -1759.70707042, -1759.70707042,
+           -1759.70707042, -1759.70707042, -1759.70707042]]]
     EXPECTED_ELECTRON_TERM = \
         numpy.array([[[-0.0036, -0.0336, -0.0636, -0.0786, -0.0936, -0.2436, -0.3036],
                       [0.0012,   0.0112,  0.0212,  0.0262,  0.0312,  0.0812,  0.1012],
@@ -246,6 +270,8 @@ class CoefficientMatrixTest(unittest.TestCase):
                         -1.74710000e+00, -2.16710000e+00]]]])
 
     def setUp(self):
+        self.BEAMLET_PARAM, self.COMPONENTS, self.PROFILES = self._build_beamlet_input()
+        self.ATOMIC_DB = AtomicDB(param=self.BEAMLET_PARAM, components=self.COMPONENTS)
         self.RATE_COEFFICIENT = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES, self.COMPONENTS, self.ATOMIC_DB)
 
     def tearDown(self):
@@ -259,7 +285,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_trans_np, numpy.ndarray,
                               msg='The electron impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_trans_np.shape,
-                              (self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              (self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                                self.PROFILES['beamlet grid'].size), msg='The electron impact transition '
                                                                         'terms is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_impact_trans_np,
@@ -269,7 +295,7 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_electron_impact_loss(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
                               'ionization terms is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_levels,
+        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_impact_loss_np.shape, (self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
                                                                        'not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_impact_loss_np,
@@ -281,7 +307,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_impact_loss_np, numpy.ndarray, msg='The ion impact '
                               'ionization terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_impact_loss_np.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size), msg='The ion impact '
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size), msg='The ion impact '
                               'ionization term is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_impact_loss_np, self.EXPECTED_ION_LOSS_TERMS,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Interpolation failure '
@@ -291,7 +317,7 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.ion_impact_trans_np, numpy.ndarray,
                               msg='The ion impact transition terms is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_impact_trans_np.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The ion impact transition term is not '
                                                                        'dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_impact_trans_np, self.EXPECTED_ION_TRANSITION_TERMS,
@@ -301,8 +327,8 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_rate_matrix(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.matrix, numpy.ndarray,
                               msg='The rate coefficient matrix is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.matrix.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.matrix.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The rate coefficient matrix is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_RATE_COEFFICIENT_MATRIX,
                                           self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Rate coefficient matrix assembly '
@@ -311,8 +337,8 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_spontaneous_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.photon_terms, numpy.ndarray,
                               msg='The spontaneous photon term is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.photon_terms.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.photon_terms.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The photon term is not dimensionally accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.photon_terms, self.EXPECTED_PHOTON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Photon term assembly failed.')
@@ -327,15 +353,15 @@ class CoefficientMatrixTest(unittest.TestCase):
     def test_electron_rate_term_assembly(self):
         self.assertIsInstance(self.RATE_COEFFICIENT.electron_terms, numpy.ndarray,
                               msg='The electron rate term is not in the expected format.')
-        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_terms.shape, (self.ATOMIC_DB.atomic_levels,
-                              self.ATOMIC_DB.atomic_levels, self.PROFILES['beamlet grid'].size),
+        self.assertTupleEqual(self.RATE_COEFFICIENT.electron_terms.shape, (self.ATOMIC_DB.atomic_ceiling,
+                              self.ATOMIC_DB.atomic_ceiling, self.PROFILES['beamlet grid'].size),
                               msg='The electron term is dimensionally not accurate.')
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.electron_terms, self.EXPECTED_ELECTRON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Electron term assembly failed.')
 
     def test_electron_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
-        actual = numpy.zeros((self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+        actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
         for step in range(self.PROFILES['beamlet grid'].size):
             self.RATE_COEFFICIENT.apply_electron_density(step)
@@ -348,20 +374,107 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.assertIsInstance(self.RATE_COEFFICIENT.ion_terms, numpy.ndarray,
                               msg='The ion term is not in the expected format.')
         self.assertTupleEqual(self.RATE_COEFFICIENT.ion_terms.shape, (len(self.COMPONENTS.T.keys()) - 1,
-                              self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+                              self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size), msg='The ion term is dimensionally not accurate.')
-        print(self.RATE_COEFFICIENT.ion_terms)
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.ion_terms, self.EXPECTED_ION_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Ion rate term assembly failure.')
 
     def test_ion_rate_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
-        actual = numpy.zeros((self.ATOMIC_DB.atomic_levels, self.ATOMIC_DB.atomic_levels,
+        actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
         for ion in range(len(self.COMPONENTS.T.keys())-1):
             for step in range(self.PROFILES['beamlet grid'].size):
                 self.RATE_COEFFICIENT.apply_ion_density(ion, step)
                 actual[:, :, step] += self.PROFILES['ion'+str(ion+1)]['density']['m-3'][step] * \
-                                           self.EXPECTED_ION_TERM[ion, :, :, step]
+                                      self.EXPECTED_ION_TERM[ion, :, :, step]
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
                                           err_msg='Ion term and density application failed.')
+
+    def test_ceiled_electron_impact_loss(self):
+        ceiled_atomic_db = AtomicDB(param=self.BEAMLET_PARAM, components=self.COMPONENTS, atomic_ceiling=2)
+        ceiled_rate_coefficient = CoefficientMatrix(self.BEAMLET_PARAM, self.PROFILES,
+                                                    self.COMPONENTS, ceiled_atomic_db)
+        self.assertIsInstance(ceiled_rate_coefficient.electron_impact_loss_np, numpy.ndarray, msg='The electron impact '
+                              'ionization terms is not in the expected format.')
+        self.assertTupleEqual(ceiled_rate_coefficient.electron_impact_loss_np.shape, (ceiled_atomic_db.atomic_ceiling,
+                              self.PROFILES['beamlet grid'].size), msg='The electron impact ionization term is '
+                                                                       'not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(ceiled_rate_coefficient.electron_impact_loss_np,
+                                          self.EXPECTED_ELECTRON_LOSS_TERMS[0:ceiled_atomic_db.atomic_ceiling, :],
+                                          self.EXPECTED_DECIMAL_PRECISION_6,
+                                          err_msg='Interpolation failure for electron impact loss.')
+
+    def test_neutral_impact_loss(self):
+        self.setup_neutral()
+        self.assertIsInstance(self.neutral_rate_coefficient.neutral_impact_loss_np, numpy.ndarray, msg='The neutral '
+                              'impact ionization terms is not in the expected format.')
+        self.assertTupleEqual(self.neutral_rate_coefficient.neutral_impact_loss_np.shape,
+                              (self.EXPECTED_NEUTRAL_COUNT, self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                               self.PROFILES['beamlet grid'].size), msg='The neutral impact '
+                              'ionization term is not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_impact_loss_np,
+                                          self.EXPECTED_NEUTRAL_LOSS_TERMS, self.EXPECTED_DECIMAL_PRECISION_4,
+                                          err_msg='Interpolation failure for neutral impact loss.')
+
+    def test_neutral_impact_transition(self):
+        self.setup_neutral()
+        self.assertIsInstance(self.neutral_rate_coefficient.neutral_impact_trans_np, numpy.ndarray, msg='The neutral '
+                              'impact transition terms is not in the expected format.')
+        self.assertTupleEqual(self.neutral_rate_coefficient.neutral_impact_trans_np.shape,
+                              (self.EXPECTED_NEUTRAL_COUNT, self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                               self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                               self.PROFILES['beamlet grid'].size), msg='The neutral impact '
+                              'transition term is not dimensionally accurate.')
+        numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_impact_trans_np,
+                                          self.EXPECTED_NEUTRAL_TRANS_TERMS, self.EXPECTED_DECIMAL_PRECISION_4,
+                                          err_msg='Interpolation failure for neutral impact transition.')
+
+    def test_neutral_assembly(self):
+        self.setup_neutral()
+        self.assertIsInstance(self.neutral_rate_coefficient.neutral_terms, numpy.ndarray,
+                              msg='The neutral rate term is not in the expected format.')
+        self.assertTupleEqual(self.neutral_rate_coefficient.neutral_terms.shape, (self.EXPECTED_NEUTRAL_COUNT,
+                              self.EXPECTED_NEUTRAL_ATOMIC_LEVELS, self.EXPECTED_NEUTRAL_ATOMIC_LEVELS,
+                              self.PROFILES['beamlet grid'].size),
+                              msg='The neutral term is dimensionally not accurate.')
+        numpy.testing.assert_almost_equal(self.neutral_rate_coefficient.neutral_terms, self.EXPECTED_NEUTRAL_TERMS,
+                                          self.EXPECTED_DECIMAL_PRECISION_6, err_msg='Neutral term assembly failed.')
+
+    def _build_beamlet_input(self):
+        input_gen = BeamletInput(energy=60, projectile='dummy', param_name='Coefficient Matrix Test',
+                                 source='Unittest', current=0.001)
+        input_gen.add_grid(self.INPUT_GRID)
+        input_gen.add_target_profiles(charge=-1, atomic_number=0, mass_number=0, molecule_name=None,
+                                      density=self.INPUT_DENSITY, temperature=self.INPUT_TEMPERATURE)
+        for index in range(len(self.INPUT_q)):
+            input_gen.add_target_profiles(charge=self.INPUT_q[index], atomic_number=self.INPUT_z[index],
+                                          mass_number=self.INPUT_a[index], molecule_name=self.INPUT_m[index],
+                                          density=self.INPUT_DENSITY*self.INPUT_a[index],
+                                          temperature=self.INPUT_TEMPERATURE)
+        return input_gen.get_beamlet_input()
+
+    def _build_beamlet_neutral_input(self):
+        input_gen = BeamletInput(energy=50, projectile='H', param_name='Coefficient Neutral Matrix Test',
+                                 source='Unittest', current=0.001)
+        input_gen.add_grid(self.INPUT_GRID)
+        for index in range(len(self.INPUT_neutral_q)):
+            if self.INPUT_neutral_q != 0:
+                density = self.INPUT_DENSITY * 0
+            else:
+                density = self.INPUT_DENSITY * 2
+            input_gen.add_target_profiles(charge=self.INPUT_neutral_q[index],
+                                          atomic_number=self.INPUT_neutral_z[index],
+                                          mass_number=self.INPUT_neutral_a[index],
+                                          molecule_name=self.INPUT_neutral_m[index],
+                                          density=density,
+                                          temperature=self.INPUT_TEMPERATURE)
+        return input_gen.get_beamlet_input()
+
+    def setup_neutral(self):
+        self.neutral_param, self.neutral_components, self.neutral_profiles = self._build_beamlet_neutral_input()
+        self.neutral_atomic = AtomicDB(param=self.neutral_param, components=self.neutral_components, resolution='test')
+        self.neutral_rate_coefficient = CoefficientMatrix(beamlet_param=self.neutral_param,
+                                                          beamlet_profiles=self.neutral_profiles,
+                                                          plasma_components=self.neutral_components,
+                                                          atomic_db=self.neutral_atomic)
