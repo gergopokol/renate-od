@@ -144,7 +144,7 @@ class BeamletProfiles:
     def __setup_density_axis(self, axis):
         for comp in self.components.T.keys():
             axis.plot(self.profiles['beamlet grid'], self.profiles[str(comp)]
-                      ['density']['m-3'], label=str(comp), color='b')
+                      ['density']['m-3'], label=str(comp))
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
         axis.set_ylabel('Density [1/m3]')
@@ -154,7 +154,7 @@ class BeamletProfiles:
         return axis
 
     def __setup_temperature_axis(self, axis):
-        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['temperature']['eV'], color='r',
+        axis.plot(self.profiles['beamlet grid'], self.profiles['electron']['temperature']['eV'], '--', color='r',
                   label='Electron_temperature')
         axis.plot(self.profiles['beamlet grid'], self.profiles['ion1']['temperature']['eV'], '--',
                   label='Ion_temperature', color='m')
