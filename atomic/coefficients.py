@@ -233,7 +233,7 @@ def get_Janev_params(cross):
             cross_cx = cross_section.CrossSection(transition=trans_cx,
                                                   impact_energy=e, atomic_dict=cross.atomic_dict)
             return {'param': cross_ion.function+cross_cx.function, 'eq': '114'}
-    if transition.name == 'elossRENMAR':  # From RENATE, Marshuk version.
+    if transition.name == 'elossRENMAR':  # From RENATE, Marchuk version.
         if str(transition.target) == 'e':
             if int(transition.from_level) > 3:
                 n = int(transition.from_level)
@@ -262,11 +262,43 @@ def get_Janev_params(cross):
                 return {'param': [n, y, 1.94*n**(-1.57), A, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14J'}
     if transition.name == 'ion':
         if str(transition.target) == '1H1+':
-            if int(transition.from_level) > 3:  # Does not match the plots in Janev.
+            if int(transition.from_level) == 2:
                 n = int(transition.from_level)
-                e_red = (3/n)**2*e/1e3
-                return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924,
-                                  3.1525, -1.6314, n, e_red], 'eq': '111'}
+                par = [3.933e-3, 1.8188, 1.887e-2, 6.7489e-3, 1.3768,
+                       6.8852e2, 9.6435e1, 5.6515e23]
+                e_red = e*n**2/1e3
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
+                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                return {'param': sigma, 'eq': '114'}
+            if int(transition.from_level) == 3:
+                n = int(transition.from_level)
+                par = [1.1076e-2, 1.6197, 6.7154e-3, 5.1188e-3, 1.8549, 2.3696e+2,
+                       7.8286e1, 1.0926e23]
+                e_red = e*n**2/1e3
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
+                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                return {'param': sigma, 'eq': '114'}
+            if int(transition.from_level) == 4:
+                n = int(transition.from_level)
+                par = [1.1033e-2, 1.6281, 5.5955e-3, 7.2023e-3, 1.7358, 2.2755e2,
+                       8.6339e1, 3.9151e29]
+                e_red = e*n**2/1e3
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
+                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                return {'param': sigma, 'eq': '114'}
+            if int(transition.from_level) >= 5:  # From ADAS
+                n = int(transition.from_level)
+                e_red = e*n**2/1e3
+                par = [1.1297e-2, 1.8685, 1.5038e-2, 1.1195e-1, 1.0538, 8.6096e2,
+                       8.9939e1, 1.9249e4]
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
+                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                return {'param': sigma, 'eq': '114'}
+
+                # n = int(transition.from_level) Janev printed
+                # e_red = (3/n)**2*e/1e3
+                # return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924,
+                #                   3.1525, -1.6314, n, e_red], 'eq': '111'}
     if transition.name == 'cx':
         if str(transition.target) == '1H1+':
             n = int(transition.from_level)
@@ -318,10 +350,10 @@ H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4
                       '3-6': {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881], 'eq': '18'},
                       '1-ion': {'param': [12.899, 61.897, 9.2731e+3, 4.9749e-4, 3.9890e-2,
                                           -1.590, 3.1834, -3.7154], 'eq': '16'},
-                      '2-ion': {'param': [107.63, 29.860, 1.0176e+6, 6.9713e-3, 2.8448e-2,
-                                          -1.80, 4.7852e-2, -0.20923], 'eq': '16'},
-                      '3-ion': {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2,
-                                          -0.14924, 3.1525, -1.6314], 'eq': '16'},
+                      # '2-ion': {'param': [107.63, 29.860, 1.0176e+6, 6.9713e-3, 2.8448e-2, Janev printed
+                      #                     -1.80, 4.7852e-2, -0.20923], 'eq': '16'},
+                      # '3-ion': {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2,
+                      #                     -0.14924, 3.1525, -1.6314], 'eq': '16'},
                       '1-cx': {'param': [3.2345, 235.88, 0.038371, 3.8068e-6, 1.1832e-10, 2.3713], 'eq': '112'},
                       },
              'generalized': get_Janev_params,

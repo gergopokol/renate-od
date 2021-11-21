@@ -116,9 +116,9 @@ class CrossSection(object):
     def __generate_function(self):
         trans_og_switch = False
         if self.transition.name == 'de-ex':
-            print('The crossection will be given for the excitation counterpart of \
-                  the de-excitation transition given. The appropriate scaling is done \
-                      when calculating the rate coefficients.')
+            # print('The crossection will be given for the excitation counterpart of \
+            #       the de-excitation transition given. The appropriate scaling is done \
+            #           when calculating the rate coefficients.')
             trans_og = self.transition
             trans_og_switch = True
             trans_ex = Transition(projectile=self.transition.projectile,
