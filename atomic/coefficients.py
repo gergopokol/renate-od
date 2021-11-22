@@ -158,6 +158,10 @@ def get_A(n):
     return 32*n*g/(3*3**0.5*np.pi)
 
 
+def get_chi(q):
+    return 2**(0.5238*(1-(2/q)**0.5))
+
+
 def get_Janev_params(cross):
     transition = cross.transition
     e = cross.impact_energy
@@ -205,11 +209,105 @@ def get_Janev_params(cross):
                 return {'param': [n, eps, 8/(3*s)*(m/(s*n))**3*(0.184-0.04/s**(2/3))*(1-0.2*s/(n*m))**(1+2*s),
                                   D, np.log(
                                       (1+0.53*eps**2*n*(m-2/m))/(1+0.4*eps)),
-                                  (1-0.3*s*D/(n*m))**(1+2*s), 0.5
-                                  * (eps*n**2/(m-1/m))**3,
+                                  (1-0.3*s*D/(n*m))**(1+2*s), 0.5 *
+                                  (eps*n**2/(m-1/m))**3,
                                   C(zm, y)-C(zp, y)], 'eq': '110'}
         if str(transition.target) == 'Z':
-            pass
+            if transition.from_level == '1' and transition.to_level == '2':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [38.738, 37.033, 0.39862, 7.7582e-5, 0.25402, -2.7418, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '1' and transition.to_level == '3':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [4.3619, 57.451, 21.001, 2.3292e-4, 0.083130, -2.2364, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '1' and transition.to_level == '4':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [1.3730, 60.710, 31.797, 2.0207e-4, 0.082513, -2.3055, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '1' and int(transition.to_level) > 4:
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [0.56565, 67.333, 55.290, 2.1595e-4, 0.081624, -2.1971, chi, e_red, q,
+                                  int(transition.to_level)], 'eq': '116'}
+            if transition.from_level == '2' and transition.to_level == '3':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [358.03, 25.283, 1.4726, 0.014398, 0.12207, -0.86210, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '2' and transition.to_level == '4':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [50.744, 19.416, 4.0262, 0.014398, 0.31584, -1.4799, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '2' and transition.to_level == '5':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [18.264, 18.973, 2.9056, 0.013701, 0.31711, -1.4775, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '2' and int(transition.to_level) > 5 and int(transition.to_level) < 11:
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                scaling = {'6': 0.4610, '7': 0.2475, '8': 0.1465, '9': 0.0920, '10': 0.0605}
+                return {'param': [18.264, 18.973, 2.9056, 0.013701, 0.31711, -1.4775, chi, e_red, q,
+                                  scaling[transition.to_level]], 'eq': '117'}
+            if transition.from_level == '3' and transition.to_level == '4':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [1247.5, 11.319, 2.6235, 0.068781, 0.521176, -1.2722, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '3' and transition.to_level == '5':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [190.59, 11.096, 2.9098, 0.073307, 0.54177, -1.2894, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '3' and transition.to_level == '6':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                return {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881, chi, e_red, q], 'eq': '115'}
+            if transition.from_level == '3' and int(transition.to_level) > 6 and int(transition.to_level) < 11:
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass/q
+                chi = get_chi(q)
+                scaling = {'7': 0.4670, '8': 0.2545, '9': 0.1540, '10': 0.1}
+                return {'param': [63.494, 11.507, 4.3417, 0.077953, 0.53461, -1.2881, chi, e_red, q,
+                                  scaling[transition.to_level]], 'eq': '117'}
+            if int(transition.from_level) > 3:
+                n = int(transition.from_level)
+                m = int(transition.to_level)
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                eps = e/25e3/q/mass
+                s = m-n
+                A = 8/(3*s)*(m/(s*n))**3*(0.184-0.04/s**(2/3))*(1-0.2*s/(n*m))**(1+2*s)
+                D = np.exp(-1/(n*m*eps**2))
+                L = np.log((1+0.53*eps**2*n*(m-2/m))/(1+0.4*eps))
+                F = (1-0.3*s*D/(n*m))**(1+2*s)
+                G = 0.5*(eps*n**2/(m-1/m))**3
+                zp = 2/(eps*n**2*((2-n**2/m**2)**0.5+1))
+                zm = 2/(eps*n**2*((2-n**2/m**2)**0.5-1))
+                y = 1/(1-D*np.log(18*s)/(4*s))
+                def C(z, z1): return z**2*np.log(1+2*z/3)/(2*z1+3*z/2)
+                chi = 2**(0.322*(1-(2/q)**0.5))
+                return {'param': [n, eps, A, D, L, F, G, C(zm, y)-C(zp, y), chi, q], 'eq': '118'}
     if transition.name == 'eloss':
         if str(transition.target) == 'e':
             if int(transition.from_level) > 3:  # From RENATE, Johnson version.
@@ -219,7 +317,7 @@ def get_Janev_params(cross):
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 A = get_A(n)
                 return {'param': [n, y, 1.94*n**(-1.57), A, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14'}
-        if str(transition.target) == '1H1+':
+        if str(transition.target) == '1H1+' or str(transition.target) == 'Z':
             trans_ion = tools.Transition(projectile=transition.projectile,
                                          target=transition.target,
                                          from_level=transition.from_level,
@@ -267,38 +365,48 @@ def get_Janev_params(cross):
                 par = [3.933e-3, 1.8188, 1.887e-2, 6.7489e-3, 1.3768,
                        6.8852e2, 9.6435e1, 5.6515e23]
                 e_red = e*n**2/1e3
-                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
-                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4]) +
+                                           par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
                 return {'param': sigma, 'eq': '114'}
             if int(transition.from_level) == 3:
                 n = int(transition.from_level)
                 par = [1.1076e-2, 1.6197, 6.7154e-3, 5.1188e-3, 1.8549, 2.3696e+2,
                        7.8286e1, 1.0926e23]
                 e_red = e*n**2/1e3
-                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
-                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4]) +
+                                           par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
                 return {'param': sigma, 'eq': '114'}
             if int(transition.from_level) == 4:
                 n = int(transition.from_level)
                 par = [1.1033e-2, 1.6281, 5.5955e-3, 7.2023e-3, 1.7358, 2.2755e2,
                        8.6339e1, 3.9151e29]
                 e_red = e*n**2/1e3
-                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
-                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4]) +
+                                           par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
                 return {'param': sigma, 'eq': '114'}
             if int(transition.from_level) >= 5:  # From ADAS
                 n = int(transition.from_level)
                 e_red = e*n**2/1e3
                 par = [1.1297e-2, 1.8685, 1.5038e-2, 1.1195e-1, 1.0538, 8.6096e2,
                        8.9939e1, 1.9249e4]
-                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4])
-                                           + par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
+                sigma = n**4*1e-16*par[0]*(e_red**par[1]*np.exp(-par[2]*e_red)/(1+par[3]*e_red**par[4]) +
+                                           par[5]*np.exp(-par[6]/e_red)*np.log(1+par[7]*e_red)/e_red)
                 return {'param': sigma, 'eq': '114'}
 
                 # n = int(transition.from_level) Janev printed
                 # e_red = (3/n)**2*e/1e3
                 # return {'param': [336.26, 13.608, 4.9910e+3, 3.0560e-1, 6.4364e-2, -0.14924,
                 #                   3.1525, -1.6314, n, e_red], 'eq': '111'}
+        if str(transition.target) == 'Z':
+            if transition.from_level == '1':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                return {'param': [1, 0.76, 0.283, 4.04, 0.662, 137, e/1000/mass/25, q], 'eq': '119'}
+            if int(transition.from_level) > 1:
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                n = int(transition.from_level)
+                return {'param': [n, 0.76, 0.283, 4.04, 0.662, 137, n**2*e/1000/mass/25, q], 'eq': '119'}
     if transition.name == 'cx':
         if str(transition.target) == '1H1+':
             n = int(transition.from_level)
@@ -311,6 +419,18 @@ def get_Janev_params(cross):
             if n >= 4:
                 e_red = e*n**2/1e3
                 return {'param': [0.21336, 1.0e+10, 1.8184e-3, 1.3426e+6, n, e_red], 'eq': '113'}
+        if str(transition.target) == 'Z':
+            if transition.from_level == '1':
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                e_red = e/1000/mass*(1/q**(0.5))
+                return {'param': [0.73362, 2.9391e4, 41.8648, 7.1023e-3, 3.4749e-6, 1.1832e-10, e_red, q], 'eq': '120'}
+            if int(transition.from_level) > 1:
+                mass = transition.target.mass_number
+                q = transition.target.charge
+                n = int(transition.from_level)
+                e_red = e/1000/mass*n**2/q**0.5
+                return {'param': [1.507e5, 1.974e-5, n, q, e_red], 'eq': '121'}
 
 
 def H_deex_modifier(rate):
@@ -356,6 +476,7 @@ H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4
                       #                     -0.14924, 3.1525, -1.6314], 'eq': '16'},
                       '1-cx': {'param': [3.2345, 235.88, 0.038371, 3.8068e-6, 1.1832e-10, 2.3713], 'eq': '112'},
                       },
+             'Z': {},
              'generalized': get_Janev_params,
              'de-ex': H_deex_modifier}
 
