@@ -150,7 +150,9 @@ class Transition(object):
 
 class RENATE_H_hdf_generator():
 
-    def __init__(self, atomic_dict):
+    def __init__(self, beamenergy, temperature, atomic_dict):
+        self.beamenergy = beamenergy
+        self.T = temperature
         self.atomic_dict = atomic_dict
         self.max_level = 6
         self.einsteins = np.array([[0.0000e+00, 4.6986e+08, 5.5751e+07, 1.2785e+07, 4.1250e+06,
@@ -177,6 +179,13 @@ class RENATE_H_hdf_generator():
             for i in range(len(self.T)):
                 matrix[:, i] = self.__get_eloss_rate_matrix(projectile, target, self.T[i])
             return matrix
+
+    def __build_impurity_rate_matrix(self, mx_type, projectile):
+        matrix = []
+        for q in range(2, 12):
+            target = Ion(label='Z', mass_number=2*q, atomic_number=q, charge=q)
+            matrix.append(self.__build_rate_matrix(mx_type, projectile, target))
+        return np.array(matrix)
 
     def __get_rate_matrix(self, projectile, target, t):
         E_range = self.__get_energy_range(t, target.mass, projectile.mass)
@@ -208,22 +217,20 @@ class RENATE_H_hdf_generator():
             rate_matrix[i] = rate.generate_rate(temperature=t, beamenergy=self.beamenergy)
         return rate_matrix
 
-    def __get_energy_range(self, t, m_t, m_b, minE=13.6, maxE=1e7, N=1000, k=3):
+    def __get_energy_range(self, t, m_t, m_b, minE=13.6, N=1000, k=3):
         w = np.sqrt(2*t*sc.eV/m_t)
         vb = np.sqrt(2*self.beamenergy*sc.eV/m_b)
         v_min = max(vb-k*w, 0)
         v_max = vb+k*w
         roi_start = max(0.5*m_t*v_min**2/sc.eV, minE)
-        roi_max = min(0.5*m_t*v_max**2/sc.eV, maxE)
+        roi_max = 0.5*m_t*v_max**2/sc.eV
         E_range = np.linspace(roi_start, roi_max, N)
         return E_range
 
-    def write_hdf(self, beamenergy, temperature, path='rate_coeffs_'):
+    def write_hdf(self, path='rate_coeffs_'):
         H = Atom(label='H', mass_number=1, atomic_number=1)
         el = Particle('e', charge=-1)
         prot = Ion(label='1H1+', mass_number=1, atomic_number=1, charge=1)
-        self.beamenergy = beamenergy
-        self.T = temperature
 
         self.filename = path+str(int(self.beamenergy/1000))+'_H.h5'
         rate_data = h5py.File(self.filename, "w")
@@ -233,16 +240,16 @@ class RENATE_H_hdf_generator():
         rate_data.create_dataset('Einstein Coeffs', dtype='<f4', data=self.einsteins)
         rate_data.create_dataset('Temperature axis', dtype='<f8', data=self.T)
         self.impurity_collisions = rate_data.create_dataset('Impurity Collisions', dtype='<i2', data=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-        self.impur_neutral = rate_data.create_dataset('Collisional Coeffs/Impurity Neutral Collisions', dtype='<f8', data=np.zeros((10, 6, 6, 400)))
+        self.impur_neutral = self.__build_impurity_rate_matrix('collisional', H)
+        rate_data.create_dataset('Collisional Coeffs/Impurity Neutral Collisions', dtype='<f8', data=self.impur_neutral)
         self.electron_neutral = self.__build_rate_matrix('collisional', H, el)
         rate_data.create_dataset('Collisional Coeffs/Electron Neutral Collisions', dtype='<f8', data=self.electron_neutral)
         self.proton_neutral = self.__build_rate_matrix('collisional', H, prot)
         rate_data.create_dataset('Collisional Coeffs/Proton Neutral Collisions', dtype='<f8', data=self.proton_neutral)
-        e_eloss = self.__build_rate_matrix('eloss', H, el)
-        p_eloss = self.__build_rate_matrix('eloss', H, prot)
         eloss = np.zeros((12, 6, 400), dtype='float')
-        eloss[0, :, :] = e_eloss
-        eloss[1, :, :] = p_eloss
+        eloss[0, :, :] = self.__build_rate_matrix('eloss', H, el)
+        eloss[1, :, :] = self.__build_rate_matrix('eloss', H, prot)
+        eloss[2:, :, :] = self.__build_impurity_rate_matrix('eloss', H)
         self.eloss = eloss
         rate_data.create_dataset('Collisional Coeffs/Electron Loss Collisions', dtype='<f8', data=self.eloss)
         rate_data.close()

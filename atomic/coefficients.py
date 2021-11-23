@@ -439,7 +439,7 @@ def H_deex_modifier(rate):
     if str(rate.transition.target) == 'e':
         deltaE = 13.605693122994*(1/g1-1/g2)
         return rate.rate*g1/g2*np.exp(deltaE/rate.temperature)
-    if str(rate.transition.target) == '1H1+':
+    if str(rate.transition.target) == '1H1+' or str(rate.transition.target) == 'Z':
         return rate.rate*g1/g2
 
 
