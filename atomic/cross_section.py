@@ -17,102 +17,121 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
                                          par[3]*(1-(par[0]/x))**2 + par[4]*(1-(par[0]/x))**3)/(par[0]*x),
               # [1] eq. on p165, electron - impact ionization for 2s
 
-              '1': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(par[0]/x)) +
-                                         par[3]*(1-(par[0]/x))**2 + par[4]*(1-(par[0]/x))**3 +
-                                         par[5]*(1-(par[0]/x))**4 + par[6]*(1-(par[0]/x))**5)/(par[0]*x),
+              '1': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(par[0]/x))
+                                         + par[3]*(1-(par[0]/x))**2 + par[4]*(1-(par[0]/x))**3
+                                         + par[5]*(1-(par[0]/x))**4 + par[6]*(1-(par[0]/x))**5)/(par[0]*x),
               # [2] eq.(2) electron impact ionisation for n <= 3
 
-              '2': lambda x, par: 5.984*1e-16/x * ((x - par[0])/x)**par[6] * (par[1] + par[2]/(x/par[0]) +
-                                                                              par[3]/(x/par[0])**2 + par[4] /
-                                                                              (x/par[0])**3 + par[5]*np.log(x/par[0])),
+              '2': lambda x, par: 5.984*1e-16/x * ((x - par[0])/x)**par[6] * (par[1] + par[2]/(x/par[0])
+                                                                              + par[3]/(x/par[0])**2 + par[4]
+                                                                              / (x/par[0])**3 + par[5]*np.log(x/par[0])),
               # [1,2] eq.(1) electron impact excitation
 
-              '3': lambda x, par: 1e-14*(4*1*(np.log(x/par[0]))*(1-0.7*np.exp(-2.4*((x/par[0])-1)))/(x*par[0]) +
-                                         2*4.2*(np.log(x/58))*(1-0.6*np.exp(-0.6*((x/58)-1)))/(x*58)),
+              '3': lambda x, par: 1e-14*(4*1*(np.log(x/par[0]))*(1-0.7*np.exp(-2.4*((x/par[0])-1)))/(x*par[0])
+                                         + 2*4.2*(np.log(x/58))*(1-0.6*np.exp(-0.6*((x/58)-1)))/(x*58)),
               # [1] eq on p166 electron impact ionization for n,l > 2s
 
-              '10': lambda e, par: 5.984e-16/e*(par[0]+par[1]/(e/10.2)+par[2]/(e/10.2)**2 +
-                                                par[3]/(e/10.2)**3+par[4]/(e/10.2)**4+par[5]*np.log(e/10.2)),
+              '10': lambda e, par: 5.984e-16/e*(par[0]+par[1]/(e/10.2)+par[2]/(e/10.2)**2
+                                                + par[3]/(e/10.2)**3+par[4]/(e/10.2)**4+par[5]*np.log(e/10.2)),
               # [4] e[eV]>12.23 eV
 
-              '11': lambda e, par: 5.984e-16/e*((e-par[6])/e)**par[5]*(par[0]+par[1]/(e/par[6])+par[2]/(e/par[6])**2 +
-                                                                       par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
+              '11': lambda e, par: 5.984e-16/e*((e-par[6])/e)**par[5]*(par[0]+par[1]/(e/par[6])+par[2]/(e/par[6])**2
+                                                                       + par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
               # [4] e[eV]>par[6]
 
-              '12': lambda e, par: 1.76e-16*par[0]**2/(par[2]*e/par[6])*(1-np.exp(-1*par[3]*par[2]*e/par[6])) *
-                                (par[4]*(np.log(e/par[6])+1/(2*e/par[6])) +
-                                 (par[5]-par[4] * np.log(2*par[0]**2/par[2]))*(1-1/(e/par[6]))),
+              '12': lambda e, par: 1.76e-16*par[0]**2/(par[2]*e/par[6])*(1-np.exp(-1*par[3]*par[2]*e/par[6]))
+                                * (par[4]*(np.log(e/par[6])+1/(2*e/par[6]))
+                                 + (par[5]-par[4] * np.log(2*par[0]**2/par[2]))*(1-1/(e/par[6]))),
               # [4] e[eV]>par[6]
 
-              '13': lambda e, par: 1e-13/(e*par[6])*(par[0]*np.log(e/par[6])+par[1]*(1-par[6]/e) +
-                                                     par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3 +
-                                                     par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
+              '13': lambda e, par: 1e-13/(e*par[6])*(par[0]*np.log(e/par[6])+par[1]*(1-par[6]/e)
+                                                     + par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3
+                                                     + par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
               # [4] e[eV]>13.6 eV
 
-              '14J': lambda e, par: 1.76e-16/(e/par[5])*(1-np.exp(-par[2]*e/par[5])) *
-              (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
+              '14J': lambda e, par: 1.76e-16/(e/par[5])*(1-np.exp(-par[2]*e/par[5]))
+              * (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
               # [4] e[eV]>par[5]
 
-              '14': lambda e, par: 1.76e-16*par[0]**2/(e/par[5])*(1-np.exp(-par[2]*e/par[5])) *
-              (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
+              '14': lambda e, par: 1.76e-16*par[0]**2/(e/par[5])*(1-np.exp(-par[2]*e/par[5]))
+              * (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
               # [4] e[eV]>par[5]
 
-              '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+par[3] *
-                                                 np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]+par[6]*np.exp(-par[7]/(e/1e3)) /
-                                                 (1+par[8]*(e/1e3)**par[9])),
+              '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)+par[3]
+                                                 * np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]+par[6]*np.exp(-par[7]/(e/1e3))
+                                                 / (1+par[8]*(e/1e3)**par[9])),
               # [4] e[eV]>0.6 keV
 
-              '16': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
-                                                 par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
+              '16': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)
+                                                 + par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
               # [4] e[eV]>0.5 keV
 
-              '17': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
-                                                               par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
+              '17': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)
+                                                               + par[3]*np.exp(-par[4]*e/1e3)/((e/1e3)**par[5]+par[6]*(e/1e3)**par[7])),
               # [4] e[eV]>0.5 keV
 
-              '18': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
-                                                 par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
+              '18': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)
+                                                 + par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
               # [4] e[eV]>0.5 keV
-              '19': lambda e, par: par[6]*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3) +
-                                                        par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
+              '19': lambda e, par: par[6]*1e-16*par[0]*(np.exp(-par[1]/(e/1e3))*np.log(1+par[2]*e/1e3)/(e/1e3)
+                                                        + par[3]*np.exp(-par[4]*e/1e3)/(e/1e3)**par[5]),
               # [4] e[eV]>0.5 keV
 
               '110': lambda e, par: 8.8e-17*par[0]**4/par[1]*(par[2]*par[3]*par[4]+par[5]*par[6]*par[7]),
               # [4] e[eV]>0.1 keV
 
-              '111': lambda e, par: (par[8]/3)**4*1e-16*par[0]*(np.exp(-par[1]/(par[9])) *
-                                                                np.log(1+par[2]*par[9])/(par[9]) +
-                                                                par[3]*np.exp(-par[4]*par[9]) /
-                                                                ((par[9])**par[5]+par[6]*(par[9])**par[7])),
+              '111': lambda e, par: (par[8]/3)**4*1e-16*par[0]*(np.exp(-par[1]/(par[9]))
+                                                                * np.log(1+par[2]*par[9])/(par[9])
+                                                                + par[3]*np.exp(-par[4]*par[9])
+                                                                / ((par[9])**par[5]+par[6]*(par[9])**par[7])),
               # [4] e[eV]>0.1 keV
 
-              '112': lambda e, par: 1e-16*par[0]*np.log(par[1]/(e/1e3)+par[5])/(1+par[2]*e/1e3+par[3]*(e/1e3)**3.5 +
-                                                                                par[4]*(e/1e3)**5.4),
+              '112': lambda e, par: 1e-16*par[0]*np.log(par[1]/(e/1e3)+par[5])/(1+par[2]*e/1e3+par[3]*(e/1e3)**3.5
+                                                                                + par[4]*(e/1e3)**5.4),
               # [4] e[eV]>1 eV
 
-              '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3]) /
-                                    (1+par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
+              '113': lambda e, par: par[4]**4*1e-16*par[0]*np.log(par[1]/par[5]+par[3])
+                                    / (1+par[2]*par[5]+3.0842e-6*par[5]**3.5+1.1832e-10*par[5]**5.4),
               # [4] e[eV]>1 eV
 
               '114': lambda e, par: par,  # de-excitation
 
-              '115': lambda e, par: par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7] +
-                                                                par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
+              '115': lambda e, par: par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7]
+                                                                + par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
               # [4] e[eV]>1 keV
 
-              '116': lambda e, par: (5/par[9])**3*par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7] +
-                                                                              par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
+              '116': lambda e, par: (5/par[9])**3*par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7]
+                                                                              + par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
 
-              '117': lambda e, par: par[9]*par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7] +
-                                                                       par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
+              '117': lambda e, par: par[9]*par[8]*1e-16*par[6]*par[0]*(np.exp(-par[1]/par[7])*np.log(1+par[2]*par[7])/par[7]
+                                                                       + par[3]*np.exp(-par[4]*par[7])/par[7]**par[5]),
 
               '118': lambda e, par: par[9]*par[8]*8.86e-17*par[0]**4/par[1]*(par[2]*par[3]*par[4]+par[5]*par[6]*par[7]),
 
-              '119': lambda e, par: np.exp(-par[1]*par[7]/par[6])*par[0]**4*3.52e-16*par[7]**2/par[6]*(par[2]*(np.log(par[6]/(par[5]**2-par[6])) -
-                                                                                                               par[6]/par[5]**2)+par[3]-par[4]/par[6]),
+              '119': lambda e, par: np.exp(-par[1]*par[7]/par[6])*par[0]**4*3.52e-16*par[7]**2/par[6]*(par[2]*(np.log(par[6]/(par[5]**2-par[6]))
+                                                                                                               - par[6]/par[5]**2)+par[3]-par[4]/par[6]),
               '120': lambda e, par: par[7]*1e-16*par[0]*np.log(par[1]/par[6]+par[2])/(1+par[3]*par[6]+par[4]*par[6]**3.5+par[7]*par[6]**5.4),
-              '121': lambda e, par: par[2]**4*par[3]*7.04e-16*par[0]/(par[4]**3.5*(1+par[1]*par[4]**2))*(1-np.exp(-2*par[4]**3.5*(1+par[1]*par[4]**2)
-                                                                                                                  / 3*par[0]))
+              '121': lambda e, par: par[2]**4*par[3]*7.04e-16*par[0]/(par[4]**3.5*(1+par[1]*par[4]**2))*(1-np.exp(-2*par[4]**3.5*(1+par[1]*par[4]**2) /
+                                                                                                                  3*par[0])),
+              '122': lambda e, par: par[8]**4*par[7]*1e-16*par[0]*np.log(par[1]/par[6]+par[2])/(1+par[3]*par[6]+par[4]*par[6]**3.5+par[7]*par[6]**5.4),
+              '123': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/par[10])*np.log(1+par[2]*par[10])/(par[10])+par[3]
+                                                 * np.exp(-par[4]*par[10])/(par[10])**par[5]+par[6]*np.exp(-par[7]/(par[10]))
+                                                  / (1+par[8]*(par[10])**par[9])),
+              # same as 15
+              '124': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(par[8]))*np.log(1+par[2]*par[8])/(par[8])
+                                                  + par[3]*np.exp(-par[4]*par[8])/((par[8])**par[5]+par[6]*(par[8])**par[7])),
+              # same as 16
+              '125': lambda e, par: (6/par[8])**3*1e-16*par[0]*(np.exp(-par[1]/(par[9]))*np.log(1+par[2]*par[9])/(par[9])
+                                                                + par[3]*np.exp(-par[4]*par[9])/((par[9])**par[5]+par[6]*(par[9])**par[7])),
+              # same as 17
+              '126': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/(par[6]))*np.log(1+par[2]*par[6])/(par[6])
+                                                  + par[3]*np.exp(-par[4]*par[6])/(par[6])**par[5]),
+              # same as 18
+              '127': lambda e, par: par[7]*1e-16*par[0]*(np.exp(-par[1]/(par[6]))*np.log(1+par[2]*par[6])/(par[6])
+                                                         + par[3]*np.exp(-par[4]*par[6])/(par[6])**par[5]),
+              # same as 19
+              '128': lambda e, par: 1.76e-16*par[0]**4/par[1]*(par[2]*par[3]*par[4]+par[5]*par[6]*par[7]),
+              # same as 110
               }
 
 
@@ -178,8 +197,8 @@ class RateCoeff:
         E_range = self.crossection.impact_energy
         v = np.sqrt(2*E_range*sc.eV/m_t)
         self.velocity = v
-        kernel = v**2*self.crossection.function*(np.exp(-((v-v_b)/w)**2) -
-                                                 np.exp(-((v+v_b)/w)**2))/(np.sqrt(np.pi)*w*v_b**2)
+        kernel = v**2*self.crossection.function*(np.exp(-((v-v_b)/w)**2)
+                                                 - np.exp(-((v+v_b)/w)**2))/(np.sqrt(np.pi)*w*v_b**2)
         self.kernel = kernel
 
         self.rate = np.trapz(self.kernel, self.velocity)
