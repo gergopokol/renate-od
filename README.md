@@ -6,10 +6,13 @@ Responsible developers:
 * [Ors Asztalos](https://github.com/asztalosors)
 
 Contributors:
-* Borbala Szondy
-* Matt Carr
-* Andorfi Istvan
-* Gergely Mindler
+* Istvan, Andorfi
+* Matyas, Aradi
+* Peter, Balazs
+* Matt, Carr
+* Istvan, Farkas
+* Gergely, Mindler
+* Borbala, Szondy
 
 Code information is available in [RENATE-OD.info](RENATE-OD.info)
 
