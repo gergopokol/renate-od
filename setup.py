@@ -1,4 +1,4 @@
-
+from utility.manage import CodeInfo
 from setuptools import setup, find_packages, Extension
 import sys
 import numpy
@@ -66,20 +66,16 @@ else:
                     extensions.append(Extension(module, [c_file], include_dirs=compilation_includes,
                                                 extra_compile_args=compilation_args),)
 
+Info = CodeInfo()
 
 setup(
-    name="renate-od",
-    license="LGPL-3.0",
-    version='1.1.0',
-    description='RENATE Open Diagnostics',
-    classifiers=[
-        "Intended Audience :: Science/Research",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3",
-        "Topic :: Scientific/Engineering :: Physics"
-    ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'lxml', 'h5py'],
-    packages=['renate'],
+    name=Info.code_abbreviation,
+    license=Info.code_license,
+    version=str(Info.code_version),
+    description=Info.code_name,
+    classifiers=Info.classifiers,
+    install_requires=list(Info.code_requirements.keys()),
+    packages=[Info.code_package],
     zip_safe=False,
     ext_modules=extensions
 )

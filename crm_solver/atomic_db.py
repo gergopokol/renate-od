@@ -5,6 +5,7 @@ import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import pandas
+from crm_solver.neutral_db import NeutralDB
 
 
 class RenateDB:
@@ -57,7 +58,7 @@ class RenateDB:
         if self.species not in ['H', 'D', 'T', 'Li', 'Na', 'dummy']:
             raise Exception(self.species + ' beam atomic data not supported')
         if self.species in ['H', 'D', 'T']:
-            self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
+            self.atomic_dict = {'1n': 0, '2n': 1, '3n': 2, '4n': 3, '5n': 4, '6n': 5}
             self.atomic_levels = 6
         if self.species == 'Li':
             self.atomic_dict = {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8}
@@ -73,7 +74,7 @@ class RenateDB:
     def __set_rates_path(self, rate_type):
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
-        self.rates_path = getdata.locate_rates_dir(self.species, rate_type) + self.file_name
+        self.rates_path = 'atomic_data/'+self.species+'/rates/'+rate_type+'/'+self.file_name
 
     def __set_charge_state_lib(self):
         impact_loss = self.get_from_renate_atomic('ionization_terms')
@@ -88,13 +89,13 @@ class RenateDB:
 
     def set_default_atomic_levels(self):
         if self.species in ['H', 'D', 'T']:
-            return '3', '2', '1', '3-2'
+            return '3n', '2n', '1n', '3n-->2n'
         elif self.species == 'Li':
-            return '2p', '2s', '2s', '2p-2s'
+            return '2p', '2s', '2s', '2p-->2s'
         elif self.species == 'Na':
-            return '3p', '3s', '3s', '3p-3s'
+            return '3p', '3s', '3s', '3p-->3s'
         elif self.species == 'dummy':
-            return '1', '0', '0', '1-0'
+            return '1', '0', '0', '1-->0'
         else:
             raise ValueError('The atomic species: ' + self.species + ' is not supported')
 
@@ -117,16 +118,48 @@ class RenateDB:
 
 
 class AtomicDB(RenateDB):
-    def __init__(self, atomic_source='renate', param=None, rate_type='default',
-                 data_path='beamlet/testimp0001.xml', components=None):
+    def __init__(self, atomic_source='renate', param=None, rate_type='default', resolution=None,
+                 data_path='beamlet/testimp0001.xml', components=None, atomic_ceiling=False):
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
+        self.__set_neutral_db(param=param, resolution=resolution)
         if atomic_source is 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
+            self.__set_ceiling_for_atomic_levels(atomic_ceiling=atomic_ceiling)
             self.__generate_rate_function_db()
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
+
+    def __set_neutral_db(self, param, resolution):
+        if (self.components['q'] == 0).any():
+            self.are_neutrals = True
+            self.neutral_db = NeutralDB(param=param, resolved=resolution, components=self.components)
+        else:
+            self.are_neutrals = False
+
+    def __set_ceiling_for_atomic_levels(self, atomic_ceiling):
+        if not atomic_ceiling:
+            if not self.are_neutrals:
+                self.atomic_ceiling = self.atomic_levels
+            elif self.atomic_levels <= self.neutral_db.atomic_levels:
+                self.atomic_ceiling = self.atomic_levels
+            else:
+                self.atomic_ceiling = self.neutral_db.atomic_levels
+        else:
+            if not isinstance(atomic_ceiling, int):
+                raise TypeError('The atomic ceil is considered to be and integer '
+                                'that caps the considered atomic levels.')
+            elif atomic_ceiling > self.atomic_levels:
+                raise ValueError('The atomic ceil can not be above available atomic levels. '
+                                 'Current max nr of supported levels are ' + str(self.atomic_levels))
+            elif self.are_neutrals:
+                if atomic_ceiling > self.neutral_db.atomic_levels:
+                    raise ValueError('The atomic ceil can not be above available neutral atomic levels. '
+                                     'Current max nr of supported levels for neutrals are ' + \
+                                     str(self.neutral_db.atomic_levels))
+            else:
+                self.atomic_ceiling = atomic_ceiling
 
     def __generate_rate_function_db(self):
         self.__set_temperature_axis()
@@ -155,12 +188,12 @@ class AtomicDB(RenateDB):
         '''''
         raw_impact_loss_transition = self.get_from_renate_atomic('ionization_terms')
         self.electron_impact_loss, self.ion_impact_loss = [], []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
             self.electron_impact_loss.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                 raw_impact_loss_transition[0, from_level, :]), fill_value='extrapolate'))
             for target in self.components.T.keys():
-                if target != 'electron':
+                if not (target != 'electron') ^ (not('neutral' in target)):
                     from_level_functions.append(self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
                         raw_impact_loss_transition[self.components['q'][target], from_level, :]), target))
             self.ion_impact_loss.append(tuple(from_level_functions))
@@ -173,9 +206,9 @@ class AtomicDB(RenateDB):
         '''''
         raw_electron_transition = self.get_from_renate_atomic('electron_transition')
         self.electron_impact_trans = []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
-            for to_level in range(self.atomic_levels):
+            for to_level in range(self.atomic_ceiling):
                 from_level_functions.append(interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                     raw_electron_transition[from_level, to_level, :]), fill_value='extrapolate'))
             self.electron_impact_trans.append(tuple(from_level_functions))
@@ -189,9 +222,9 @@ class AtomicDB(RenateDB):
         raw_proton_transition = self.get_from_renate_atomic('ion_transition')
         raw_impurity_transition = self.get_from_renate_atomic('impurity_transition')
         self.ion_impact_trans = []
-        for from_level in range(self.atomic_levels):
+        for from_level in range(self.atomic_ceiling):
             from_level_functions = []
-            for to_level in range(self.atomic_levels):
+            for to_level in range(self.atomic_ceiling):
                 to_level_functions = []
                 for target in self.components.T.keys():
                     if self.components['q'][target] == 1:

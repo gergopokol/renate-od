@@ -2,14 +2,15 @@ import os
 import urllib.request
 import pandas
 import h5py
+import numpy
 from lxml import etree
-from utility import convert
+from utility.accessdata import AccessData
 
 
 DEFAULT_SETUP = 'getdata_setup.xml'
 
 
-class GetData:
+class GetData(AccessData):
     """
     This class is to access and load data from files. It looks for data in the following order:
     1. Common local data path
@@ -23,7 +24,7 @@ class GetData:
     """
 
     def __init__(self,
-                 data_path_name="test.txt",
+                 data_path_name=None,
                  data_key=[],
                  data_format="pandas"):
         """
@@ -32,39 +33,13 @@ class GetData:
         :param data_key: List of keys specifying the groups at the subsequent levels of the hierarchy
         :param data_format: Specifies output data format if ambiguous for the given file type
         """
-
-        self.data_path_name = data_path_name
-        self.data_key = data_key
+        AccessData.__init__(self, data_path_name)
         self.data_format = data_format
-
-        self.read_setup()
-        self.path_setup()
-
-        self.access_path = ''
+        if self.data_path_name is None:
+            raise ValueError('Variable: data_path_name is not defined!')
+        self.data_key = data_key
         self.data = ''
         self.read_data()
-
-    def read_setup(self, setup_path_name=None):
-
-        if not setup_path_name:
-            setup_path_name = os.path.join(os.path.dirname(__file__), DEFAULT_SETUP)
-
-        tree = etree.parse(setup_path_name)
-        body = tree.getroot().find('body')
-        self.dummy_directory = body.find('dummy_directory').text
-        self.common_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
-                                                        body.find('common_local_data_directory').text)
-        self.user_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
-                                                      body.find('user_local_data_directory').text)
-        self.server_private_address = body.find('server_private_address').text
-        self.private_key = body.find('private_key').text
-        self.server_public_address = body.find('server_public_address').text
-        self.contact_address = body.find('contact_address').text
-
-    def path_setup(self):
-        self.common_local_data_path = os.path.join(self.common_local_data_directory, self.data_path_name)
-        self.user_local_data_path = os.path.join(self.user_local_data_directory, self.data_path_name)
-        self.user_local_dummy_path = os.path.join(self.user_local_data_directory, self.dummy_directory, self.data_path_name)
 
     def read_data(self):
         """
@@ -79,13 +54,16 @@ class GetData:
                 else:
                     self.read_h5_to_array()
             elif self.data_path_name.endswith('.txt'):
-                self.read_txt()
+                if self.data_format == "array":
+                    self.read_txt_to_array()
+                else:
+                    self.read_txt_to_str()
             elif self.data_path_name.endswith('.xml'):
                 self.read_xml()
             else:
                 print('NO data read from file: ' + self.access_path)
         else:
-            raise OSError
+            raise FileNotFoundError('The requested file: ' + self.data_path_name + ' does not exist! Check input!')
 
     def read_h5_to_pandas(self):
         try:
@@ -123,10 +101,14 @@ class GetData:
             print("Data could NOT be read to array from HD5 file: " + self.access_path +
                   " with key: " + str(self.data_key) + '. Check if the key sequence fits the groups of the HDF5 file!')
 
-    def read_txt(self):
+    def read_txt_to_str(self):
         with open(self.access_path, 'r') as file:
             self.data = file.read()
             print('Data read to string from: ' + self.access_path)
+
+    def read_txt_to_array(self):
+        self.data = numpy.loadtxt(self.access_path)
+        print('Data read to numpy array from : ' + self.access_path)
 
     def read_xml(self):
         if not self.data_key:
@@ -152,130 +134,37 @@ class GetData:
             return True
         elif self.check_user_local_data_path():
             return True
-        elif self.get_private_data():
+        elif self.check_private_server_data_path():
+            self.download_private_data()
             return True
         elif self.check_user_local_dummy_path():
             return True
-        elif self.get_public_data():
+        elif self.check_public_server_data_path():
+            self.download_public_data()
             return True
         else:
             print('Error: No data source available!')
             self.contact_us()
             return False
 
-    def contact_us(self):
-        print('\nFor further info and data please contact us: \n\tmailto:' + self.contact_address)
-
-    def check_common_local_data_path(self):
-        if os.path.isfile(self.common_local_data_path):
-            self.access_path = self.common_local_data_path
-            print('Data is located in the common local directory: ' + self.common_local_data_path)
-            return True
-        else:
-            print('Data is NOT located in the common local directory: ' + self.common_local_data_path)
-            return False
-
-    def check_user_local_data_path(self):
-        if os.path.isfile(self.user_local_data_path):
-            self.access_path = self.user_local_data_path
-            print('Data is located in the user local directory: ' + self.user_local_data_path)
-            return True
-        else:
-            print('Data is NOT present in the user local directory: ' + self.user_local_data_path)
-            return False
-
-    def get_private_data(self):
-        server_private_path = self.server_private_address + '/' + self.data_path_name
+    def download_private_data(self):
         self.ensure_dir(self.user_local_data_path)
-        print('Attempting to download from server: ' + server_private_path)
-        try:
-            if os.name == 'posix':
-                scp_answer = os.system('scp -i "%s" -o "BatchMode yes" "%s" "%s"' % (self.private_key,
-                                                                                     server_private_path,
-                                                                                     self.user_local_data_path))
-            else:
-                scp_answer = os.system('pscp -batch -scp -i "%s" "%s" "%s"' % (self.private_key, server_private_path,
-                                                                               self.user_local_data_path))
-        except:
-            scp_answer = 1
-        if scp_answer == 0:
-            self.access_path = self.user_local_data_path
-            print('Data has been downloaded from the server to the user local directory: ' + self.user_local_data_path)
-            return True
-        else:
-            print('Warning: Could not read data from server: ' + server_private_path)
-            return False
+        print('Attempting to download from server: ' + self.server_private_path)
+        self.connect(protocol='scp')
+        self.scp.get(self.server_private_path, self.user_local_data_path)
+        self.disconnect()
+        self.access_path = self.user_local_data_path
+        print('Private data was downloaded from private server to: ' + self.access_path)
 
-    def check_user_local_dummy_path(self):
-        if os.path.isfile(self.user_local_dummy_path):
-            self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data is used from the user local directory: ' + self.user_local_dummy_path)
-            return True
-        else:
-            print('Data is NOT present in the user local dummy directory: ' + self.user_local_dummy_path)
-            return False
-
-    def get_public_data(self):
-        server_public_path = self.server_public_address + '/' + self.data_path_name
-        print('Attempting to download dummy data from public server: ' + server_public_path)
-        try:
-            self.ensure_dir(self.user_local_dummy_path)
-            urllib.request.urlretrieve(server_public_path, self.user_local_dummy_path)
-            self.access_path = self.user_local_dummy_path
-            print('Warning: Dummy data has been downloaded to the user local directory: ' + self.user_local_dummy_path)
-            return True
-        except:
-            print('Warning: Could NOT read data from: ' + server_public_path)
-            return False
+    def download_public_data(self):
+        print('Attempting to download dummy data from public server: ' + self.server_public_path)
+        self.ensure_dir(self.user_local_dummy_path)
+        urllib.request.urlretrieve(self.server_public_path, self.user_local_dummy_path)
+        self.access_path = self.user_local_dummy_path
+        print('Warning: Dummy data has been downloaded to the user local directory: ' + self.access_path)
 
     @staticmethod
     def ensure_dir(file_path):
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-
-
-def setup_rate_coeff_arrays(beamlet_energy, beamlet_species, rate_type):
-    file_name = 'rate_coeffs_' + str(beamlet_energy) + '_' + \
-                beamlet_species + '.h5'
-    data_path_name = locate_rates_dir(beamlet_species, rate_type) + file_name
-    temperature_array = GetData(data_path_name=data_path_name,
-                                                data_key=['Temperature axis'],
-                                                data_format='array').data
-    electron_neutral_collisions_array = \
-        GetData(data_path_name=data_path_name,
-                                data_key=['Collisional Coeffs/Electron Neutral Collisions'],
-                                data_format="array").data
-    proton_neutral_collisions_array = \
-        GetData(data_path_name=data_path_name,
-                                data_key=['Collisional Coeffs/Proton Neutral Collisions'],
-                                data_format="array").data
-    impurity_neutral_collisions_array = \
-        GetData(data_path_name=data_path_name,
-                                data_key=['Collisional Coeffs/Impurity Neutral Collisions'],
-                                data_format="array").data
-    electron_loss_collisions_array = \
-        GetData(data_path_name=data_path_name,
-                                data_key=['Collisional Coeffs/Electron Loss Collisions'],
-                                data_format="array").data
-    einstein_coeffs_array = GetData(data_path_name=data_path_name,
-                                                    data_key=['Einstein Coeffs'],
-                                                    data_format="array").data
-    impurity_collisions_array = GetData(data_path_name=data_path_name,
-                                                        data_key=['Impurity Collisions'],
-                                                        data_format="array").data
-    # This is to be removed when input file is in SI
-    electron_neutral_collisions_array = convert.convert_from_cm2_to_m2(electron_neutral_collisions_array)
-    proton_neutral_collisions_array = convert.convert_from_cm2_to_m2(proton_neutral_collisions_array)
-    impurity_neutral_collisions_array = convert.convert_from_cm2_to_m2(impurity_neutral_collisions_array)
-    electron_loss_collisions_array = convert.convert_from_cm2_to_m2(electron_loss_collisions_array)
-    impurity_collisions_array = convert.convert_from_cm2_to_m2(impurity_collisions_array)
-    # To-be-removed end
-    rate_coeff_arrays = [temperature_array, electron_neutral_collisions_array, proton_neutral_collisions_array,
-                         impurity_neutral_collisions_array, electron_loss_collisions_array,
-                         einstein_coeffs_array, impurity_collisions_array]
-    return rate_coeff_arrays
-
-
-def locate_rates_dir(beamlet_species, rate_type):
-    return 'atomic_data/' + beamlet_species + '/rates/' + rate_type + '/'
