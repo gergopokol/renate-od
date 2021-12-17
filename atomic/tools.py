@@ -182,7 +182,9 @@ class RENATE_H_hdf_generator():
 
     def __build_impurity_rate_matrix(self, mx_type, projectile):
         matrix = []
-        for q in range(2, 12):
+        target = Ion(label='He', mass_number=4, atomic_number=2, charge=2)
+        matrix.append(self.__build_rate_matrix(mx_type, projectile, target))
+        for q in range(3, 12):
             target = Ion(label='Z', mass_number=2*q, atomic_number=q, charge=q)
             matrix.append(self.__build_rate_matrix(mx_type, projectile, target))
         return np.array(matrix)
