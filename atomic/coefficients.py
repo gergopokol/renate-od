@@ -279,6 +279,44 @@ def get_Janev_params(cross):
                 y = 1/(1-D*np.log(18*s)/(4*s))
                 def C(z, z1): return z**2*np.log(1+2*z/3)/(2*z1+3*z/2)
                 return {'param': [n, eps, A, D, L, F, G, C(zm, y)-C(zp, y)], 'eq': '128'}
+        if str(transition.target) == 'Be':
+            if transition.from_level == '1' and transition.to_level == '2':
+                e_red = e/1e3/transition.target.mass_number
+                return {'param': [961.8, 70.386, 1.4e-2, 1.208e-6, 0.31849, -3.3516, 7.209e-3,
+                                  30.194, 2.478e-8, 8.4206, e_red], 'eq': '123'}
+            if transition.from_level == '1' and transition.to_level == '3':
+                e_red = e/1e3/transition.target.mass_number
+                return {'param': [95.728, 90.975, 0.2198, 9.6493e-7, 0.36229, -4.1912,
+                                  3.587e-2, 28.681, 5.1187e-9, 9.1415, e_red], 'eq': '123'}
+            if transition.from_level == '1' and transition.to_level == '4':
+                e_red = e/1e3/transition.target.mass_number
+                return {'param': [32.190, 86.307, 0.27496, 1.1909e-6, 0.38748, -4.3014,
+                                  3.2598e-2, 26.395, 1.5743e-8, 8.6415, e_red], 'eq': '123'}
+            if transition.from_level == '1' and transition.to_level == '5':
+                e_red = e/1e3/transition.target.mass_number
+                return {'param': [19.918, 129.16, 5.2941e-2, 2.7053e-6, 7.7658e-2,
+                                  -2.4161, 5.9445, -6.3726, e_red], 'eq': '124'}
+            if transition.from_level == '1' and transition.to_level == '6':
+                e_red = e/1e3/transition.target.mass_number
+                return {'param': [10.203, 148.7, 9.8162e-2, 3.419e-6, 6.4392e-2,
+                                  -2.295, 4.9522, -5.5986, e_red], 'eq': '124'}
+            if transition.from_level == '1' and int(transition.to_level) > 6:
+                e_red = e/1e3/transition.target.mass_number
+                n = int(transition.to_level)
+                return {'param': [10.203, 148.7, 9.8162e-2, 3.419e-6, 6.4392e-2,
+                                  -2.295, 4.9522, -5.5986, n, e_red], 'eq': '125'}
+            if int(transition.from_level) > 1:
+                Z = tools.Ion(label='Z', mass_number=transition.target.mass_number,
+                              atomic_number=transition.target.atomic_number,
+                              charge=transition.target.charge)
+                scaled_trans = tools.Transition(projectile=transition.projectile, target=Z,
+                                                from_level=transition.from_level,
+                                                to_level=transition.to_level,
+                                                trans='ex')
+                scaled_cross = cross_section.CrossSection(transition=scaled_trans,
+                                                          impact_energy=e,
+                                                          atomic_dict=cross.atomic_dict)
+                return get_Janev_params(scaled_cross)
         if str(transition.target) == 'Z':
             if transition.from_level == '1' and transition.to_level == '2':
                 mass = transition.target.mass_number
@@ -384,7 +422,7 @@ def get_Janev_params(cross):
                 b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
                 A = get_A(n)
                 return {'param': [n, y, 1.94*n**(-1.57), A, 2/3*n**2*(5+b), 13.6/n**2], 'eq': '14'}
-        if str(transition.target) == '1H1+' or str(transition.target) == 'Z' or str(transition.target) == 'He':
+        if str(transition.target) in ['1H1+', 'Z', 'He', 'Be', 'C', 'B', 'O']:
             trans_ion = tools.Transition(projectile=transition.projectile,
                                          target=transition.target,
                                          from_level=transition.from_level,
@@ -482,6 +520,34 @@ def get_Janev_params(cross):
                 e_red = (3/n)**2*e/1e3/transition.target.mass_number
                 return {'param': [250.1, 7.9018, 2.1448e+6, 0.33041, 0.093012,
                                   -0.49446, 0.63357, -2.7621, n, e_red], 'eq': '111'}
+        if str(transition.target) == 'Be' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [306.63, 178.22, 62.033, 3.1376e-5, 1.3455e-2, -1.6452, 57.117,
+                              -3.53383, e_red], 'eq': '124'}
+        if str(transition.target) == 'B' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [351.52, 233.63, 3.2952e3, 5.3787e-6, 1.8834e-2,
+                              -2.2064, 7.2074, -3.78664, e_red], 'eq': '124'}
+        if str(transition.target) == 'C' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [438.36, 327.1, 1.4444e5, 3.5212e-3, 8.3031e-3, -0.63731,
+                              1.9116e4, -3.1003, e_red], 'eq': '124'}
+        if str(transition.target) == 'O' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [1244.44, 249.36, 30.892, 9.0159e-4, 7.7885e-3, -0.71309,
+                              3.2918e3, -2.7541, e_red], 'eq': '124'}
+        if str(transition.target) in ['Be', 'B', 'C', 'O'] and transition.from_level != '1':
+            Z = tools.Ion(label='Z', mass_number=transition.target.mass_number,
+                          atomic_number=transition.target.atomic_number,
+                          charge=transition.target.charge)
+            scaled_trans = tools.Transition(projectile=transition.projectile, target=Z,
+                                            from_level=transition.from_level,
+                                            to_level=transition.to_level,
+                                            trans='ion')
+            scaled_cross = cross_section.CrossSection(transition=scaled_trans,
+                                                      impact_energy=e,
+                                                      atomic_dict=cross.atomic_dict)
+            return get_Janev_params(scaled_cross)
         if str(transition.target) == 'Z':
             if transition.from_level == '1':
                 mass = transition.target.mass_number
@@ -517,6 +583,34 @@ def get_Janev_params(cross):
                 n = int(transition.from_level)
                 e_red = n**2*e/1e3/transition.target.mass_number
                 return {'param': [2.0032e2, 1.4591, 2.0384e-4, 2e-9, n, e_red], 'eq': '130'}
+        if str(transition.target) == 'Be' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [19.952, 0.20036, 1.7295e-4, 3.6844e-11, 5.0411, 2.4689e-8,
+                              4.0761, 0.88093, 0.94361, 0.14205, -0.42973, e_red], 'eq': '131'}
+        if str(transition.target) == 'B' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [31.226, 1.1442, 4.8372e-8, 3.0961e-10, 4.7205, 6.2844e-7,
+                              3.1297, 0.12556, 0.30098, 5.9607e-2, -0.57923, e_red], 'eq': '131'}
+        if str(transition.target) == 'C' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [418.18, 2.1585, 3.4808e-4, 5.3333e-9, 4.6556, 0.33755,
+                              0.81736, 0.27874, 1.8003e-6, 7.1033e-2, 0.53261, e_red], 'eq': '131'}
+        if str(transition.target) == 'O' and transition.from_level == '1':
+            e_red = e/1e3/transition.target.mass_number
+            return {'param': [54.535, 0.27486, 1.0104e-7, 2.0745e-9, 4.4416, 7.6555e-3,
+                              1.1134, 1.1621, 0.15826, 3.6613e-2, 3.9741e-2, e_red], 'eq': '131'}
+        if str(transition.target) in ['Be', 'B', 'C', 'O'] and transition.from_level != '1':
+            Z = tools.Ion(label='Z', mass_number=transition.target.mass_number,
+                          atomic_number=transition.target.atomic_number,
+                          charge=transition.target.charge)
+            scaled_trans = tools.Transition(projectile=transition.projectile, target=Z,
+                                            from_level=transition.from_level,
+                                            to_level=transition.to_level,
+                                            trans='cx')
+            scaled_cross = cross_section.CrossSection(transition=scaled_trans,
+                                                      impact_energy=e,
+                                                      atomic_dict=cross.atomic_dict)
+            return get_Janev_params(scaled_cross)
         if str(transition.target) == 'Z':
             if transition.from_level == '1':
                 mass = transition.target.mass_number
@@ -557,7 +651,7 @@ def H_deex_modifier(rate):
     if str(rate.transition.target) == 'e':
         deltaE = 13.605693122994*(1/g1-1/g2)
         return rate.rate*g1/g2*np.exp(deltaE/rate.temperature)
-    if str(rate.transition.target) == '1H1+' or str(rate.transition.target) == 'Z' or str(rate.transition.target) == 'He':
+    if str(rate.transition.target) in ['1H1+', 'Z', 'He', 'Be', 'C', 'B', 'O']:
         return rate.rate*g1/g2
 
 
@@ -596,6 +690,10 @@ H_ALADDIN = {'e': {'1-2': {'param': [1.4182, -20.877, 49.735, -46.249, 17.442, 4
                       },
              'Z': {},
              'He': {},
+             'Be': {},
+             'B': {},
+             'C': {},
+             'O': {},
              'generalized': get_Janev_params,
              'de-ex': H_deex_modifier}
 
