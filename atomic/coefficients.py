@@ -317,6 +317,18 @@ def get_Janev_params(cross):
                                                           impact_energy=e,
                                                           atomic_dict=cross.atomic_dict)
                 return get_Janev_params(scaled_cross)
+        if str(transition.target) in ['B', 'C', 'O']:
+            Z = tools.Ion(label='Z', mass_number=transition.target.mass_number,
+                          atomic_number=transition.target.atomic_number,
+                          charge=transition.target.charge)
+            scaled_trans = tools.Transition(projectile=transition.projectile, target=Z,
+                                            from_level=transition.from_level,
+                                            to_level=transition.to_level,
+                                            trans='ex')
+            scaled_cross = cross_section.CrossSection(transition=scaled_trans,
+                                                      impact_energy=e,
+                                                      atomic_dict=cross.atomic_dict)
+            return get_Janev_params(scaled_cross)
         if str(transition.target) == 'Z':
             if transition.from_level == '1' and transition.to_level == '2':
                 mass = transition.target.mass_number

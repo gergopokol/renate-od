@@ -155,6 +155,8 @@ class RENATE_H_hdf_generator():
         self.T = temperature
         self.atomic_dict = atomic_dict
         self.max_level = 6
+        self.impur_list = [('He', 2, 4), ('Z', 3, 6), ('Be', 4, 9), ('B', 5, 11), ('C', 6, 12), ('Z', 7, 14), ('O', 8, 16),
+                           ('Z', 9, 18), ('Z', 10, 20), ('Z', 11, 22)]
         self.einsteins = np.array([[0.0000e+00, 4.6986e+08, 5.5751e+07, 1.2785e+07, 4.1250e+06,
                                     1.6440e+06],
                                    [0.0000e+00, 0.0000e+00, 4.4101e+07, 8.4193e+06, 2.5304e+06,
@@ -169,6 +171,7 @@ class RENATE_H_hdf_generator():
                                     0.0000e+00]], dtype='float')
 
     def __build_rate_matrix(self, mx_type, projectile, target):
+        print(mx_type+' '+str(projectile)+'-->'+str(target))
         if mx_type == 'collisional':
             matrix = np.zeros((self.max_level, self.max_level, len(self.T)))
             for i in range(len(self.T)):
@@ -182,10 +185,8 @@ class RENATE_H_hdf_generator():
 
     def __build_impurity_rate_matrix(self, mx_type, projectile):
         matrix = []
-        target = Ion(label='He', mass_number=4, atomic_number=2, charge=2)
-        matrix.append(self.__build_rate_matrix(mx_type, projectile, target))
-        for q in range(3, 12):
-            target = Ion(label='Z', mass_number=2*q, atomic_number=q, charge=q)
+        for impurity in self.impur_list:
+            target = Ion(label=impurity[0], mass_number=impurity[2], atomic_number=impurity[1], charge=impurity[1])
             matrix.append(self.__build_rate_matrix(mx_type, projectile, target))
         return np.array(matrix)
 
