@@ -6,6 +6,7 @@ Responsible developers:
 * [Ors Asztalos](https://github.com/asztalosors)
 
 Contributors:
+
 * Istvan, Andorfi
 * Matyas, Aradi
 * Peter, Balazs
