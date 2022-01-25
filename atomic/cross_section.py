@@ -141,7 +141,7 @@ CROSS_FUNC = {'0': lambda x, par: 1e-13*(par[1]*np.log(x/par[0]) + par[2]*(1-(pa
                                                   par[8]*np.exp(-par[9]*par[11])/par[11]**par[10])
               }
 
-
+"""
 class CrossSection(object):
     def __init__(self, transition=Transition, impact_energy=float, atomic_dict=None, extrapolate=False):
         self.transition = transition
@@ -184,6 +184,20 @@ class CrossSection(object):
         ax.set_xscale('log')
         ax.set_yscale('log')
         return fig, ax
+"""
+
+
+class CrossSection(object):
+    def __init__(self, source, projectile=None):
+        if not isinstance(source, str): TypeError('A string is expected to decide which data source to pursue.')
+        if source is 'alladin':
+            pass
+        elif source is 'internal':
+            pass
+        else: ValueError('The data source requested is not supported: ' + source)
+
+    def get_cross_section(self, transition, energy_grid):
+        pass
 
 
 class RateCoeff:
