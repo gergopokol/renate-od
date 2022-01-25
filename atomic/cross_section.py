@@ -187,6 +187,19 @@ class CrossSection(object):
 """
 
 
+class CrossSection(object):
+    def __init__(self, source, projectile=None):
+        if not isinstance(source, str): TypeError('A string is expected to decide which data source to pursue.')
+        if source is 'alladin':
+            pass
+        elif source is 'internal':
+            pass
+        else: ValueError('The data source requested is not supported: ' + source)
+
+    def get_cross_section(self, transition, energy_grid):
+        pass
+
+
 class RateCoeff:
     def __init__(self, transition, crossection):
         self.transition = transition
