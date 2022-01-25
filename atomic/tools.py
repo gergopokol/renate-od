@@ -4,7 +4,7 @@ from utility.exceptions import InputError
 import numpy as np
 import h5py
 import scipy.constants as sc
-from renate_od.atomic import cross_section
+#from renate_od.atomic import cross_section
 
 CONST = Constants()
 
