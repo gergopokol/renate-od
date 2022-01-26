@@ -1,7 +1,7 @@
 import requests
 
 
-class AlladinData(object):
+class AladdinData(object):
     def __init__(self):
         pass
 
