@@ -13,9 +13,9 @@ class NeutralDB(object):
     def __set_atomic_resolution(self, resolved):
         projectile = self.param.getroot().find('body').find('beamlet_species').text
         if resolved is None:
-            if projectile is 'H' or projectile is 'D' or projectile is 'T':
+            if projectile == 'H' or projectile == 'D' or projectile == 'T':
                 self.resolved = 'bundled_n'
-            elif projectile is 'Li' or projectile is 'Na':
+            elif projectile == 'Li' or projectile == 'Na':
                 self.resolved = 'nl'
         else:
             self.resolved = resolved
