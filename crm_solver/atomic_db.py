@@ -101,17 +101,17 @@ class RenateDB:
 
     def get_from_renate_atomic(self, source):
         assert isinstance(source, str)
-        if source is 'electron_transition':
+        if source == 'electron_transition':
             return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Neutral Collisions')
-        elif source is 'ion_transition':
+        elif source == 'ion_transition':
             return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Proton Neutral Collisions')
-        elif source is 'impurity_transition':
+        elif source == 'impurity_transition':
             return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Impurity Neutral Collisions')
-        elif source is 'ionization_terms':
+        elif source == 'ionization_terms':
             return self.load_rate_data(self.rates_path, 'Collisional Coeffs/Electron Loss Collisions')
-        elif source is 'spontaneous_transition':
+        elif source == 'spontaneous_transition':
             return self.load_rate_data(self.rates_path, 'Einstein Coeffs')
-        elif source is 'temperature':
+        elif source == 'temperature':
             return self.load_rate_data(self.rates_path, 'Temperature axis')
         else:
             raise ValueError('Data ' + source + ' is not located and supported in the Renate rate library.')
@@ -124,7 +124,7 @@ class AtomicDB(RenateDB):
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
         self.__set_neutral_db(param=param, resolution=resolution)
-        if atomic_source is 'renate':
+        if atomic_source == 'renate':
             RenateDB.__init__(self, param, rate_type, data_path)
             self.__set_ceiling_for_atomic_levels(atomic_ceiling=atomic_ceiling)
             self.__generate_rate_function_db()
@@ -257,10 +257,10 @@ class AtomicDB(RenateDB):
             assert isinstance(arg[0], str)
             if arg[0] not in ['trans', 'ion', 'spont']:
                 raise ValueError(arg[0] + ' is not a supported transition. Try: trans, ion or spont keywords.')
-            if arg[0] is 'spont':
+            if arg[0] == 'spont':
                 assert (isinstance(arg[1], str) and isinstance(arg[2], str))
                 spont_flag = True
-                if external_density is 1.:
+                if external_density == 1.:
                     raise ValueError('In case spontaneous emission terms are being compared an external density '
                                      'correction is required for the rates. Please apply a realistic density value.')
                 plt.plot(temperature, self.spontaneous_trans[self.atomic_dict[arg[2]], self.atomic_dict[arg[1]]] *
@@ -269,9 +269,9 @@ class AtomicDB(RenateDB):
                 assert isinstance(arg[1], str)
                 if arg[1] not in ['e', 'p']:
                     raise ValueError('Expected impact interactions are: e or p')
-                if arg[1] is 'e':
+                if arg[1] == 'e':
                     assert isinstance(arg[2], str)
-                    if arg[0] is 'ion':
+                    if arg[0] == 'ion':
                         plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature) *
                                  external_density, label='e impact ion: '+arg[2]+'-->i')
                     else:
@@ -289,7 +289,7 @@ class AtomicDB(RenateDB):
                     elements = self.components.T.keys()
                     ion = (self.components['q'][elements[arg[-1]]], self.components['Z'][elements[arg[-1]]],
                            self.components['A'][elements[arg[-1]]])
-                    if arg[0] is 'ion':
+                    if arg[0] == 'ion':
                         plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]-1](temperature) *
                                  external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+',' +
                                                          str(ion[2])+'): '+arg[2]+'-->i')
