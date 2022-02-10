@@ -6,7 +6,7 @@ class WriteData:
     def __init__(self, root_path="data/"):
         self.root_path = root_path
 
-    def write_beamlet_profiles(self, beamlet, subdir='output/beamlet/'):
+    def write_beamlet_profiles(self, beamlet, subdir=''):
         output_path = beamlet.param.getroot().find('head').find('id').text
         h5_output_path = subdir + output_path + ".h5"
         xml_output_path = subdir + output_path + ".xml"
