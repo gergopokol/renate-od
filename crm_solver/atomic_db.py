@@ -1,3 +1,4 @@
+import os
 import numpy
 from lxml import etree
 from utility import getdata
@@ -40,9 +41,9 @@ class RenateDB:
         self.__get_projectile_velocity()
 
     def __get_atomic_mass(self):
-        data_path_name = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
-                         '/supplementary_data/default/' + \
-                         self.param.getroot().find('body').find('beamlet_species').text + '_m.txt'
+        data_path_name = os.path.join('atomic_data', self.param.getroot().find('body').find('beamlet_species').text,
+                                      'supplementary_data', 'default', self.param.getroot().
+                                      find('body').find('beamlet_species').text + '_m.txt')
         mass_str = getdata.GetData(data_path_name=data_path_name, data_format="array").data
         try:
             self.mass = float(mass_str)
@@ -74,7 +75,7 @@ class RenateDB:
     def __set_rates_path(self, rate_type):
         self.rate_type = rate_type
         self.file_name = 'rate_coeffs_' + str(self.energy) + '_' + self.species + '.h5'
-        self.rates_path = 'atomic_data/'+self.species+'/rates/'+rate_type+'/'+self.file_name
+        self.rates_path = os.path.join('atomic_data', self.species, 'rates', rate_type, self.file_name)
 
     def __set_charge_state_lib(self):
         impact_loss = self.get_from_renate_atomic('ionization_terms')
