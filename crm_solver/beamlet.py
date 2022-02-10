@@ -121,6 +121,33 @@ class Beamlet:
         else:
             print('Beam evolution calculations were not performed. Execute solver first.')
 
+    def compute_emission_smearing(self, observed_level, method='spont', extent='half-life'):
+        lifetime_coeff = self._set_lifetime(value=extent)
+        if not isinstance(method, str):
+            raise TypeError('The selected method must be of str type.')
+        elif method == 'spont':
+            lifetime = self.get_lifetime_from_spontaneous_transition(observed_level) * lifetime_coeff
+            smearing = self.atomic_db.velocity * lifetime
+            return lifetime, smearing
+        else:
+            raise ValueError('The requested method for evaluating the smearing '
+                             'effect from atomic physics processes is not supported.')
+
+    def get_lifetime_from_spontaneous_transition(self, observed_level):
+        lifetime = numpy.sum(self.atomic_db.spontaneous_trans[:, observed_level]) ** (-1)
+        return numpy.ones(len(self.profiles)) * lifetime
+
+    @staticmethod
+    def _set_lifetime(value):
+        if not isinstance(value, str):
+            raise TypeError('The extent setter for the calculation is expected to be of str type.')
+        elif value == 'half-life':
+            return numpy.log(2)
+        elif value == 'life-time':
+            return 1
+        else:
+            raise ValueError('The requested calculation extent is not supported. Try: "half-life" or "life-time".')
+
     def copy(self, object_copy='full'):
         if not isinstance(object_copy, str):
             raise TypeError('The expected data type for <object_copy> is str.')
