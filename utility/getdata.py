@@ -129,7 +129,8 @@ class GetData(AccessData):
         Looks for data file at different locations.
         :return: True if successful
         """
-
+        if self.external_path:
+            return True
         if self.check_common_local_data_path():
             return True
         elif self.check_user_local_data_path():
