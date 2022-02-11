@@ -22,7 +22,7 @@ class AccessData(object):
                 self.external_path = True
             else:
                 self.external_path = False
-            self._path_setup()
+                self._path_setup()
 
     def _read_setup(self, setup_path_name=None):
 
@@ -68,8 +68,7 @@ class AccessData(object):
             print('RSAKey configuration failed. No key was found.')
 
     def _path_setup(self):
-        if not self.external_path:
-            self._local_path_setup()
+        self._local_path_setup()
         self._server_path_setup()
 
     def _local_path_setup(self, local_path=None):
