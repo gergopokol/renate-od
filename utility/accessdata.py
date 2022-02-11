@@ -12,10 +12,17 @@ class AccessData(object):
         self.access_path = ''
         self._read_setup()
         self._set_private_connection()
+        self._data_path_eval(path=data_path_name)
 
-        if data_path_name is not None:
-            self.data_path_name = data_path_name
-            self._path_setup()
+    def _data_path_eval(self, path):
+        if path is not None:
+            self.data_path_name = path
+            if os.path.isabs(self.data_path_name):
+                self.access_path = path
+                self.external_path = True
+            else:
+                self.external_path = False
+                self._path_setup()
 
     def _read_setup(self, setup_path_name=None):
 

@@ -58,13 +58,13 @@ def distance(a, b, system='cartesian'):
     assert isinstance(system, str), 'Not a valid coordinate system.'
     assert system in ['cartesian'], system + ' is not a supported coordinate system.'
 
-    if system is 'cartesian':
+    if system == 'cartesian':
         s = sum((a[i]-b[i])**2 for i in range(len(a)))
         return math.sqrt(s)
 
 
 def unit_vector(a, b, system='cartesian'):
-    if system is 'cartesian':
+    if system == 'cartesian':
         s = distance(a, b, system=system)
         return np.asarray([(a[i]-b[i])/s for i in range(len(a))])
 
