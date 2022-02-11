@@ -15,8 +15,8 @@ class AccessData(object):
         self._data_path_eval(path=data_path_name)
 
     def _data_path_eval(self, path):
+        self.data_path_name = path
         if path is not None:
-            self.data_path_name = path
             if os.path.isabs(self.data_path_name):
                 self.access_path = path
                 self.external_path = True
@@ -103,6 +103,12 @@ class AccessData(object):
 
     def _set_public_server_write_access_path(self, path):
         return self.server_public_write_access + '/' + path
+
+    def add_path(self, path):
+        if self.data_path_name is None:
+            self._data_path_eval(path=path)
+        else:
+            raise ValueError('Object already has set datapaths.')
 
     def connect(self, protocol=None):
         if self.client is not None:
