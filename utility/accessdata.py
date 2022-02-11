@@ -20,14 +20,12 @@ class AccessData(object):
             if os.path.isabs(self.data_path_name):
                 self.access_path = path
                 self.external_path = True
+            elif os.path.isfile(os.path.join(os.getcwd(), self.data_path_name)):
+                self.external_path = True
+                self.access_path = os.path.join(os.getcwd(), self.data_path_name)
             else:
-                full_path = os.path.join(os.getcwd(), self.data_path_name)
-                if os.path.isfile(full_path):
-                    self.access_path = full_path
-                    self.external_path = True
-                else:
-                    self.external_path = False
-                    self._path_setup()
+                self.external_path = False
+                self._path_setup()
 
     def _read_setup(self, setup_path_name=None):
 
