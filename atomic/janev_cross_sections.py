@@ -94,8 +94,9 @@ class JanevData:
 
             '118': lambda e, par: par[8]*par[7]*8.86e-17*par[0]**4/e*(par[1]*par[2]*par[3]+par[4]*par[5]*par[6]),
 
-            '119': lambda e, par: np.exp(-par[1]*par[7]/par[6])*par[0]**4*3.52e-16*par[7]**2/par[6]*(par[2]*(np.log(par[6]/(par[5]**2-par[6])) -
-                                                                                                             par[6]/par[5]**2)+par[3]-par[4]/par[6]),
+            '119': lambda e, par: np.exp(-par[1]*par[6]/e)*par[0]**4*3.52e-16*par[6]**2/e*(par[2]*(np.log(e/(par[5]**2-e)) -
+                                                                                                   e/par[5]**2)+par[3]-par[4]/e),
+
             '120': lambda e, par: par[7]*1e-16*par[0]*np.log(par[1]/par[6]+par[2])/(1+par[3]*par[6]+par[4]*par[6]**3.5+par[7]*par[6]**5.4),
 
             '121': lambda e, par: par[2]**4*par[3]*7.04e-16*par[0]/(par[4]**3.5*(1+par[1]*par[4]**2))*(1-np.exp(-2*par[4]**3.5*(1+par[1]*par[4]**2)
@@ -130,7 +131,11 @@ class JanevData:
         ionizations = {'e': self.__ion_e,
                        'p': self.__ion_p,
                        'He': self.__ion_He,
-                       'Be': self.__ion_Be}
+                       'Be': self.__ion_Be,
+                       'B': self.__ion_B,
+                       'C': self.__ion_C,
+                       'O': self.__ion_O,
+                       'Z': self.__ion_Z}
         charge_ex = {'p': self.__cx_p,
                      'He': self.__cx_He}
         eloss = {'p': self.__eloss_p,
@@ -629,18 +634,49 @@ class JanevData:
         if n > 1:
             return self.__ion_Z(trans, energy_grid)
 
-        # if str(transition.target) == 'B' and trans['from_level'] == '1':
-        #     e_red = e/1e3/transition.target.mass_number
-        #     return {'param': [351.52, 233.63, 3.2952e3, 5.3787e-6, 1.8834e-2,
-        #                       -2.2064, 7.2074, -3.78664, e_red], 'eq': '124'}
-        # if str(transition.target) == 'C' and trans['from_level'] == '1':
-        #     e_red = e/1e3/transition.target.mass_number
-        #     return {'param': [438.36, 327.1, 1.4444e5, 3.5212e-3, 8.3031e-3, -0.63731,
-        #                       1.9116e4, -3.1003, e_red], 'eq': '124'}
-        # if str(transition.target) == 'O' and trans['from_level'] == '1':
-        #     e_red = e/1e3/transition.target.mass_number
-        #     return {'param': [1244.44, 249.36, 30.892, 9.0159e-4, 7.7885e-3, -0.71309,
-        #                       3.2918e3, -2.7541, e_red], 'eq': '124'}
+    def __ion_B(self, trans, energy_grid):
+        n = int(trans['from_level'])
+        e = energy_grid/1e3/trans['target_mass']
+
+        if n == 1:
+            par = [351.52, 233.63, 3.2952e3, 5.3787e-6, 1.8834e-2, -2.2064, 7.2074, -3.78664]
+            eq = '16'
+            return self.__CROSS_EQ[eq](e, par)
+
+        if n > 1:
+            return self.__ion_Z(trans, energy_grid)
+
+    def __ion_C(self, trans, energy_grid):
+        n = int(trans['from_level'])
+        e = energy_grid/1e3/trans['target_mass']
+
+        if n == 1:
+            par = [438.36, 327.1, 1.4444e5, 3.5212e-3, 8.3031e-3, -0.63731, 1.9116e4, -3.1003]
+            eq = '16'
+            return self.__CROSS_EQ[eq](e, par)
+
+        if n > 1:
+            return self.__ion_Z(trans, energy_grid)
+
+    def __ion_O(self, trans, energy_grid):
+        n = int(trans['from_level'])
+        e = energy_grid/1e3/trans['target_mass']
+
+        if n == 1:
+            par = [1244.44, 249.36, 30.892, 9.0159e-4, 7.7885e-3, -0.71309, 3.2918e3, -2.7541]
+            eq = '16'
+            return self.__CROSS_EQ[eq](e, par)
+
+        if n > 1:
+            return self.__ion_Z(trans, energy_grid)
+
+    def __ion_Z(self, trans, energy_grid):
+        n = int(trans['from_level'])
+        q = trans['target_charge']
+        e = energy_grid/1e3/trans['target_mass']/25
+        par = [n, 0.76, 0.283, 4.04, 0.662, 137, q]
+        eq = '119'
+        return self.__CROSS_EQ[eq](n**2*e, par)
 
     def __cx_p(self, trans, energy_grid):
         n = int(trans['from_level'])
