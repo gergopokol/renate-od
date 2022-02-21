@@ -17,10 +17,10 @@ class Particle(object):
             raise InputError('Label is expected to be of string type.')
         if isinstance(atomic_number, int):
             self.atomic_number = atomic_number
-        if isinstance(mass_number, int) and (self.atomic_number - mass_number) >= 0:
+        if isinstance(mass_number, int) and (mass_number - self.atomic_number) >= 0:
             self.mass_number = mass_number
             self.neutron_number = self.mass_number - self.atomic_number
-        if self.label is 'e':
+        if self.label == 'e':
             self.charge = -1
         elif isinstance(charge, int):
             self.charge = charge
@@ -47,76 +47,13 @@ class Particle(object):
     def __str__(self):
         return str(self.label)
 
+    def __iter__(self):
+        for x in [self.charge, self.atomic_number, self.mass_number]:
+            yield x
+
     def __repr__(self):
         return 'Particle: ' + str(self.label) + '\t (q,Z,A) =  (' + str(self.charge) + ',' + str(self.atomic_number) + \
                ',' + str(self.mass_number) + ')'
-
-
-class Ion(Particle):
-    def __init__(self, label='', charge=int, mass=None, atomic_number=int, mass_number=int):
-        Particle.__init__(self, label=label, mass=mass, charge=charge)
-        if (atomic_number >= 0) and isinstance(atomic_number, int) and (atomic_number >= self.charge):
-            self.atomic_number = atomic_number
-        else:
-            raise InputError('The atomic number is expected to be a positive integer '
-                             'and larger or equal to the charge.')
-        if (mass_number >= 0) and isinstance(mass_number, int) and (self.atomic_number <= mass_number):
-            self.mass_number = mass_number
-        else:
-            raise InputError('The mass number must be a positive integer and larger than the atomic number.')
-        if mass is None:
-            self.mass = CONST.proton_mass * self.atomic_number + \
-                CONST.neutron_mass * (self.mass_number - self.atomic_number)
-        else:
-            self.mass = mass
-
-    def __repr__(self):
-        return 'Ion: ' + str(self.label) + '\t Z = ' + str(self.atomic_number) + \
-            ' N = ' + str(self.mass_number) + ' charge = ' + str(self.charge)
-
-
-class Atom(Ion):
-    def __init__(self, label='', mass_number=int, atomic_number=int, mass=None):
-        Ion.__init__(self, label=label, mass_number=mass_number, mass=mass, atomic_number=atomic_number, charge=0)
-
-    def __repr__(self):
-        return 'Atom: ' + str(self.label) + '\t Z = ' + str(self.atomic_number) + ' N = ' + str(self.mass_number)
-
-    def __add__(self, other):
-        self.atomic_number += other.atomic_number
-        self.mass_number += other.mass_number
-        self.label += other.label
-        self.mass += other.mass
-
-    def __mul__(self, other):
-        self.atomic_number *= other
-        self.mass_number *= other
-        self.label = str(other) + self.label
-        self.mass *= other
-
-
-class Molecule(Atom):
-    def __init__(self, atoms=list, mass=None):
-        Atom.__init__(self, label='', mass_number=0, atomic_number=0, mass=mass)
-        for atom in atoms:
-            self.mass += atom.mass
-            self.mass_number += atom.mass_number
-            self.atomic_number += atom.atomic_number
-            self.label += atom.label
-
-    def __repr__(self):
-        return 'Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
-               ' Neutrons = ' + str(self.mass_number - self.atomic_number)
-
-
-class IonizedMolecule(Molecule):
-    def __init__(self, atoms=list, mass=None, charge=int):
-        Molecule.__init__(self, atoms=atoms, mass=mass)
-        self.update_charge(charge=charge)
-
-    def __repr__(self):
-        return 'Ionized Molecule: ' + str(self.label) + '\t Protons = ' + str(self.atomic_number) + \
-               ' Nucleons = ' + str(self.mass_number) + ' Charge = ' + str(self.charge)
 
 
 class Transition(object):
