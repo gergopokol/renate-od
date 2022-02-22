@@ -28,7 +28,7 @@ class CrmRegressionTest(CrmTestCase):
 
     def test_actual_to_previous_release(self):
         for test_case in self.test_cases:
-            path = 'test_dataset/crm_systemtests/actual/'+test_case+'.xml'
+            path = os.path.join('test_dataset', 'crm_systemtests', 'actual', test_case+'.xml')
             reference = Beamlet(data_path=path, solver='disregard')
             actual_source = reference.copy(object_copy='without-results')
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
@@ -65,7 +65,7 @@ class CrmAcceptanceTest(CrmTestCase):
 
     def test_actual_to_renate_idl(self):
         for test_case in self.test_cases:
-            path = 'test_dataset/crm_systemtests/archive/renate_idl/'+test_case+'.xml'
+            path = os.path.join('test_dataset', 'crm_systemtests', 'archive', 'renate_idl', test_case+'.xml')
             reference = Beamlet(data_path=path, solver='disregard')
             actual_source = reference.copy(object_copy='without-results')
             actual = Beamlet(param=actual_source.param, profiles=actual_source.profiles,
