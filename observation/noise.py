@@ -397,13 +397,13 @@ class MPPC(Noise):
 class Detector(object):
     def __new__(cls, detector_type='apd', parameters=None, data_path=None):
         assert isinstance(detector_type, str), 'Expected data type for <detector_type> is str.'
-        if detector_type is 'apd':
+        if detector_type == 'apd':
             return APD(cls.__get_detector_parameters(parameters, data_path, detector_type))
-        elif detector_type is 'pmt':
+        elif detector_type == 'pmt':
             return PMT(cls.__get_detector_parameters(parameters, data_path, detector_type))
-        elif detector_type is 'ppd':
+        elif detector_type == 'ppd':
             return PPD(cls.__get_detector_parameters(parameters, data_path, detector_type))
-        elif detector_type is 'mppc':
+        elif detector_type == 'mppc':
             return MPPC(cls.__get_detector_parameters(parameters, data_path, detector_type))
         else:
             raise ValueError('The requested detector type:' + detector_type + ' is not yet supported')
