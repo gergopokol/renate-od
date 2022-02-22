@@ -1,3 +1,4 @@
+import os
 import utility.convert as uc
 from utility.getdata import GetData
 from utility.exceptions import RenateNotValidTransitionError
@@ -13,9 +14,9 @@ class NeutralDB(object):
     def __set_atomic_resolution(self, resolved):
         projectile = self.param.getroot().find('body').find('beamlet_species').text
         if resolved is None:
-            if projectile is 'H' or projectile is 'D' or projectile is 'T':
+            if projectile == 'H' or projectile == 'D' or projectile == 'T':
                 self.resolved = 'bundled_n'
-            elif projectile is 'Li' or projectile is 'Na':
+            elif projectile == 'Li' or projectile == 'Na':
                 self.resolved = 'nl'
         else:
             self.resolved = resolved
@@ -27,11 +28,11 @@ class NeutralDB(object):
             self.neutral_cross_sections.update({'neutral'+str(index+1): None})
 
     def __set_neutral_cross_section_path(self, target='H'):
-        cross_section_path = 'atomic_data/' + self.param.getroot().find('body').find('beamlet_species').text + \
-                             '/cross_sections/neutral/'
         file_name = target + '_' + self.resolved + '_' + \
-            self.param.getroot().find('body').find('beamlet_energy').text + '.txt'
-        return cross_section_path + file_name
+                    self.param.getroot().find('body').find('beamlet_energy').text + '.txt'
+
+        return os.path.join('atomic_data', self.param.getroot().find('body').find('beamlet_species').text,
+                            'cross_sections', 'neutral', file_name)
 
     def __identify_neutral_target(self, component):
         if isinstance(component['Molecule'], str):
