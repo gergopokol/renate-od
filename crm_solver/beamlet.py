@@ -63,11 +63,11 @@ class Beamlet:
 
     def calculate_beamevolution(self, solver):
         assert isinstance(solver, str)
-        if solver is 'numerical':
+        if solver == 'numerical':
             self.__solve_numerically()
-        elif solver is 'analytical':
+        elif solver == 'analytical':
             raise NotImplementedError('Analytical solver not yet implemented.')
-        elif solver is 'disregard':
+        elif solver == 'disregard':
             print('Beam evolution not calculated.')
             return
         else:
