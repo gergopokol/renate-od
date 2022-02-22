@@ -4,12 +4,16 @@ RENATE Open Diagnostics (RENATE-OD)
 Responsible developers:
 * [Dr. Gergo Pokol](www.reak.bme.hu/pokol)
 * [Ors Asztalos](https://github.com/asztalosors)
+* [Peter Balazs](https://github.com/Balazs-Peter)
 
 Contributors:
-* Borbala Szondy
-* Matt Carr
-* Andorfi Istvan
-* Gergely Mindler
+
+* Istvan, Andorfi
+* Matyas, Aradi
+* Matt, Carr
+* Istvan, Farkas
+* Gergely, Mindler
+* Borbala, Szondy
 
 Code information is available in [RENATE-OD.info](RENATE-OD.info)
 

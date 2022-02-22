@@ -40,14 +40,14 @@ class BeamletProfiles:
     def __setup_RENATE_benchmark_axis(self, axis, plot_type):
         max_val = self.profiles['level ' + self.atomic_db.inv_atomic_dict[0]][0]
         for level in self.atomic_db.atomic_dict.keys():
-            if plot_type is 'population':
+            if plot_type == 'population':
                 axis.plot(self.profiles['beamlet grid'], self.profiles['RENATE level ' +
                           str(self.atomic_db.atomic_dict[level])], '-', label='RENATE '+level)
                 axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/max_val,
                           '--', label='ROD '+level)
                 axis.set_ylabel('Relative electron population [-]')
                 axis.set_yscale('log', nonposy='clip')
-            elif plot_type is 'error':
+            elif plot_type == 'error':
                 axis.set_ylabel('Relative error [-]')
                 axis.plot(self.profiles['beamlet grid'], abs(self.profiles['level '+level]/max_val -
                           self.profiles['RENATE level ' + str(self.atomic_db.atomic_dict[level])]) /
