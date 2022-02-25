@@ -26,27 +26,27 @@ class HydrogenicData:
                             on Janev et.al. IAEA-APID-4 (1993), with some openly \
                             available corrections from ADAS.'
 
-        self.__excitation = {'e': self.__ex_e,
-                             'p': self.__ex_p,
-                             'He': self.__ex_He,
-                             'Be': self.__ex_Be,
+        self.__excitation = {(-1, 0, 0): self.__ex_e,
+                             (1, 1, 1): self.__ex_p,
+                             (2, 2, 4): self.__ex_He,
+                             (4, 4, 9): self.__ex_Be,
                              'Z': self.__ex_Z}
-        self.__ionization = {'e': self.__ion_e,
-                             'p': self.__ion_p,
-                             'He': self.__ion_He,
-                             'Be': self.__ion_Be,
-                             'B': self.__ion_B,
-                             'C': self.__ion_C,
-                             'O': self.__ion_O,
+        self.__ionization = {(-1, 0, 0): self.__ion_e,
+                             (1, 1, 1): self.__ion_p,
+                             (2, 2, 4): self.__ion_He,
+                             (4, 4, 9): self.__ion_Be,
+                             (5, 5, 11): self.__ion_B,
+                             (6, 6, 12): self.__ion_C,
+                             (8, 8, 16): self.__ion_O,
                              'Z': self.__ion_Z}
-        self.__charge_ex = {'p': self.__cx_p,
-                            'He': self.__cx_He,
-                            'Be': self.__cx_Be,
-                            'B': self.__cx_B,
-                            'C': self.__cx_C,
-                            'O': self.__cx_O,
+        self.__charge_ex = {(1, 1, 1): self.__cx_p,
+                            (2, 2, 4): self.__cx_He,
+                            (4, 4, 9): self.__cx_Be,
+                            (5, 5, 11): self.__cx_B,
+                            (6, 6, 12): self.__cx_C,
+                            (8, 8, 16): self.__cx_O,
                             'Z': self.__cx_Z}
-        self.__eloss = {'e': self.__ion_e,
+        self.__eloss = {(-1, 0, 0): self.__ion_e,
                         'Z': self.__eloss_Z}
         self.__trans_type = {'ex': self.__excitation,
                              'ion': self.__ionization,
@@ -134,7 +134,8 @@ class HydrogenicData:
         }
 
     def get_cross_section(self, transition, energy_grid):
-        trans = {'name': transition.name, 'target': str(transition.target),
+        trans = {'name': transition.name,
+                 'target': (transition.target.charge, transition.target.atomic_number, transition.target.mass_number),
                  'from_level': transition.from_level, 'to_level': transition.to_level,
                  'target_mass': transition.target.mass_number,
                  'target_charge': transition.target.charge}
