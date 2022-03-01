@@ -26,8 +26,12 @@ class Particle(object):
             self.charge = charge
         else:
             raise InputError('The charge '+str(charge) + ' of the particle must exceed -1 and be an integer.')
-        if mass is None and self.label == 'e':
-            self.mass = CONST.electron_mass
+        if mass is None:
+            if self.label == 'e':
+                self.mass = CONST.electron_mass
+            else:
+                self.mass = self.neutron_number*CONST.neutron_mass +\
+                    self.atomic_number*CONST.proton_mass
         else:
             self.mass = mass
 
