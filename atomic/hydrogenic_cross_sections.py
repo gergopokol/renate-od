@@ -139,6 +139,10 @@ class HydrogenicData:
                  'from_level': transition.from_level, 'to_level': transition.to_level,
                  'target_mass': transition.target.mass_number,
                  'target_charge': transition.target.charge}
+        if trans['name'] == 'de-ex':
+            trans['name'] = 'ex'
+            trans['from_level'] = transition.to_level
+            trans['to_level'] = transition.from_level
         if trans['target'] in self.__trans_type[trans['name']]:
             cross_function = self.__trans_type[trans['name']][trans['target']]
         else:
@@ -167,14 +171,14 @@ class HydrogenicData:
     def __get_chi(self, q):
         return 2**(0.5238*(1-(2/q)**0.5))
 
-    def __H_deex_modifier(self, trans, rate):
-        g1 = int(trans['to_level'])**2
-        g2 = int(trans['from_level'])**2
-        if trans['target'] == 'e':
+    def get_deex_rate(self, ex_rate, T, transition):
+        g1 = int(transition.to_level)**2
+        g2 = int(transition.from_level)**2
+        if tuple(transition.target) == (-1, 0, 0):
             deltaE = 13.605693122994*(1/g1-1/g2)
-            return rate.rate*g1/g2*np.exp(deltaE/rate.temperature)
+            return ex_rate*g1/g2*np.exp(deltaE/T)
         else:
-            return rate.rate*g1/g2
+            return ex_rate*g1/g2
 
     def __C(self, z, z1):
         return z**2*np.log(1+2*z/3)/(2*z1+3*z/2)
