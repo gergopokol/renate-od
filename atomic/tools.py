@@ -15,19 +15,17 @@ class Particle(object):
             self.label = label
         else:
             raise InputError('Label is expected to be of string type.')
-        if isinstance(atomic_number, int):
+        if isinstance(atomic_number, (int, np.int32)):
             self.atomic_number = atomic_number
-        if isinstance(mass_number, int) and (mass_number - self.atomic_number) >= 0:
+        if isinstance(mass_number, (int, np.int32)) and (mass_number - self.atomic_number) >= 0:
             self.mass_number = mass_number
             self.neutron_number = self.mass_number - self.atomic_number
-        if self.label == 'e':
-            self.charge = -1
-        elif isinstance(charge, int):
+        if isinstance(charge, (int, np.int32)):
             self.charge = charge
         else:
             raise InputError('The charge '+str(charge) + ' of the particle must exceed -1 and be an integer.')
         if mass is None:
-            if self.label == 'e':
+            if tuple(self) == (-1, 0, 0):
                 self.mass = CONST.electron_mass
             else:
                 self.mass = self.neutron_number*CONST.neutron_mass +\
