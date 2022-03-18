@@ -15,7 +15,7 @@ class InternalDB():
             self.param = getdata.GetData(data_path_name=data_path).data
         assert isinstance(self.param, etree._ElementTree)
         self.__projectile_parameters()
-        self.temperature_axis = np.linspace(1, 400, 400)
+        self.temperature_axis = 10**(np.linspace(0, 5, 400))
         self.cross_section = CrossSection(source=cross_section_source, projectile=self.projectile_type)
         self.spontaneous_trans = self.cross_section.spontaneous_trans
 
@@ -36,14 +36,14 @@ class InternalDB():
 
     def set_default_atomic_levels(self):
         if self.projectile in ['H', 'D', 'T']:
-            return '3n', '2n', '1n', '3n-->2n'
+            return '3', '2', '1', '3n-->2n'
 
     def get_rate_interpolator(self, reaction_type, target, from_level, to_level=None):
         #print(reaction_type, target, from_level, to_level)
         if reaction_type == 'excitation' and isinstance(to_level, int):
             if from_level == to_level:
                 return interp1d(self.temperature_axis, np.zeros(self.temperature_axis.shape), fill_value='extrapolate')
-            if from_level < to_level:
+            elif from_level < to_level:
                 trans_type = 'ex'
             elif from_level > to_level:
                 trans_type = 'de-ex'
