@@ -6,7 +6,7 @@ from lxml import etree
 from raysect.core import Point3D
 
 from cherab.core import Plasma, Beam
-from cherab.core.math import Interpolate1DLinear
+from raysect.core.math.function.float.function1d.interpolate import Interpolator1DArray
 
 from crm_solver.beamlet import Beamlet
 
@@ -27,6 +27,7 @@ class RenateCRMWrapper:
         index = ['electron']
         index.extend(['ion{}'.format(i+1) for i in range(len(atomic_weights) - 1)])
         components = pd.DataFrame(data={'q': charges, 'Z': nuclear_charges, 'A': atomic_weights}, index=index)
+        self.components = components
 
         # sample plasma parameters along the beam axis
         beam_axis = np.linspace(0, beam.length, num=500)
@@ -64,6 +65,7 @@ class RenateCRMWrapper:
         column_index = pd.MultiIndex.from_arrays([type_labels, property_labels, unit_labels], names=['type', 'property', 'unit'])
 
         profiles = pd.DataFrame(data=profiles, columns=column_index, index=row_index)
+        self.profiles = profiles
 
         # construct beam param specification
         xml = etree.Element('xml')
@@ -78,11 +80,12 @@ class RenateCRMWrapper:
         beamlet_source = etree.SubElement(body_tag, 'beamlet_source')
         beamlet_source.text = 'beamlet/test_impurity.h5'
         beamlet_current = etree.SubElement(body_tag, 'beamlet_current', {'unit': 'A'})
-        beamlet_current.text = '0.001'
+        beamlet_current.text = str(beam.power/beam.energy)
         beamlet_mass = etree.SubElement(body_tag, 'beamlet_mass', {'unit': 'kg'})
-        beamlet_mass.text = '1.15258e-026'
+        mass = beam.element.atomic_weight*1.6605390666e-27
+        beamlet_mass.text = str(mass)
         beamlet_velocity = etree.SubElement(body_tag, 'beamlet_velocity', {'unit': 'm/s'})
-        beamlet_velocity.text = '1291547.1348855693'
+        beamlet_velocity.text = str(np.sqrt(2*beam.energy*1.60217662e-19/mass))
         beamlet_profiles = etree.SubElement(body_tag, 'beamlet_profiles', {})
         beamlet_profiles.text = './beamlet_test.h5'
         param = etree.ElementTree(element=xml)
@@ -101,14 +104,17 @@ class RenateCRMWrapper:
 
         b = self.renate_beamlet
 
-        b.compute_linear_emission_density(to_level=str(transition[1]), from_level=str(transition[0]))
+        from_level=str(transition[0])+'n'
+        to_level=str(transition[1])+'n'
+
+        b.compute_linear_emission_density(to_level=to_level, from_level=from_level)
 
         from_level, to_level, ground_level, transition = b.atomic_db.set_default_atomic_levels()
 
         beamlet_grid = np.squeeze(np.array(b.profiles['beamlet grid']))
-        beam_emission = np.squeeze(np.array(b.profiles[transition]))
+        beam_emission = np.squeeze(np.array(b.profiles[from_level+'-->'+to_level]))
 
-        return Interpolate1DLinear(beamlet_grid, beam_emission, extrapolate=True, extrapolation_range=1e-4)
+        return Interpolator1DArray(beamlet_grid, beam_emission, 'linear', 'nearest', 1e-4)
 
     def beam_density(self):
 
@@ -117,7 +123,7 @@ class RenateCRMWrapper:
         beamlet_grid = np.squeeze(np.array(b.profiles['beamlet grid']))
         beam_density = np.squeeze(np.array(b.profiles['linear_density_attenuation']))
 
-        return Interpolate1DLinear(beamlet_grid, beam_density, extrapolate=True, extrapolation_range=1e-4)
+        return Interpolator1DArray(beamlet_grid, beam_density, 'linear', 'nearest', 1e-4)
 
 
 def _sample_along_beam_axis(function, beam_axis, beam_to_world, debug=False):

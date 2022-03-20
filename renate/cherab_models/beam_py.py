@@ -1,30 +1,35 @@
-
-from libc.math cimport tan, exp, M_PI
+import numpy as np
 
 from raysect.core import Vector3D
 from raysect.primitive import Cylinder
-from raysect.optical cimport World, AffineMatrix3D, Primitive, Ray, new_vector3d
-from raysect.optical.material.emitter.inhomogeneous cimport NumericalIntegrator
+#from raysect.optical import World, AffineMatrix3D, Primitive, Ray, new_vector3d
+from raysect.optical.material.emitter.inhomogeneous import NumericalIntegrator
 
-from cherab.core.beam.model cimport BeamModel, BeamAttenuator
-from cherab.core.beam.material cimport BeamMaterial
-from cherab.core.atomic cimport AtomicData, Element
+from cherab.core.beam.model import BeamModel, BeamAttenuator
+from cherab.core.beam.material import BeamMaterial
+from cherab.core.atomic import AtomicData, Element
 from cherab.core.utility import Notifier
+from cherab.core import Beam
+from cherab.core.beam.node import ModelManager
 
 from renate.cherab_models.wavelength_data import RenateWavelengthData
-from renate.cherab_models.beam_emission import RenateBeamEmissionLine
+from renate.cherab_models.beam_emission_py import RenateBeamEmissionLine
 from renate.cherab_models.renate_wrapper import RenateCRMWrapper
 
 
-cdef double DEGREES_TO_RADIANS = (M_PI / 180)
+DEGREES_TO_RADIANS = (np.pi / 180)
 
 
-cdef class RenetaModelManager(ModelManager):
+class RenetaModelManager(ModelManager):
 
     def __init__(self):
         super().__init__()
+        self._models = []
 
-    cpdef object set(self, object models):
+    def __iter__(self):
+        return iter(self._models)
+
+    def set(self, models):
 
         # copy models and test it is an iterable
         models = list(models)
@@ -37,7 +42,7 @@ cdef class RenetaModelManager(ModelManager):
         self._models = models
         self.notifier.notify()
 
-    cpdef object add(self, BeamModel model):
+    def add(self, model):
 
         if not isinstance(model, RenateBeamEmissionLine):
             raise TypeError('The Renate Beam model only works with Renate specific BeamEmissionLine objects.')
@@ -46,7 +51,7 @@ cdef class RenetaModelManager(ModelManager):
         self.notifier.notify()
 
 
-cdef class RenateBeam(Beam):
+class RenateBeam(Beam):
     """
     A beam using the Renate-OD CRM models.
 
@@ -105,8 +110,8 @@ cdef class RenateBeam(Beam):
        >>> beam.integrator.min_samples = 5
     """
 
-    def __init__(self, object parent=None, AffineMatrix3D transform=None, str name=None,
-                 bint clamp_to_zero=False, double clamp_sigma=5.0):
+    def __init__(self, parent=None, transform=None, name=None,
+                 clamp_to_zero=False, clamp_sigma=5.0):
 
         super().__init__(parent, transform, name)
 
@@ -129,7 +134,8 @@ cdef class RenateBeam(Beam):
         self._atomic_data = None
 
         # setup emission model handler and trigger geometry rebuilding if the models change
-        self._models = RenetaModelManager()
+        self._modelmanager = RenetaModelManager()
+        self._models = self._modelmanager
         self._models.notifier.add(self._configure_geometry)
 
         # beam attenuation model
@@ -156,7 +162,7 @@ cdef class RenateBeam(Beam):
         self.clamp_to_zero = clamp_to_zero
         self._clamp_sigma_sqr = clamp_sigma**2
 
-    cpdef double density(self, double x, double y, double z) except? -1e999:
+    def density(self, x, y, z):
         """
         Returns the bean density at the specified position in beam coordinates.
         
@@ -168,8 +174,6 @@ cdef class RenateBeam(Beam):
         :param z: z coordinate in meters.
         :return: Beam density in m^-3
         """
-
-        cdef double sigma_x, sigma_y, norm_radius_sqr, gaussian_sample
 
         if z < 0 or z > self._length:
             return 0
@@ -191,7 +195,7 @@ cdef class RenateBeam(Beam):
                 return 0.0
 
         # bi-variate Gaussian distribution (normalised)
-        gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
+        gaussian_sample = np.exp(-0.5 * norm_radius_sqr/(sigma_x*sigma_y)) / np.sqrt(2 * np.pi * sigma_x * sigma_y)
 
         return self._density(z) * gaussian_sample
 
@@ -202,11 +206,106 @@ cdef class RenateBeam(Beam):
         return self._renate_wrapper
 
     @property
+    def energy(self):
+        return self._energy
+
+    @energy.setter
+    def energy(self, value):
+        if value < 0:
+            raise ValueError('Beam energy cannot be less than zero.')
+        self._energy = value
+        self.notifier.notify()
+
+    @property
+    def power(self):
+        return self._power
+
+    @power.setter
+    def power(self, value):
+        if value < 0:
+            raise ValueError('Beam power cannot be less than zero.')
+        self._power = value
+        self.notifier.notify()
+
+    @property
+    def temperature(self):
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        if value < 0:
+            raise ValueError('Beam temperature cannot be less than zero.')
+        self._temperature = value
+        self.notifier.notify()
+
+    @property
+    def element(self):
+        return self._element
+
+    @element.setter
+    def element(self, value):
+        self._element = value
+        self.notifier.notify()
+
+    @property
+    def divergence_x(self):
+        return self._divergence_x
+
+    @divergence_x.setter
+    def divergence_x(self, value):
+        if value < 0:
+            raise ValueError('Beam x divergence cannot be less than zero.')
+        self._divergence_x = value
+        self.notifier.notify()
+
+    @property
+    def divergence_y(self):
+        return self._divergence_y
+
+    @divergence_y.setter
+    def divergence_y(self, value):
+        if value < 0:
+            raise ValueError('Beam y divergence cannot be less than zero.')
+        self._divergence_y = value
+        self.notifier.notify()
+
+    @property
+    def length(self):
+        return self._length
+
+    @length.setter
+    def length(self, value):
+        if value <= 0:
+            raise ValueError('Beam length must be greater than zero.')
+        self._length = value
+        self.notifier.notify()
+
+    @property
+    def sigma(self):
+        return self._sigma
+
+    @sigma.setter
+    def sigma(self, value):
+        if value <= 0:
+            raise ValueError('Beam sigma (width) must be greater than zero.')
+        self._sigma = value
+        self.notifier.notify()
+
+    def get_sigma(self):
+        return self._sigma
+
+    def get_energy(self):
+        return self._energy
+
+    def get_element(self):
+        return self._element
+
+    @property
     def atomic_data(self):
         return self._atomic_data
 
     @atomic_data.setter
-    def atomic_data(self, AtomicData value not None):
+    def atomic_data(self, value):
         raise NotImplementedError("The RENATE-OD beam models do not use a AtomicDataProvider class"
                                   "because they use a custom CRM model to calculate a number of different"
                                   "rate types that don't exist in CHERAB.")
@@ -216,17 +315,30 @@ cdef class RenateBeam(Beam):
         return self._attenuator
     
     @attenuator.setter
-    def attenuator(self, BeamAttenuator value not None):
+    def attenuator(self, value):
         raise NotImplementedError("The RENATE-OD beam models do not use a BeamAttenuator class"
                                   "because they use a custom CRM model to calculate a number of different"
                                   "rate types that don't exist in CHERAB.")
 
     @property
+    def plasma(self):
+        return self._plasma
+
+    @plasma.setter
+    def plasma(self, value):
+        self._plasma = value
+        self._configure_geometry()
+        self._configure_attenuator()
+
+    def get_plasma(self):
+        return self._plasma
+    
+    @property
     def models(self):
         return self._models
 
     @models.setter
-    def models(self, object values):
+    def models(self, values):
 
         # check necessary data is available
         if not self._plasma:
@@ -235,6 +347,15 @@ cdef class RenateBeam(Beam):
         # setting the emission models causes ModelManager to notify the Beam object to configure geometry
         # so no need to explicitly rebuild here
         self._models.set(values)
+
+    @property
+    def integrator(self):
+        return self._integrator
+
+    @integrator.setter
+    def integrator(self, value):
+        self._integrator = value
+        self._configure_geometry()
 
     def _configure_geometry(self):
 
@@ -263,14 +384,14 @@ cdef class RenateBeam(Beam):
         atomic_data = RenateWavelengthData()
         self._geometry.material = BeamMaterial(self, self._plasma, atomic_data, list(self._models), self.integrator)
 
-        self._tanxdiv = tan(DEGREES_TO_RADIANS * self.divergence_x)
-        self._tanydiv = tan(DEGREES_TO_RADIANS * self.divergence_y)
+        self._tanxdiv = np.tan(DEGREES_TO_RADIANS * self.divergence_x)
+        self._tanydiv = np.tan(DEGREES_TO_RADIANS * self.divergence_y)
 
     def _generate_geometry(self):
 
         # the beam bounding envelope is a cylinder aligned with the beam axis, sharing the same coordinate space
         # the cylinder radius is set to 5 sigma around the widest section of the gaussian beam
-        radius = 5.0 * (self.sigma + self.length * tan(DEGREES_TO_RADIANS * max(self._divergence_x, self._divergence_y)))
+        radius = 5.0 * (self.sigma + self.length * np.tan(DEGREES_TO_RADIANS * max(self._divergence_x, self._divergence_y)))
         return Cylinder(radius=radius, height=self.length)
 
     def _configure_attenuator(self):
@@ -284,7 +405,7 @@ cdef class RenateBeam(Beam):
         self._renate_wrapper = RenateCRMWrapper(self._plasma, self)
         self._density = self._renate_wrapper.beam_density()
 
-    cdef int _modified(self) except -1:
+    def _modified(self):
         """
         Called when a scene-graph change occurs that modifies this Node's root
         transforms. This will occur if the Node's transform is modified, a

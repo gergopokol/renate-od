@@ -1,47 +1,55 @@
-# cython: language_level=3
+import pyximport
+pyximport.install()
 
+import numpy as np
 
-from libc.math cimport exp, sqrt, M_PI
-cimport cython
+from raysect.core import Point3D, Vector3D
+from raysect.core.math.function.vector3d.function1d.autowrap import _autowrap_function1d
+from raysect.core.math.function.vector3d.function2d.autowrap import _autowrap_function2d
+from raysect.core.math.function.vector3d.function2d.autowrap import PythonFunction2D
+from raysect.optical import Spectrum
 
-from raysect.core cimport Point3D, Vector3D
-
-from cherab.core cimport Plasma, Beam, Element, Spectrum, AtomicData
+from cherab.core import Plasma, Beam, Element, AtomicData
 from cherab.core.atomic import hydrogen
-from cherab.core.model.lineshape cimport doppler_shift, thermal_broadening, add_gaussian_line, BeamEmissionMultiplet
+from cherab.core.model.lineshape import doppler_shift, thermal_broadening, add_gaussian_line, BeamEmissionMultiplet
 from cherab.core.model.beam.beam_emission import SIGMA_TO_PI, SIGMA1_TO_SIGMA0, PI2_TO_PI3, PI4_TO_PI3
-from cherab.core.utility.constants cimport RECIP_4_PI, ELEMENTARY_CHARGE, ATOMIC_MASS
+#from cherab.core.utility.constants import RECIP_4_PI, ELEMENTARY_CHARGE, ATOMIC_MASS
+
+from cherab.core.beam.model import BeamModel
+
+RECIP_4_PI=1/(4*np.pi)
+ELEMENTARY_CHARGE=1.602176634e-19
+ATOMIC_MASS=1.66053906660e-27
+
+RECIP_ELEMENTARY_CHARGE = 1 / ELEMENTARY_CHARGE
+RECIP_ATOMIC_MASS = 1 / ATOMIC_MASS
 
 
-cdef double RECIP_ELEMENTARY_CHARGE = 1 / ELEMENTARY_CHARGE
-cdef double RECIP_ATOMIC_MASS = 1 / ATOMIC_MASS
+def evamu_to_ms(x):
+    return np.sqrt(2 * x * ELEMENTARY_CHARGE * RECIP_ATOMIC_MASS)
 
 
-cdef double evamu_to_ms(double x):
-    return sqrt(2 * x * ELEMENTARY_CHARGE * RECIP_ATOMIC_MASS)
-
-
-cdef double ms_to_evamu(double x):
+def ms_to_evamu(x):
     return 0.5 * (x ** 2) * RECIP_ELEMENTARY_CHARGE * ATOMIC_MASS
 
 
-cdef double amu_to_kg(double x):
+def amu_to_kg(x):
     return x * ATOMIC_MASS
 
 
-cdef double kg_to_amu(double x):
+def kg_to_amu(x):
     return x * RECIP_ATOMIC_MASS
 
 
-cdef double ev_to_j(double x):
+def ev_to_j(x):
     return x * ELEMENTARY_CHARGE
 
 
-cdef double j_to_ev(double x):
+def j_to_ev(x):
     return x * RECIP_ELEMENTARY_CHARGE
 
 
-cdef class RenateBeamEmissionLine(BeamModel):
+class RenateBeamEmissionLine(BeamModel):
     """Calculates the line emission for a beam.
 
     :param line:
@@ -49,13 +57,16 @@ cdef class RenateBeamEmissionLine(BeamModel):
     :return:
     """
 
-    def __init__(self, Line line not None, Beam beam=None, Plasma plasma=None, AtomicData atomic_data=None,
+    def __init__(self, line, beam=None, plasma=None, atomic_data=None,
                  sigma_to_pi=SIGMA_TO_PI, sigma1_to_sigma0=SIGMA1_TO_SIGMA0,
                  pi2_to_pi3=PI2_TO_PI3, pi4_to_pi3=PI4_TO_PI3):
 
         super().__init__(beam, plasma, atomic_data)
 
         self._line = line
+        self._beam=beam
+        self._plasma=plasma
+        self._atomic_data=atomic_data
 
         self._sigma_to_pi = sigma_to_pi
         self._sigma1_to_sigma0 = sigma1_to_sigma0
@@ -67,11 +78,62 @@ cdef class RenateBeamEmissionLine(BeamModel):
         self._emissivity = None
 
     @property
+    def beam(self):
+        return self._beam
+
+    @beam.setter
+    def beam(self, value):
+
+        # disconnect from previous beam's notifications
+        if self._beam:
+            self._beam.notifier.remove(self._change)
+
+        # attach to beam to inform model of changes to beam properties
+        self._beam = value
+        self._beam.notifier.add(self._change)
+
+        # inform model source data has changed
+        self._change()
+
+    def get_beam(self):
+        return self._beam
+
+    @property
+    def atomic_data(self):
+        return self._atomic_data
+
+    @atomic_data.setter
+    def atomic_data(self, value):
+
+        self._atomic_data = value
+
+        # inform model source data has changed
+        self._change()
+
+    @property
+    def plasma(self):
+        return self._plasma
+
+    @plasma.setter
+    def plasma(self, value):
+
+        # disconnect from previous plasma's notifications
+        if self._plasma:
+            self._plasma.notifier.remove(self._change)
+
+        # attach to plasma to inform model of changes to plasma properties
+        self._plasma = value
+        self._plasma.notifier.add(self._change)
+
+        # inform model source data has changed
+        self._change()
+
+    @property
     def line(self):
         return self._line
 
     @line.setter
-    def line(self, Line value not None):
+    def line(self, value):
         # the data cache depends on the line configuration
         self._line = value
         self._change()
@@ -80,19 +142,9 @@ cdef class RenateBeamEmissionLine(BeamModel):
     def emissivity(self):
         return self._emissivity
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
-    @cython.initializedcheck(False)
-    cpdef Spectrum emission(self, Point3D beam_point, Point3D plasma_point, Vector3D beam_direction,
-                            Vector3D observation_direction, Spectrum spectrum):
 
-        cdef:
-            double x, y, z
-            double temperature, emissivity
-            double sigma_x, sigma_y, norm_radius_sqr, gaussian_sample
-            Vector3D velocity
-            double natural_wavelength, central_wavelength, width_squared, radiance, sigma
+    def emission(self, beam_point, plasma_point, beam_direction,
+                            observation_direction, spectrum):
 
         # cache data on first run
         if self._emissivity is None:
@@ -122,19 +174,19 @@ cdef class RenateBeamEmissionLine(BeamModel):
                 return spectrum
 
         # bi-variate Gaussian distribution (normalised)
-        gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
+        gaussian_sample = np.exp(-0.5 * norm_radius_sqr/(sigma_x*sigma_y)) / np.sqrt(2 * np.pi * sigma_x * sigma_y)
 
         # spectral line emission in W/m^3/str
         emissivity = self._emissivity(z) * gaussian_sample
-
-        if self._using_stark_splitting:
+        
+        if False:#self._using_stark_splitting:
 
             return self._lineshape.add_line(emissivity, beam_point, plasma_point,
                                             beam_direction, observation_direction, spectrum)
 
         else:
 
-            velocity = beam_direction.normalise().mul(evamu_to_ms(self._beam.get_energy()))
+            velocity = beam_direction.normalise()*(evamu_to_ms(self._beam.get_energy()))
 
             # calculate emission line central wavelength, doppler shifted along observation direction
             natural_wavelength = self._wavelength
@@ -146,12 +198,7 @@ cdef class RenateBeamEmissionLine(BeamModel):
 
             return add_gaussian_line(emissivity, central_wavelength, sigma, spectrum)
 
-    cdef int _populate_cache(self) except -1:
-
-        cdef:
-            Element beam_element
-            int charge
-            tuple transition
+    def _populate_cache(self):
 
         # sanity checks
         if self._beam is None or self._plasma is None:
