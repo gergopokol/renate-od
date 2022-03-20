@@ -19,6 +19,7 @@ class fluctuations:
 
     def load_fluctuations(self):
         # Here comes a loader for 2D fluctuating fields using get_data_from_hdf5
+        pass
 
     def get_data_from_hdf5(file_name, source_name):
         try:
@@ -34,14 +35,17 @@ class fluctuations:
     def load_synthetic_signals(self):
         # Here comes a loader for simulated synthetic signals from .sav,
         # https://docs.scipy.org/doc/scipy/reference/io.html
+        pass
 
 
     def generate_fluctuations_movie(self):
         # Here comes a composite movie generator using other routines
+        pass
 
     def generate_fluctuations_figure(self):
         # Here comes the figure generator to be used in fluctuations_movie
+        pass
 
     def plot_synthetic_signals(self):
         # Here comes the figure generator to be used in fluctuations_movie
-
+        pass
