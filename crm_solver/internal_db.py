@@ -22,9 +22,14 @@ class InternalDB():
     def __projectile_parameters(self):
         self.energy = self.param.getroot().find('body').find('beamlet_energy').text
         self.projectile = self.param.getroot().find('body').find('beamlet_species').text
-        if self.projectile == 'H':
+        if self.projectile in ['H', 'D', 'T']:
             self.projectile_type = 'hydrogenic'
-            self.projectile_particle = tools.Particle(label='H', mass_number=1, atomic_number=1)
+            if self.projectile == 'H':
+                self.projectile_particle = tools.Particle(label='H', mass_number=1, atomic_number=1)
+            elif self.projectile == 'D':
+                self.projectile_particle = tools.Particle(label='D', mass_number=2, atomic_number=1)
+            elif self.projectile == 'T':
+                self.projectile_particle = tools.Particle(label='T', mass_number=3, atomic_number=1)
             self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, None: None}
             self.atomic_levels = 6
             self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
