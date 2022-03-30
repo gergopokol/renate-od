@@ -26,27 +26,27 @@ class HydrogenicData:
                             on Janev et.al. IAEA-APID-4 (1993), with some openly \
                             available corrections from ADAS.'
 
-        self.__excitation = {(-1, 0, 0): self.__ex_e,
-                             (1, 1, 1): self.__ex_p,
-                             (2, 2, 4): self.__ex_He,
-                             (4, 4, 9): self.__ex_Be,
+        self.__excitation = {-1: self.__ex_e,
+                             1: self.__ex_p,
+                             2: self.__ex_He,
+                             4: self.__ex_Be,
                              'Z': self.__ex_Z}
-        self.__ionization = {(-1, 0, 0): self.__ion_e,
-                             (1, 1, 1): self.__ion_p,
-                             (2, 2, 4): self.__ion_He,
-                             (4, 4, 9): self.__ion_Be,
-                             (5, 5, 11): self.__ion_B,
-                             (6, 6, 12): self.__ion_C,
-                             (8, 8, 16): self.__ion_O,
+        self.__ionization = {-1: self.__ion_e,
+                             1: self.__ion_p,
+                             2: self.__ion_He,
+                             4: self.__ion_Be,
+                             5: self.__ion_B,
+                             6: self.__ion_C,
+                             8: self.__ion_O,
                              'Z': self.__ion_Z}
-        self.__charge_ex = {(1, 1, 1): self.__cx_p,
-                            (2, 2, 4): self.__cx_He,
-                            (4, 4, 9): self.__cx_Be,
-                            (5, 5, 11): self.__cx_B,
-                            (6, 6, 12): self.__cx_C,
-                            (8, 8, 16): self.__cx_O,
+        self.__charge_ex = {1: self.__cx_p,
+                            2: self.__cx_He,
+                            4: self.__cx_Be,
+                            5: self.__cx_B,
+                            6: self.__cx_C,
+                            8: self.__cx_O,
                             'Z': self.__cx_Z}
-        self.__eloss = {(-1, 0, 0): self.__ion_e,
+        self.__eloss = {-1: self.__ion_e,
                         'Z': self.__eloss_Z}
         self.__trans_type = {'ex': self.__excitation,
                              'ion': self.__ionization,
@@ -151,8 +151,8 @@ class HydrogenicData:
             trans['name'] = 'ex'
             trans['from_level'] = transition.to_level
             trans['to_level'] = transition.from_level
-        if trans['target'] in self.__trans_type[trans['name']]:
-            cross_function = self.__trans_type[trans['name']][trans['target']]
+        if trans['target_charge'] in self.__trans_type[trans['name']]:
+            cross_function = self.__trans_type[trans['name']][trans['target_charge']]
         else:
             cross_function = self.__trans_type[trans['name']]['Z']
         return cross_function(trans, energy_grid)
@@ -242,7 +242,7 @@ class HydrogenicData:
     def __ex_p(self, trans, energy_grid):   # [1]
         n = int(trans['from_level'])
         m = int(trans['to_level'])
-        e = energy_grid/1e3
+        e = energy_grid/1e3/trans['target_mass']
 
         if n == 1 and m == 2:
             par = [34.433, 44.507, 0.56870, 8.5476, 7.8501, -9.2217, 1.8020e-2, 1.6931, 1.9422e-3, 2.9068]
@@ -573,7 +573,7 @@ class HydrogenicData:
 
     def __ion_p(self, trans, energy_grid):
         n = int(trans['from_level'])
-        e = energy_grid/1e3
+        e = energy_grid/1e3/trans['target_mass']
 
         if n == 1:   # [1]
             par = [12.899, 61.897, 9.2731e+3, 4.9749e-4, 3.9890e-2, -1.590, 3.1834, -3.7154]
@@ -687,7 +687,7 @@ class HydrogenicData:
 
     def __cx_p(self, trans, energy_grid):   # [1]
         n = int(trans['from_level'])
-        e = energy_grid/1e3
+        e = energy_grid/1e3/trans['target_mass']
 
         if n == 1:
             par = [3.2345, 235.88, 0.038371, 3.8068e-6, 1.1832e-10, 2.3713]
@@ -805,9 +805,9 @@ class HydrogenicData:
             return self.__CROSS_EQ[eq](e, par)
 
     def __eloss_Z(self, trans, energy_grid):
-        if trans['target'] in self.__trans_type['ion']:
-            sigma_ion = self.__trans_type['ion'][trans['target']](trans, energy_grid)
-            sigma_cx = self.__trans_type['cx'][trans['target']](trans, energy_grid)
+        if trans['target_charge'] in self.__trans_type['ion']:
+            sigma_ion = self.__trans_type['ion'][trans['target_charge']](trans, energy_grid)
+            sigma_cx = self.__trans_type['cx'][trans['target_charge']](trans, energy_grid)
         else:
             sigma_ion = self.__trans_type['ion']['Z'](trans, energy_grid)
             sigma_cx = self.__trans_type['cx']['Z'](trans, energy_grid)
