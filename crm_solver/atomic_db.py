@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import pandas
 from crm_solver.neutral_db import NeutralDB
-from renate_od.crm_solver.internal_db import InternalDB
+from crm_solver.internal_db import InternalDB
 
 
 class RenateDB:
@@ -171,14 +171,11 @@ class AtomicDB():
                 self.atomic_ceiling = atomic_ceiling
 
     def __generate_rate_function_db(self):
-        self.__set_temperature_axis()
+        self.temperature_axis = self.provider.temperature_axis
         self.__set_einstein_coefficient_db()
         self.__set_impact_loss_functions()
         self.__set_electron_impact_transition_functions()
         self.__set_ion_impact_transition_functions()
-
-    def __set_temperature_axis(self):
-        self.temperature_axis = self.provider.temperature_axis
 
     def __set_einstein_coefficient_db(self):
         '''''
@@ -232,8 +229,9 @@ class AtomicDB():
             for to_level in range(self.atomic_ceiling):
                 to_level_functions = []
                 for target in self.components.T.keys():
-                    to_level_functions.append(
-                        self.provider.get_rate_interpolator('excitation', self.components.loc[target], from_level, to_level))
+                    if self.components['q'][target] > 0:
+                        to_level_functions.append(
+                            self.provider.get_rate_interpolator('excitation', self.components.loc[target], from_level, to_level))
                 from_level_functions.append(tuple(to_level_functions))
             self.ion_impact_trans.append(tuple(from_level_functions))
         self.ion_impact_trans = tuple(self.ion_impact_trans)
