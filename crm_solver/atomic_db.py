@@ -21,6 +21,12 @@ class RenateDB:
         self.__set_atomic_dictionary()
         self.__set_rates_path(rate_type)
         self.__set_charge_state_lib()
+        self.spontaneous_trans = self.get_from_renate_atomic('spontaneous_transition')
+        self.temperature_axis = self.get_from_renate_atomic('temperature')
+        self.electron_loss = self.get_from_renate_atomic('ionization_terms')
+        self.electron_impact_trans = self.get_from_renate_atomic('electron_transition')
+        self.proton_impact_trans = self.get_from_renate_atomic('ion_transition')
+        self.impurity_impact_trans = self.get_from_renate_atomic('impurity_transition')
 
     def __set_impurity_mass_scaling_dictionary(self):
         self.impurity_mass_normalization = {'charge-1': 1,
@@ -39,7 +45,7 @@ class RenateDB:
         self.energy = self.param.getroot().find('body').find('beamlet_energy').text
         self.species = self.param.getroot().find('body').find('beamlet_species').text
         self.__get_atomic_mass()
-        self.__get_projectile_velocity()
+        self._get_projectile_velocity()
 
     def __get_atomic_mass(self):
         data_path_name = os.path.join('atomic_data', self.param.getroot().find('body').find('beamlet_species').text,
@@ -52,8 +58,9 @@ class RenateDB:
             print('Unexpected data in file: ' + data_path_name + '(Expecting single float!)')
             raise ValueError
 
-    def __get_projectile_velocity(self):
+    def _get_projectile_velocity(self):
         self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
+        return self.velocity
 
     def __set_atomic_dictionary(self):
         assert isinstance(self.species, str)
@@ -118,6 +125,30 @@ class RenateDB:
         else:
             raise ValueError('Data ' + source + ' is not located and supported in the Renate rate library.')
 
+    def __interp1d_scaled_ion(self, rates, target):
+        scaling_mass_ratio = float(target['A']) /\
+                             self.impurity_mass_normalization['charge-'+str(target['q'])]
+        return interp1d(self.temperature_axis*scaling_mass_ratio, rates, fill_value='extrapolate')
+
+    def get_rate_interpolator(self, reaction_type, target, from_level, to_level=None):
+        if reaction_type == 'electron_loss':
+            if target['q'] == -1:
+                return interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                self.electron_loss[0, from_level, :]), fill_value='extrapolate')
+            else:
+                return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                        self.electron_loss[target['q'], from_level, :]), target)
+        if reaction_type == 'excitation':
+            if target['q'] == -1:
+                return interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
+                    self.electron_impact_trans[from_level, to_level, :]), fill_value='extrapolate')
+            if target['q'] == 1:
+                return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            self.proton_impact_trans[from_level, to_level, :]), target)
+            else:
+                return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
+                            self.impurity_impact_trans[target['q']-2, from_level, to_level, :]), target)
+
 
 class AtomicDB():
     def __init__(self, atomic_source='renate', cross_section_source=None, param=None, rate_type='default', resolution=None,
@@ -128,7 +159,7 @@ class AtomicDB():
         self.__set_neutral_db(param=param, resolution=resolution)
         if atomic_source == 'renate':
             self.provider = RenateDB(param, rate_type, data_path)
-        if atomic_source == 'internal':
+        elif atomic_source == 'internal':
             self.provider = InternalDB(param, cross_section_source, data_path)
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
