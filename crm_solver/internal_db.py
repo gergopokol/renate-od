@@ -1,5 +1,6 @@
-from atomic import tools
-from atomic.cross_section import CrossSection, RateCoeff
+from utility import Particle
+from utility import Transition
+from atomic import CrossSection, RateCoeff
 from scipy.interpolate import interp1d
 from lxml import etree
 from utility import getdata
@@ -25,11 +26,11 @@ class InternalDB():
         if self.projectile in ['H', 'D', 'T']:
             self.projectile_type = 'hydrogenic'
             if self.projectile == 'H':
-                self.projectile_particle = tools.Particle(label='H', mass_number=1, atomic_number=1)
+                self.projectile_particle = Particle(label='H', mass_number=1, atomic_number=1)
             elif self.projectile == 'D':
-                self.projectile_particle = tools.Particle(label='D', mass_number=2, atomic_number=1)
+                self.projectile_particle = Particle(label='D', mass_number=2, atomic_number=1)
             elif self.projectile == 'T':
-                self.projectile_particle = tools.Particle(label='T', mass_number=3, atomic_number=1)
+                self.projectile_particle = Particle(label='T', mass_number=3, atomic_number=1)
             self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, None: None}
             self.atomic_levels = 6
             self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
@@ -54,10 +55,10 @@ class InternalDB():
                 trans_type = 'de-ex'
         elif reaction_type == 'electron_loss':
             trans_type = 'eloss'
-        target_particle = tools.Particle(label='Z', mass_number=target['A'], atomic_number=target['Z'], charge=target['q'])
-        trans = tools.Transition(projectile=self.projectile_particle, target=target_particle,
-                                 from_level=self.inv_atomic_dict[from_level],
-                                 to_level=self.inv_atomic_dict[to_level], trans=trans_type)
+        target_particle = Particle(label='Z', mass_number=target['A'], atomic_number=target['Z'], charge=target['q'])
+        trans = Transition(projectile=self.projectile_particle, target=target_particle,
+                           from_level=self.inv_atomic_dict[from_level],
+                           to_level=self.inv_atomic_dict[to_level], trans=trans_type)
         rate_generator = RateCoeff(trans, self.cross_section)
         rates = rate_generator.generate_rates(self.temperature_axis, float(self.energy)*1000)
         return interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(rates), fill_value='extrapolate')
