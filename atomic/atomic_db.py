@@ -6,8 +6,8 @@ import utility.convert as uc
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import pandas
-from crm_solver.neutral_db import NeutralDB
-from crm_solver.internal_db import InternalDB
+from atomic.neutral_db import NeutralDB
+from atomic.internal_db import InternalDB
 
 
 class RenateDB:
@@ -127,27 +127,27 @@ class RenateDB:
 
     def __interp1d_scaled_ion(self, rates, target):
         scaling_mass_ratio = float(target['A']) /\
-                             self.impurity_mass_normalization['charge-'+str(target['q'])]
+            self.impurity_mass_normalization['charge-'+str(target['q'])]
         return interp1d(self.temperature_axis*scaling_mass_ratio, rates, fill_value='extrapolate')
 
     def get_rate_interpolator(self, reaction_type, target, from_level, to_level=None):
         if reaction_type == 'electron_loss':
             if target['q'] == -1:
                 return interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
-                self.electron_loss[0, from_level, :]), fill_value='extrapolate')
+                    self.electron_loss[0, from_level, :]), fill_value='extrapolate')
             else:
                 return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
-                        self.electron_loss[target['q'], from_level, :]), target)
+                    self.electron_loss[target['q'], from_level, :]), target)
         if reaction_type == 'excitation':
             if target['q'] == -1:
                 return interp1d(self.temperature_axis, uc.convert_from_cm2_to_m2(
                     self.electron_impact_trans[from_level, to_level, :]), fill_value='extrapolate')
             if target['q'] == 1:
                 return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
-                            self.proton_impact_trans[from_level, to_level, :]), target)
+                    self.proton_impact_trans[from_level, to_level, :]), target)
             else:
                 return self.__interp1d_scaled_ion(uc.convert_from_cm2_to_m2(
-                            self.impurity_impact_trans[target['q']-2, from_level, to_level, :]), target)
+                    self.impurity_impact_trans[target['q']-2, from_level, to_level, :]), target)
 
 
 class AtomicDB():
@@ -196,8 +196,8 @@ class AtomicDB():
             elif self.are_neutrals:
                 if atomic_ceiling > self.neutral_db.atomic_levels:
                     raise ValueError('The atomic ceil can not be above available neutral atomic levels. '
-                                     'Current max nr of supported levels for neutrals are ' +
-                                     str(self.neutral_db.atomic_levels))
+                                     'Current max nr of supported levels for neutrals are '
+                                     + str(self.neutral_db.atomic_levels))
             else:
                 self.atomic_ceiling = atomic_ceiling
 
@@ -288,8 +288,8 @@ class AtomicDB():
                 if external_density == 1.:
                     raise ValueError('In case spontaneous emission terms are being compared an external density '
                                      'correction is required for the rates. Please apply a realistic density value.')
-                plt.plot(temperature, self.spontaneous_trans[self.atomic_dict[arg[2]], self.atomic_dict[arg[1]]]
-                         * numpy.ones(len(temperature)) / self.velocity, label='Spont. trans.: '+arg[1]+'-->'+arg[2])
+                plt.plot(temperature, self.spontaneous_trans[self.atomic_dict[arg[2]], self.atomic_dict[arg[1]]] *
+                         numpy.ones(len(temperature)) / self.velocity, label='Spont. trans.: '+arg[1]+'-->'+arg[2])
             else:
                 assert isinstance(arg[1], str)
                 if arg[1] not in ['e', 'p']:
@@ -297,8 +297,8 @@ class AtomicDB():
                 if arg[1] == 'e':
                     assert isinstance(arg[2], str)
                     if arg[0] == 'ion':
-                        plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature)
-                                 * external_density, label='e impact ion: '+arg[2]+'-->i')
+                        plt.plot(temperature, self.electron_impact_loss[self.atomic_dict[arg[2]]](temperature) *
+                                 external_density, label='e impact ion: '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, external_density * self.electron_impact_trans[self.atomic_dict[arg[2]]]
@@ -315,14 +315,14 @@ class AtomicDB():
                     ion = (self.components['q'][elements[arg[-1]]], self.components['Z'][elements[arg[-1]]],
                            self.components['A'][elements[arg[-1]]])
                     if arg[0] == 'ion':
-                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]-1](temperature)
-                                 * external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+','
-                                                         + str(ion[2])+'): '+arg[2]+'-->i')
+                        plt.plot(temperature, self.ion_impact_loss[self.atomic_dict[arg[2]]][arg[-1]-1](temperature) *
+                                 external_density, label='p impact ion (q,Z,A)=('+str(ion[0])+','+str(ion[1])+',' +
+                                                         str(ion[2])+'): '+arg[2]+'-->i')
                     else:
                         assert isinstance(arg[3], str)
                         plt.plot(temperature, self.ion_impact_trans[self.atomic_dict[arg[2]]][self.atomic_dict[arg[3]]]
-                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q,Z,A)=('
-                                 + str(ion[0])+','+str(ion[1])+',' + str(ion[2])+'): '+arg[2]+'-->'+arg[3])
+                                 [arg[-1]-1](temperature) * external_density, label='p impact trans (q,Z,A)=(' +
+                                 str(ion[0])+','+str(ion[1])+',' + str(ion[2])+'): '+arg[2]+'-->'+arg[3])
         plt.title('Reduced rates for '+self.species+' projectiles at '+str(self.energy)+' keV impact energy.')
         plt.xlabel('Temperature [eV]')
         if spont_flag:
