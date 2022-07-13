@@ -156,11 +156,12 @@ class AtomicDB():
         assert isinstance(atomic_source, str)
         assert isinstance(components, pandas.core.frame.DataFrame)
         self.components = components
-        self.__set_neutral_db(param=param, resolution=resolution)
+        self.param = param
+        self.__set_neutral_db(param=self.param, resolution=resolution)
         if atomic_source == 'renate':
-            self.provider = RenateDB(param, rate_type, data_path)
+            self.provider = RenateDB(self.param, rate_type, data_path)
         elif atomic_source == 'internal':
-            self.provider = InternalDB(param, cross_section_source, data_path)
+            self.provider = InternalDB(self.param, cross_section_source, data_path)
         else:
             raise ValueError('Currently the requested atomic DB: ' + atomic_source + ' is not supported')
         self.velocity = self.provider._get_projectile_velocity()
