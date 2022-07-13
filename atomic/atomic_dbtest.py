@@ -271,9 +271,6 @@ class AtomicDBTest(unittest.TestCase):
         for attr in self.EXPECTED_ATTR:
             assert hasattr(self.atomic_db, attr)
 
-    def test_inheritance(self):
-        self.assertIsInstance(self.atomic_db, RenateDB, msg='Default rate library inheritance test failed.')
-
     def test_spontaneous_trans(self):
         self.assertIsInstance(self.atomic_db.spontaneous_trans, numpy.ndarray,
                               msg='Spontaneous transition data stored in wrong format.')
