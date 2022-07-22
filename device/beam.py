@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from lxml import etree
 from utility.getdata import GetData
-from utility.geometrical_objects import Point
+from utility.geometrical_objects import Point, Vector, Line
 
 try:
     import imas
@@ -48,9 +48,32 @@ class Beam(object):
         self.end = Point(cartesian=[float(external_beam.getroot().find('body').find('beam_end').find('x').text),
                                     float(external_beam.getroot().find('body').find('beam_end').find('y').text),
                                     float(external_beam.getroot().find('body').find('beam_end').find('z').text)])
+        self.centerline = Line(self.start, self.end, 2)
 
     def __load_beam_from_ids(self):
         imas_beam = NbiIds(shot=self.shot, run=self.run, machine=self.machine, user=self.user)
+
+    def generate_current_distribution(self, X, Y, shape_function):
+        self.current_distribution = np.zeros((len(X), len(Y)))
+        self.grid_x = X
+        self.grid_y = Y
+        for i, x in enumerate(self.grid_x):
+            for j, y in enumerate(self.grid_y):
+                self.current_distribution[i, j] = shape_function(x, y)
+        self.current_distribution /= np.sum(self.current_distribution)
+        self.current_distribution *= self.current
+
+    def generate_beamlet_lines(self):
+        self.beamlet_lines = np.empty(self.current_distribution.shape, dtype=BeamletLine)
+        XY_length = np.sqrt(self.centerline.vector.x**2+self.centerline.vector.y**2)
+        cos_theta = XY_length/self.centerline.length
+        sin_phi = -self.centerline.vector.x/XY_length
+        cos_phi = self.centerline.vector.y/XY_length
+        for i, x in enumerate(self.grid_x):
+            for j, y in enumerate(self.grid_y):
+                line_start = (self.start.x+x*cos_phi, self.start.y+x*sin_phi, self.start.z+y*cos_theta)
+                line_end = (self.end.x+x*cos_phi, self.end.y+x*sin_phi, self.end.z+y*cos_theta)
+                self.beamlet_lines[i, j] = BeamletLine(line_start, line_end, resolution=self.beam_resolution)
 
     def generate_beamlets(self, singular=False, points_along_beamlet=None):
         if points_along_beamlet is None:
@@ -63,3 +86,9 @@ class Beam(object):
     def __generate_1d_beam(self):
         pass
 
+
+class BeamletLine(Line):
+
+    def __init__(self, rootPoint, endPoint, current, number_of_points=1000, resolution=None):
+        super().__init__(self, rootPoint, endPoint, number_of_points, resolution)
+        self.current = current
