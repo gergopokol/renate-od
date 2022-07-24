@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from lxml import etree
 from utility.getdata import GetData
-from utility.geometrical_objects import Point, Vector, Line
+from utility.geometrical_objects import Point, Vector, Line, Plane
 
 try:
     import imas
@@ -49,19 +49,15 @@ class Beam(object):
                                     float(external_beam.getroot().find('body').find('beam_end').find('y').text),
                                     float(external_beam.getroot().find('body').find('beam_end').find('z').text)])
         self.centerline = Line(self.start, self.end, 2)
+        self.base_plane = Plane(self.start, self.centerline.vector)
 
     def __load_beam_from_ids(self):
         imas_beam = NbiIds(shot=self.shot, run=self.run, machine=self.machine, user=self.user)
 
-    def generate_current_distribution(self, X, Y, shape_function):
-        self.current_distribution = np.zeros((len(X), len(Y)))
-        self.grid_x = X
-        self.grid_y = Y
-        for i, x in enumerate(self.grid_x):
-            for j, y in enumerate(self.grid_y):
-                self.current_distribution[i, j] = shape_function(x, y)
-        self.current_distribution /= np.sum(self.current_distribution)
-        self.current_distribution *= self.current
+    def add_current_distribution(self, x, y, current):
+        current_dist = (current/np.sum(current))*self.beam_current
+        self.current_distribution = np.array(list(zip(x, y, current_dist)),
+                                             dtype=[('x', 'float'), ('y', 'float'), ('current', 'float')])
 
     def generate_beamlet_lines(self):
         self.beamlet_lines = np.empty(self.current_distribution.shape, dtype=BeamletLine)

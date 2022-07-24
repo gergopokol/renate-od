@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 
 class Point(object):
@@ -120,10 +121,11 @@ class Line():
                 self.pointsnum = int(number_of_points)
             except:
                 raise TypeError('Number of points must be an integer.')
-            self.x = np.linspace(self.root.x, self.end.x, self.pointsnum)
-            self.y = np.linspace(self.root.y, self.end.y, self.pointsnum)
-            self.z = np.linspace(self.root.z, self.end.z, self.pointsnum)
-            self.resolution = Point((self.x[1], self.y[1], self.z[1])).distance(self.root)
+            x = np.linspace(self.root.x, self.end.x, self.pointsnum)
+            y = np.linspace(self.root.y, self.end.y, self.pointsnum)
+            z = np.linspace(self.root.z, self.end.z, self.pointsnum)
+            self.resolution = Point((x[1], y[1], z[1])).distance(self.root)
+            self.points = np.array(list(zip(x, y, z)), dtype=[('x', 'float'), ('y', 'float'), ('z', 'float')])
         else:
             try:
                 self.resolution = float(resolution)
@@ -131,23 +133,52 @@ class Line():
                 raise TypeError('Resolution must be a number.')
             self.pointsnum = int(self.length/self.resolution)
             dv = self.vector/self.pointsnum
-            self.x = np.arange(self.root.x, self.end.x, dv.x)
-            self.y = np.arange(self.root.y, self.end.y, dv.y)
-            self.z = np.arange(self.root.z, self.end.z, dv.z)
+            x = np.arange(self.root.x, self.end.x, dv.x)
+            y = np.arange(self.root.y, self.end.y, dv.y)
+            z = np.arange(self.root.z, self.end.z, dv.z)
+            self.points = np.array(list(zip(x, y, z)), dtype=[('x', 'float'), ('y', 'float'), ('z', 'float')])
 
     def project(self, plane):
         root = plane.project_point(self.root)
         end = plane.project_point(self.end)
         return Line(root, end, number_of_points=self.pointsnum)
 
+    def plot_in_plane(self, plane):
+        projected_line = self.project(plane)
+        points_array = np.stack([projected_line.points['x'],
+                                projected_line.points['y'],
+                                projected_line.points['z']])
+        points_to_plot = plane.transform_to_plane(points_array)
+        plt.scatter(points_to_plot[:, 0], points_to_plot[:, 1])
+        return points_to_plot
+
 
 class Plane:
 
     def __init__(self, point, normal):
-        self.point = Vector(point)
+        self.origin = Vector(point)
         self.normal = Vector(normal).normalized()
+        self.generate_rotation()
 
     def project_point(self, point):
         r_point = Vector(point)
-        r_projected = r_point+self.normal*(self.normal.dot(self.point-r_point))
+        r_projected = r_point+self.normal*(self.normal.dot(self.origin-r_point))
         return Point(r_projected.cartesians)
+
+    def generate_rotation(self):
+        theta = np.arccos(self.normal.z/self.normal.length)
+        if self.normal.phi == 0.0:
+            phi = 0.0
+        else:
+            phi = self.normal.phi+np.pi/2
+        rot = np.array([[np.cos(phi), np.cos(theta)*np.sin(phi), np.sin(theta)*np.sin(phi)],
+                        [np.sin(phi), np.cos(theta)*np.cos(phi), -np.sin(theta)*np.cos(phi)],
+                        [0, np.sin(theta), np.cos(theta)]])
+        self.rot_to_world = rot
+        self.rot_to_plane = np.linalg.inv(rot)
+
+    def transform_to_world(self, points):
+        return self.rot_to_world.dot(points)+self.origin.cartesians.T
+
+    def transform_to_plane(self, points):
+        return self.rot_to_plane.dot(points).T-self.origin.cartesians
