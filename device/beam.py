@@ -3,6 +3,7 @@ import pandas as pd
 from lxml import etree
 from utility.getdata import GetData
 from utility.geometrical_objects import Point, Vector, Line, Plane
+from scipy.interpolate import LinearNDInterpolator
 
 try:
     import imas
@@ -50,26 +51,40 @@ class Beam(object):
                                     float(external_beam.getroot().find('body').find('beam_end').find('z').text)])
         self.centerline = Line(self.start, self.end, 2)
         self.base_plane = Plane(self.start, self.centerline.vector)
+        self.end_plane = Plane(self.end, self.centerline.vector)
+
+    def add_base_grid(self, x, y):
+        self.base_grid = np.array(list(zip(x, y)), dtype=[('x', 'float'), ('y', 'float')])
+
+    def add_end_grid(self, x, y):
+        self.end_grid = np.array(list(zip(x, y)), dtype=[('x', 'float'), ('y', 'float')])
 
     def __load_beam_from_ids(self):
         imas_beam = NbiIds(shot=self.shot, run=self.run, machine=self.machine, user=self.user)
 
-    def add_current_distribution(self, x, y, current):
-        current_dist = (current/np.sum(current))*self.beam_current
-        self.current_distribution = np.array(list(zip(x, y, current_dist)),
-                                             dtype=[('x', 'float'), ('y', 'float'), ('current', 'float')])
+    def add_current_distribution(self, currents):
+        self.current_distribution = (currents/np.sum(currents))*self.beam_current
 
     def generate_beamlet_lines(self):
-        self.beamlet_lines = np.empty(self.current_distribution.shape, dtype=BeamletLine)
-        XY_length = np.sqrt(self.centerline.vector.x**2+self.centerline.vector.y**2)
-        cos_theta = XY_length/self.centerline.length
-        sin_phi = -self.centerline.vector.x/XY_length
-        cos_phi = self.centerline.vector.y/XY_length
-        for i, x in enumerate(self.grid_x):
-            for j, y in enumerate(self.grid_y):
-                line_start = (self.start.x+x*cos_phi, self.start.y+x*sin_phi, self.start.z+y*cos_theta)
-                line_end = (self.end.x+x*cos_phi, self.end.y+x*sin_phi, self.end.z+y*cos_theta)
-                self.beamlet_lines[i, j] = BeamletLine(line_start, line_end, resolution=self.beam_resolution)
+        self.beamlet_lines = []
+        for i, c in enumerate(self.current_distribution):
+            root = self.base_plane.transform_to_world([self.base_grid[i]['x'],
+                                                       self.base_grid[i]['y'],
+                                                       0.0])
+            end = self.end_plane.transform_to_world([self.end_grid[i]['x'],
+                                                     self.end_grid[i]['y'],
+                                                     0.0])
+            self.beamlet_lines.append(BeamletLine(root, end, c, resolution=self.beam_resolution))
+
+    def generate_current_interpolator(self):
+        points = self.beamlet_lines[0].points.view((float, 3))
+        values = np.full(self.beamlet_lines[0].points.shape, self.beamlet_lines[0].current)
+        for i in range(1, len(self.beamlet_lines)):
+            points = np.vstack((points, self.beamlet_lines[i].points.view((float, 3))))
+            values = np.hstack((values, np.full(self.beamlet_lines[i].points.shape,
+                                                self.beamlet_lines[i].current)))
+        self.current_interpolator = LinearNDInterpolator(points, values)
+        return self.current_interpolator
 
     def generate_beamlets(self, singular=False, points_along_beamlet=None):
         if points_along_beamlet is None:
@@ -82,9 +97,12 @@ class Beam(object):
     def __generate_1d_beam(self):
         pass
 
+    def intersection_with_Line(self, line):
+        pass
+
 
 class BeamletLine(Line):
 
     def __init__(self, rootPoint, endPoint, current, number_of_points=1000, resolution=None):
-        super().__init__(self, rootPoint, endPoint, number_of_points, resolution)
+        super().__init__(rootPoint, endPoint, number_of_points, resolution)
         self.current = current

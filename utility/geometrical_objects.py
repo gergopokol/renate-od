@@ -132,10 +132,9 @@ class Line():
             except:
                 raise TypeError('Resolution must be a number.')
             self.pointsnum = int(self.length/self.resolution)
-            dv = self.vector/self.pointsnum
-            x = np.arange(self.root.x, self.end.x, dv.x)
-            y = np.arange(self.root.y, self.end.y, dv.y)
-            z = np.arange(self.root.z, self.end.z, dv.z)
+            x = np.linspace(self.root.x, self.end.x, self.pointsnum)
+            y = np.linspace(self.root.y, self.end.y, self.pointsnum)
+            z = np.linspace(self.root.z, self.end.z, self.pointsnum)
             self.points = np.array(list(zip(x, y, z)), dtype=[('x', 'float'), ('y', 'float'), ('z', 'float')])
 
     def project(self, plane):
@@ -145,9 +144,7 @@ class Line():
 
     def plot_in_plane(self, plane):
         projected_line = self.project(plane)
-        points_array = np.stack([projected_line.points['x'],
-                                projected_line.points['y'],
-                                projected_line.points['z']])
+        points_array = projected_line.points.view((float, 3)).T
         points_to_plot = plane.transform_to_plane(points_array)
         plt.scatter(points_to_plot[:, 0], points_to_plot[:, 1])
         return points_to_plot
@@ -167,7 +164,7 @@ class Plane:
 
     def generate_rotation(self):
         theta = np.arccos(self.normal.z/self.normal.length)
-        if self.normal.phi == 0.0:
+        if self.normal.x == 0.0 and self.normal.y == 0.0:
             phi = 0.0
         else:
             phi = self.normal.phi+np.pi/2
@@ -178,7 +175,7 @@ class Plane:
         self.rot_to_plane = np.linalg.inv(rot)
 
     def transform_to_world(self, points):
-        return self.rot_to_world.dot(points)+self.origin.cartesians.T
+        return self.rot_to_world.dot(points).T+self.origin.cartesians
 
     def transform_to_plane(self, points):
         return self.rot_to_plane.dot(points).T-self.origin.cartesians
