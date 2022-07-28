@@ -12,7 +12,8 @@ class Point(object):
         elif cylindrical is not None and cartesian is not None:
             self.add_cartesian_point(cartesian)
             if self.r != cylindrical[0] or self.phi != cylindrical[1] or cartesian[2] != cylindrical[2]:
-                raise ValueError('The cylindrical and cartesian input data does not match! Point object invalid.')
+                raise ValueError(
+                    'The cylindrical and cartesian input data does not match! Point object invalid.')
         if equilibrium_interpolator is not None:
             self.add_flux_surface_value(equilibrium_interpolator)
         else:
@@ -78,7 +79,8 @@ class Vector(Point):
             return 'Vector coordinates:\n' \
                    'Cartesian: (x,y,z) [m,m,m] = (' + str(self.x) + '; ' + str(self.y) + '; ' + str(self.z) + ')\n' \
                    'Cylindrical: (r,phi,z) [m,rad,m]= (' + str(self.r) + '; ' + str(self.phi) + '; ' + str(self.z) + \
-                   ')\nLength [m]: '+str(self.length)+'\nNormalized flux value: Psi [-] = ' + str(self.psi)
+                   ')\nLength [m]: '+str(self.length) + \
+                '\nNormalized flux value: Psi [-] = ' + str(self.psi)
         else:
             return 'Point coordinates: NOT defined.'
 
@@ -105,6 +107,9 @@ class Vector(Point):
     def dot(self, other):
         return self.x*other.x+self.y*other.y+self.z*other.z
 
+    def cross(self, other):
+        return np.cross(self.cartesians, other.cartesians)
+
     def normalized(self,):
         return self/self.length
 
@@ -125,7 +130,8 @@ class Line():
             y = np.linspace(self.root.y, self.end.y, self.pointsnum)
             z = np.linspace(self.root.z, self.end.z, self.pointsnum)
             self.resolution = Point((x[1], y[1], z[1])).distance(self.root)
-            self.points = np.array(list(zip(x, y, z)), dtype=[('x', 'float'), ('y', 'float'), ('z', 'float')])
+            self.points = np.array(list(zip(x, y, z)), dtype=[(
+                'x', 'float'), ('y', 'float'), ('z', 'float')])
         else:
             try:
                 self.resolution = float(resolution)
@@ -135,7 +141,8 @@ class Line():
             x = np.linspace(self.root.x, self.end.x, self.pointsnum)
             y = np.linspace(self.root.y, self.end.y, self.pointsnum)
             z = np.linspace(self.root.z, self.end.z, self.pointsnum)
-            self.points = np.array(list(zip(x, y, z)), dtype=[('x', 'float'), ('y', 'float'), ('z', 'float')])
+            self.points = np.array(list(zip(x, y, z)), dtype=[(
+                'x', 'float'), ('y', 'float'), ('z', 'float')])
 
     def project(self, plane):
         root = plane.project_point(self.root)
@@ -159,7 +166,8 @@ class Plane:
 
     def project_point(self, point):
         r_point = Vector(point)
-        r_projected = r_point+self.normal*(self.normal.dot(self.origin-r_point))
+        r_projected = r_point+self.normal * \
+            (self.normal.dot(self.origin-r_point))
         return Point(r_projected.cartesians)
 
     def generate_rotation(self):
@@ -169,7 +177,8 @@ class Plane:
         else:
             phi = self.normal.phi+np.pi/2
         rot = np.array([[np.cos(phi), np.cos(theta)*np.sin(phi), np.sin(theta)*np.sin(phi)],
-                        [np.sin(phi), np.cos(theta)*np.cos(phi), -np.sin(theta)*np.cos(phi)],
+                        [np.sin(phi), np.cos(theta)*np.cos(phi), -
+                         np.sin(theta)*np.cos(phi)],
                         [0, np.sin(theta), np.cos(theta)]])
         self.rot_to_world = rot
         self.rot_to_plane = np.linalg.inv(rot)
@@ -179,3 +188,10 @@ class Plane:
 
     def transform_to_plane(self, points):
         return self.rot_to_plane.dot(points).T-self.origin.cartesians
+
+
+class PoloidalPlane(Plane):
+
+    def __init__(self, point):
+        normal = Vector((0, 0, 1)).cross(Vector(point))
+        super().__init__(point, normal)
