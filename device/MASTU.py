@@ -32,7 +32,7 @@ class PSFforMASTU:
         self.Bphi_interpolator = RegularGridInterpolator((self.efit_data['r'], self.efit_data['z']),
                                                          self.efit_data['Bphi'][time_ind])
 
-    def prepare_psf(self, time, beam, beam_interpolator, los_list, psf_plane, propagation='ccw'):
+    def prepare_psf(self, time, beam, beam_interpolator, los_list, psf_plane, propagation='ccw', stepsize=1e-3):
         if propagation == 'ccw':
             self.prop_sign = 1
         elif propagation == 'cw':
@@ -43,6 +43,7 @@ class PSFforMASTU:
         self.beam_interpolator = beam_interpolator
         self.psf_plane = psf_plane
         self.los_list = los_list
+        self.stepsize = stepsize
         self.make_interpolators_at_time(time)
         self.ps_curves = []
         for los in self.los_list:
@@ -52,28 +53,33 @@ class PSFforMASTU:
         int_p, int_w = los.interpolate_points(self.beam_interpolator)
         propagated = []
         for p in int_p:
-            propagated.append(self.propagate_los_point(Point(p)))
+            point = Point(p)
+            if (point.phi-self.psf_plane.origin.phi)*self.prop_sign < 0:
+                propagated.append(self.propagate_los_point(Point(p)))
         propagated = np.array(
-            propagated, dtype=[('r', 'float'), ('z', 'float'), ('phi', 'float')])
+            propagated, dtype=[('r', np.float64), ('z', np.float64), ('phi', np.float64)])
         return propagated
 
     def propagate_los_point(self, point):
         phi_old = point.phi
         z = point.z
         r = point.r
-        b = self.get_b_vector(r, z).normalized()/1000
-        d = self.prop_sign*np.sign(self.psf_plane.normal.dot(b))
+        b = self.get_b_vector(r, z)
+        b = b/np.linalg.norm(b)*self.stepsize
+        d = self.prop_sign*np.sign(b[2])
         b = b*d
-        phi_new = phi_old+b.phi
+        phi_new = phi_old+b[2]
         while(np.abs(phi_old-self.psf_plane.origin.phi) > np.abs(phi_new-self.psf_plane.origin.phi)):
-            z = z+b.z
-            r = r+b.r
+            z = z+b[1]
+            r = r+b[0]
             phi_old = phi_new
-            phi_new = phi_old+b.phi
+            b = self.get_b_vector(r, z)
+            b = b/np.linalg.norm(b)*self.stepsize*d
+            phi_new = phi_old+b[2]
         return r, z, phi_old
 
     def get_b_vector(self, r, z):
         br = self.Br_interpolator((r, z))
         bz = self.Bz_interpolator((r, z))
         bphi = self.Bphi_interpolator((r, z))
-        return Vector((br, bphi, bz), pointtype='cylindrical')
+        return np.array([br, bz, bphi])
