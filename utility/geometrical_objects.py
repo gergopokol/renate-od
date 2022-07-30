@@ -18,6 +18,7 @@ class Point(object):
             self.add_flux_surface_value(equilibrium_interpolator)
         else:
             self.psi = '-'
+        self.cartesians = np.array((self.x, self.y, self.z))
 
     def __repr__(self):
         if hasattr(self, 'x'):
@@ -35,7 +36,6 @@ class Point(object):
         self.x = point[0]
         self.y = point[1]
         self.z = point[2]
-        self.cartesians = np.array((self.x, self.y, self.z))
         self.from_cartesian_to_cylindrical()
 
     def add_cylindrical_point(self, point):
@@ -187,7 +187,7 @@ class Plane:
         return self.rot_to_world.dot(points).T+self.origin.cartesians
 
     def transform_to_plane(self, points):
-        return self.rot_to_plane.dot(points).T-self.origin.cartesians
+        return self.rot_to_plane.dot((np.array(points).T-self.origin.cartesians).T).T
 
 
 class PoloidalPlane(Plane):

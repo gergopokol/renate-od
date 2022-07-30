@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-from utility.geometrical_objects import Vector, Point
+from utility.geometrical_objects import Point
+from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import h5py
 
 
@@ -9,8 +12,10 @@ import h5py
 
 class PSFforMASTU:
 
-    def __init__(self, efit_path):
+    def __init__(self, efit_path, los_list, psf_plane):
         self.efit_data = self.read_MASTU_EFIT(efit_path)
+        self.psf_plane = psf_plane
+        self.los_list = los_list
 
     def read_MASTU_EFIT(self, path):
         f = h5py.File(path)
@@ -32,7 +37,7 @@ class PSFforMASTU:
         self.Bphi_interpolator = RegularGridInterpolator((self.efit_data['r'], self.efit_data['z']),
                                                          self.efit_data['Bphi'][time_ind])
 
-    def prepare_psf(self, time, beam, beam_interpolator, los_list, psf_plane, propagation='ccw', stepsize=1e-3):
+    def prepare_psf(self, time, beam, beam_interpolator, propagation='ccw', stepsize=1e-3):
         if propagation == 'ccw':
             self.prop_sign = 1
         elif propagation == 'cw':
@@ -41,24 +46,27 @@ class PSFforMASTU:
             raise ValueError(
                 'Propagation is either \'ccw\' (default) or \'cw\'')
         self.beam_interpolator = beam_interpolator
-        self.psf_plane = psf_plane
-        self.los_list = los_list
         self.stepsize = stepsize
         self.make_interpolators_at_time(time)
         self.ps_curves = []
+        self.ps_weights = []
         for los in self.los_list:
-            self.ps_curves.append(self.process_los(los))
+            curve, weights = self.process_los(los)
+            self.ps_curves.append(curve)
+            self.ps_weights.append(weights)
 
     def process_los(self, los):
         int_p, int_w = los.interpolate_points(self.beam_interpolator)
         propagated = []
-        for p in int_p:
+        weights = []
+        for i, p in enumerate(int_p):
             point = Point(p)
             if (point.phi-self.psf_plane.origin.phi)*self.prop_sign < 0:
                 propagated.append(self.propagate_los_point(Point(p)))
+                weights.append(int_w[i])
         propagated = np.array(
             propagated, dtype=[('r', np.float64), ('z', np.float64), ('phi', np.float64)])
-        return propagated
+        return propagated, np.array(weights)
 
     def propagate_los_point(self, point):
         phi_old = point.phi
@@ -83,3 +91,26 @@ class PSFforMASTU:
         bz = self.Bz_interpolator((r, z))
         bphi = self.Bphi_interpolator((r, z))
         return np.array([br, bz, bphi])
+
+    def plot_detectors(self, dimensions):
+        if len(dimensions) != len(self.los_list):
+            raise ValueError(
+                'Number of detectors not equal to number of LOSs.')
+        for i, los in enumerate(self.los_list):
+            center = self.psf_plane.transform_to_plane(los.end.cartesians)
+            width, height = dimensions[i]
+            plt.gca().add_patch(
+                Rectangle((center[0]-width/2, center[1]-height/2), width, height,
+                          edgecolor='k',
+                          fill=False))
+
+    def plot_curves(self):
+        if hasattr(self, 'ps_curves'):
+            cmap = mpl.cm.viridis
+            for i, curve in enumerate(self.ps_curves):
+                maxw = np.max(self.ps_weights[i])
+                for j, p in enumerate(curve):
+                    point = Point(cylindrical=(p[0], p[2], p[1]))
+                    x, y = self.psf_plane.transform_to_plane(
+                        (point.cartesians))[:2]
+                    plt.scatter(x, y, color=cmap(self.ps_weights[i][j]/maxw))
