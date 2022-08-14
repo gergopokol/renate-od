@@ -1,12 +1,20 @@
 import numpy as np
-import scipy as sc
-from utility.geometrical_objects import Line
+from utility.geometrical_objects import Line, Vector
 
 
 class LineOfSight(Line):
 
-    def __init__(self, rootPoint, endPoint, number_of_points=1000, resolution=None):
-        super().__init__(rootPoint, endPoint, number_of_points, resolution)
+    def __init__(self, rootPoint, endPoint, number_of_points=1000, resolution=None, extension=None):
+        if isinstance(extension, float) or isinstance(extension, int):
+            root = Vector(rootPoint)
+            end = Vector(endPoint)
+            vector = end-root
+            ext_end = (root+vector.normalized() *
+                       (vector.length+extension)).cartesians
+            super().__init__(rootPoint, ext_end, number_of_points, resolution)
+        else:
+            super().__init__(rootPoint, endPoint, number_of_points, resolution)
+        self.detector_position = Vector(endPoint)
 
     def interpolate_points(self, interpolator):
         result = interpolator(self.points.view((float, 3)))

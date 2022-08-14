@@ -38,13 +38,6 @@ class PSFforMASTU:
                                                          self.efit_data['Bphi'][time_ind])
 
     def prepare_psf(self, time, beam, beam_interpolator, propagation='ccw', stepsize=1e-3):
-        if propagation == 'ccw':
-            self.prop_sign = 1
-        elif propagation == 'cw':
-            self.prop_sign = -1
-        else:
-            raise ValueError(
-                'Propagation is either \'ccw\' (default) or \'cw\'')
         self.beam_interpolator = beam_interpolator
         self.stepsize = stepsize
         self.make_interpolators_at_time(time)
@@ -61,20 +54,20 @@ class PSFforMASTU:
         weights = []
         for i, p in enumerate(int_p):
             point = Point(p)
-            if (point.phi-self.psf_plane.origin.phi)*self.prop_sign < 0:
-                propagated.append(self.propagate_los_point(Point(p)))
-                weights.append(int_w[i])
+            propagated.append(self.propagate_los_point(
+                point, np.sign(self.psf_plane.origin.phi-point.phi)))
+            weights.append(int_w[i])
         propagated = np.array(
             propagated, dtype=[('r', np.float64), ('z', np.float64), ('phi', np.float64)])
         return propagated, np.array(weights)
 
-    def propagate_los_point(self, point):
+    def propagate_los_point(self, point, prop_sign):
         phi_old = point.phi
         z = point.z
         r = point.r
         b = self.get_b_vector(r, z)
         b = b/np.linalg.norm(b)*self.stepsize
-        d = self.prop_sign*np.sign(b[2])
+        d = prop_sign*np.sign(b[2])
         b = b*d
         phi_new = phi_old+b[2]
         while(np.abs(phi_old-self.psf_plane.origin.phi) > np.abs(phi_new-self.psf_plane.origin.phi)):
@@ -97,7 +90,8 @@ class PSFforMASTU:
             raise ValueError(
                 'Number of detectors not equal to number of LOSs.')
         for i, los in enumerate(self.los_list):
-            center = self.psf_plane.transform_to_plane(los.end.cartesians)
+            center = self.psf_plane.transform_to_plane(
+                los.detector_position.cartesians)
             width, height = dimensions[i]
             plt.gca().add_patch(
                 Rectangle((center[0]-width/2, center[1]-height/2), width, height,
