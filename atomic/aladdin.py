@@ -1,9 +1,10 @@
 import pycollisiondb
 from pycollisiondb.pycollisiondb import PyCollision
+from scipy.interpolate import interp1d
 
 class FitFunction(object):
     def __init__(self, data):
-        self.coefficiants = self.assign_from_fit(data, 'coeffs')
+        self.coefficients = self.assign_from_fit(data, 'coeffs')
         self.elo = self.assign_from_fit(data, 'Elo')
         self.ehi = self.assign_from_fit(data, 'Ehi')
         self.name = self.assign_from_fit(data, 'func')
@@ -14,7 +15,7 @@ class FitFunction(object):
         try:
             return data[tag]
         except KeyError:
-            return data
+            return None
 
 class AladdinCrossSection(object):
     def __init__(self, data):
@@ -26,7 +27,7 @@ class AladdinCrossSection(object):
         self.reaction = self.assign_data(data, tag='reaction')
         self.type = self.assign_data(data, tag='process_types')
         self.uncertainty = float(self.assign_from_json(data, tag='unc_perc'))
-        self.threshold = float(self.assign_from_json(data, tag='threshold'))
+        #self.threshold = float(self.assign_from_json(data, tag='threshold'))
         self.function = self.assign_from_json(data, tag='data_from_fit')
         if self.function:
             self.fit = FitFunction(data.metadata['json_data']['fit'])
@@ -57,5 +58,38 @@ class AladdinData(object):
         else:
             raise TypeError('The required data type for url specification is <str>.')
 
+    @staticmethod
+    def _set_sign(particle):
+        if particle.charge > 1:
+            return '+'
+        else:
+            return '-'
+
+    def rod_to_pycoll(self, transition):
+        reactants = str(transition.projectile) + ' ' + transition.from_level + ' + ' + \
+                    str(transition.target) + self._set_sign(transition.target)
+
+        if transition.name == 'ex' or transition.name == 'de-ex':
+            products = str(transition.projectile) + ' ' + transition.to_level + ' + ' + \
+                       str(transition.target) + self._set_sign(transition.target)
+        elif transition.name == 'ion':
+            products = str(transition.projectile) + '+ + ' + \
+                       str(transition.target) + self._set_sign(transition.target) + ' + ' + 'e-'
+        elif transition.name == 'cx':
+            products = str(transition.projectile) + '+ + ' + \
+                       str(transition.target)
+        else:
+            products = str(transition.projectile) + '+ + '
+        return reactants + ' -> ' + products
+
+    def get_data_from_iaea(self, pycoll_reaction):
+        pycoll_raw = PyCollision.get_datasets(query = {'reaction_text':pycoll_reaction, 'data_type':'cross section'},
+                                              API_URL=self.api_url)
+        return AladdinCrossSection(pycoll_raw.datasets[list(pycoll_raw.datasets.keys())[0]])
+
     def get_cross_section(self, transition, energy_grid):
-        pass
+        reaction = self.rod_to_pycoll(transition)
+        aladdin_data = self.get_data_from_iaea(pycoll_reaction=reaction)
+        cross_function = interp1d(aladdin_data.energy, aladdin_data.cross_section,
+                                  kind='cubic', fill_value='extrapolate')
+        return cross_function(energy_grid)
