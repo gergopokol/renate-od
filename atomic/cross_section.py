@@ -11,7 +11,7 @@ class CrossSection:
     def __new__(cls, source, projectile=None):
         if not isinstance(source, str):
             raise TypeError('A string is expected to decide which data source to pursue.\n'+CrossSection.GetAvailableData())
-        if source == 'aladdin':
+        if source == 'aladdin' or source == 'collisiondb':
             return AladdinData()
         elif source == 'internal':
             if not isinstance(projectile, str):
