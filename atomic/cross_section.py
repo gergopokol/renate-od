@@ -6,13 +6,13 @@ from atomic.hydrogenic_cross_sections import HydrogenicData
 
 class CrossSection:
 
-    CROSSEC_SOURCES = {'aladdin': [], 'internal': ['hydrogenic']}
+    CROSSEC_SOURCES = {'aladdin': [], 'collisiondb':[], 'internal': ['hydrogenic']}
 
     def __new__(cls, source, projectile=None):
         if not isinstance(source, str):
             raise TypeError('A string is expected to decide which data source to pursue.\n'+CrossSection.GetAvailableData())
         if source == 'aladdin' or source == 'collisiondb':
-            return AladdinData()
+            return AladdinData(url_source=source)
         elif source == 'internal':
             if not isinstance(projectile, str):
                 raise TypeError('The data source requires the projectile parameter to be a valid string.\n'+CrossSection.GetAvailableData())
