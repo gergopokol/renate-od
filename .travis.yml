@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6.4"
+  - "3.9.12"
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt
