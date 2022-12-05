@@ -60,7 +60,7 @@ class AladdinData(object):
 
     @staticmethod
     def _set_sign(particle):
-        if particle.charge > 1:
+        if particle.charge >= 1:
             return '+'
         else:
             return '-'
