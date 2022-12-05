@@ -1,5 +1,5 @@
 scipy==1.7.3
-numpy==1.23.3
+numpy==1.22.4
 pandas==1.4.2
 h5py==3.6.0
 matplotlib==3.6.0
