@@ -6,7 +6,7 @@ from copy import deepcopy
 from lxml import etree
 from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
-from crm_solver.atomic_db import AtomicDB
+from atomic.atomic_db import AtomicDB
 
 
 class Beamlet:

@@ -7,3 +7,4 @@ lxml==4.8.0
 tables==3.6.1
 paramiko==2.8.1
 scp==0.14.4
+pycollisiondb==0.1.3
