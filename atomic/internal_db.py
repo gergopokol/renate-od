@@ -55,6 +55,10 @@ class InternalDB():
     def set_default_atomic_levels(self):
         if self.projectile in ['H', 'D', 'T']:
             return '3', '2', '1', '3n-->2n'
+        elif self.projectile == 'Li':
+            return '2p', '2s', '2s', '2p-->2s'
+        elif self.projectile == 'Na':
+            return '3p', '3s', '3s', '3p-->3s'
 
     def get_rate_interpolator(self, reaction_type, target, from_level, to_level=None):
         #print(reaction_type, target, from_level, to_level)
