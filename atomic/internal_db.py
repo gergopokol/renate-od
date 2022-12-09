@@ -33,8 +33,20 @@ class InternalDB():
                 self.projectile_particle = Particle(label='T', mass_number=3, atomic_number=1)
             self.atomic_dict = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, None: None}
             self.atomic_levels = 6
-            self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
-            self.mass = self.projectile_particle.mass
+        elif self.projectile == 'Li':
+            self.projectile_type = 'alkali'
+            self.projectile_particle = Particle(label='Li', charge=0, mass_number=7, atomic_number=3)
+            self.atomic_dict = {'2s': 0, '2p': 1, '3s': 2, '3p': 3, '3d': 4, '4s': 5, '4p': 6, '4d': 7, '4f': 8}
+            self.atomic_levels = 9
+        elif self.projectile == 'Na':
+            self.projectile_type = 'alkali'
+            self.projectile_particle = Particle(label='Na', charge=0, mass_number=23, atomic_number=11)
+            self.atomic_dict = {'3s': 0, '3p': 1, '3d': 2, '4s': 3, '4p': 4, '4d': 5, '4f': 6, '5s': 7}
+            self.atomic_levels = 8
+        else:
+            raise ValueError('The requested projectile is not yet supported.')
+        self.inv_atomic_dict = {index: name for name, index in self.atomic_dict.items()}
+        self.mass = self.projectile_particle.mass
 
     def _get_projectile_velocity(self):
         self.velocity = uc.calculate_velocity_from_energy(uc.convert_keV_to_eV(float(self.energy)), self.mass)
