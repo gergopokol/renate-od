@@ -58,8 +58,8 @@ class Beamlet:
         numerical = ode.calculate_numerical_solution(self.profiles['beamlet grid']['distance']['m'])
         if store_data:
             for level in range(self.atomic_db.atomic_ceiling):
-            label = 'level ' + self.atomic_db.inv_atomic_dict[level]
-            self.profiles[label] = numerical[:, level]
+                label = 'level ' + self.atomic_db.inv_atomic_dict[level]
+                self.profiles[label] = numerical[:, level]
             return
         else:
             return numerical
@@ -138,7 +138,7 @@ class Beamlet:
             raise ValueError('The <object_copy> variable does not support ' + object_copy)
 
     def _copy_profiles_input(self):
-        profiles = numpy.zeros((1 + len(self.components) * 2, len(self.profiles)))
+        profiles = np.zeros((1 + len(self.components) * 2, len(self.profiles)))
         type_labels = []
         property_labels = []
         unit_labels = []
@@ -162,37 +162,33 @@ class Beamlet:
 
             count += 2
 
-        profiles = numpy.swapaxes(profiles, 0, 1)
+        profiles = np.swapaxes(profiles, 0, 1)
         row_index = [i for i in range(len(self.profiles))]
         column_index = pandas.MultiIndex.from_arrays([type_labels, property_labels, unit_labels],
                                                      names=['type', 'property', 'unit'])
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
     
-    def fluctuation_response(self, number, type_of_fluct, max_density, fwhm, spacing, component):
-        if self.isacopy == False:
-            beamlet = self.copy()
-            return beamlet.fluctuation_response(number, type_of_fluct, max_density, fwhm, spacing, component)
+    def fluctuation_response(self, type_of_fluct, max_density, fwhm, positions, component): 
+        beamlet = self.copy()
+        if isinstance(positions, list):
+            number = len(positions)
         else:
-            if (type_of_fluct == 'Gauss'):
-                theta = FWHM/2.35
-                fluct_cent_pos = [0 for i in range(number)]
-                for i in range(number):
-                    fluct_cent_pos[i] = spacing/2+i*spacing
-                for i in range(len(profiles[:,0])):
-                    for j in range(number):
-                        dx = abs(fluct_cent_pos[j]-self.profiles['beamlet_grid']['distance'][m][i,0])
-                        self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1][i,1] + max_density*np.exp(-1*0.5*pow(dx,2)/pow(theta,2))
-            elif (type_of_fluct == 'Hann'):  #note: in a hann window, the FWHM and the amplitude are reciprocals, so FWHM as an input is unnecessary
-                L = 1/max_density
-                fluct_cent_pos = [0 for i in range(number)]
-                for i in range(number):
-                    fluct_cent_pos[i] = spacing/2+i*spacing
-                for i in range(len(profiles[:,0])):
-                    for j in range(number):
-                        dx = abs(fluct_cent_pos[j]-self.profiles['beamlet_grid']['distance'][m][i,0])
-                        if dx < L:
-                            self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1] + max_density*pow(np.cos(np.pi*dx*max_density),2)
-            else:
-                raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
-            self.calculate_beamevolution(solver = 'numerical')
+            number = 1
+        for j in range(number):    
+            beamlet.add_density_fluctuation(type_of_fluct, max_density, fwhm, positions[j], component)
+            beamlet.calculate_beamevolution(solver = 'numerical')
             
+    def add_density_fluctuation(self, type_of_fluct, max_density, fwhm, position, component):
+        if (type_of_fluct == 'Gauss'):
+            theta = FWHM/(2*np.sqrt(2*np.log(2)))
+            for i in range(len(profiles[:,0])):
+                dx = abs(position-self.profiles['beamlet_grid']['distance'][m][i,0])
+                self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1][i,1] + max_density*np.exp(-1*0.5*pow(dx,2)/pow(theta,2))
+        elif(type_of_fluct == 'Hann'):
+            L = 1/max_density
+            for i in range(len(profiles[:,0])):
+                dx = abs(position-self.profiles['beamlet_grid']['distance'][m][i,0])
+                if dx < L:
+                    self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1] + max_density*pow(np.cos(np.pi*dx*max_density),2)
+        else:
+            raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
