@@ -77,6 +77,8 @@ class PSFforMASTU:
             b = self.get_b_vector(r, z)
             b = b/np.linalg.norm(b)*self.stepsize*d
             phi_new = phi_old+b[2]
+            if np.abs(phi_new-self.psf_plane.origin.phi) > np.pi/2:
+                print('Warning: Field line tracking went far.')
         return r, z, phi_old
 
     def get_b_vector(self, r, z):
