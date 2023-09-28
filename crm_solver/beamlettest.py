@@ -1,7 +1,7 @@
 from crm_solver.beamlet import Beamlet
 import unittest
 from lxml import etree
-from crm_solver.atomic_db import AtomicDB
+from atomic.atomic_db import AtomicDB
 import pandas
 import numpy
 
