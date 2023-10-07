@@ -8,10 +8,9 @@ from crm_solver.coefficientmatrix import CoefficientMatrix
 from crm_solver.ode import Ode
 from atomic.atomic_db import AtomicDB
 
-
 class Beamlet:
     def __init__(self, param=None, profiles=None, components=None, atomic_db=None,
-                 solver='numerical', data_path="beamlet/testimp0001.xml", isacopy = False):
+                 solver='numerical', data_path="beamlet/testimp0001.xml"):
         self.param = param
         if not isinstance(self.param, etree._ElementTree):
             self.__read_beamlet_param(data_path)
@@ -25,7 +24,6 @@ class Beamlet:
         self.const = Constants()
         self.coefficient_matrix = None
         self.initial_condition = None
-        self.isacopy = isacopy
         self.calculate_beamevolution(solver)
 
     def __read_beamlet_param(self, data_path):
@@ -132,7 +130,6 @@ class Beamlet:
         elif object_copy == 'without-results':
             beamlet = deepcopy(self)
             beamlet.profiles = self._copy_profiles_input()
-            beamlet.isacopy = True
             return beamlet
         else:
             raise ValueError('The <object_copy> variable does not support ' + object_copy)
@@ -168,27 +165,65 @@ class Beamlet:
                                                      names=['type', 'property', 'unit'])
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
     
-    def fluctuation_response(self, type_of_fluct, max_density, fwhm, positions, component): 
-        beamlet = self.copy()
-        if isinstance(positions, list):
-            number = len(positions)
+    #kell egy extra függvény, ami szekvenciálisan automatikusan helyezi el a fluktuációkat, de az amplitúdók és az
+    # fwhmek állíthatól kimenetként 2d tömb
+    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,fluct_size = [0.1], fwhm = [0.01], component = 'electron'):
+        if(len(fluct_size) != num_of_fluct):
+            raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
+        if(len(fwhm) != num_of_fluct):
+            raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
+        if (positions == []):
+            prof_length = max(self.profiles['beamlet grid']['distance']['m'])
+            for i in range(num_of_fluct):
+                positions.append(prof_length/num_of_fluct * (0.5+i))
+            print(positions)
         else:
-            number = 1
-        for j in range(number):    
-            beamlet.add_density_fluctuation(type_of_fluct, max_density, fwhm, positions[j], component)
-            beamlet.calculate_beamevolution(solver = 'numerical')
+            if(len(positions) != num_of_fluct):
+                raise ValueError('The number of given positions does not equal the number of fluctuations provided')
+        levles = list(self.atomic_db.atomic_dict.keys())
+        response = []
+        response.append(self.profiles['level '+levles[2]])
+        pos = []
+        for i in range(num_of_fluct):
+            for j in range(len(self.profiles[str(component)]['density']['m-3'])):
+                    if (self.profiles['beamlet grid']['distance']['m'][j] > positions[i]):
+                        pos.append(j)
+                        break
+            if absolute_fluct: 
+                relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
+            else:
+                relative_amp = fluct_size[i]
+            response.append(self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i],pos,component))
+        return response
             
-    def add_density_fluctuation(self, type_of_fluct, max_density, fwhm, position, component):
+    def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component):
+        beamlet = self.copy(object_copy= 'without-results')
+        for i in range(len(pos)):
+            beamlet.add_density_fluctuation(type_of_fluct, relative_amp, fwhm, pos[i], component)
+        beamlet.__initialize_ode()
+        beamlet.calculate_beamevolution(solver = 'numerical')
+        levles = list(beamlet.atomic_db.atomic_dict.keys())
+        response = beamlet.profiles['level '+levles[2]] # a szint még kérdéses, temp solution
+        del beamlet
+        return response
+        
+            
+    def add_density_fluctuation(self, type_of_fluct, relative_amplitude, fwhm, pos, component): #temperature fluctuation too in default + relativity is necessary
+        density_amp = relative_amplitude*self.profiles[str(component)]['density']['m-3'][pos]
+        temp_amp =  relative_amplitude*self.profiles[str(component)]['temperature']['eV'][pos]
+        position = self.profiles['beamlet grid']['distance']['m'][pos]
         if (type_of_fluct == 'Gauss'):
-            theta = FWHM/(2*np.sqrt(2*np.log(2)))
+            theta = fwhm/(2*np.sqrt(2*np.log(2)))
             for i in range(len(profiles[:,0])):
-                dx = abs(position-self.profiles['beamlet_grid']['distance'][m][i,0])
-                self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1][i,1] + max_density*np.exp(-1*0.5*pow(dx,2)/pow(theta,2))
+                dx = abs(position-self.profiles['beamlet grid']['distance']['m'][i])
+                self.profiles[str(component)]['density']['m-3'][i] = self.profiles[str(component)]['density']['m-3'][i] + density_amp*np.exp(-1*0.5*pow(dx,2)/pow(theta,2))
+                self.profiles[str(component)]['temperature']['eV'][i] = self.profiles[str(component)]['temperature']['eV'][i] + temp_amp*np.exp(-1*0.5*pow(dx,2)/pow(theta,2))
         elif(type_of_fluct == 'Hann'):
             L = 1/max_density
             for i in range(len(profiles[:,0])):
-                dx = abs(position-self.profiles['beamlet_grid']['distance'][m][i,0])
+                dx = abs(position-self.profiles['beamlet grid']['distance']['m'][i])
                 if dx < L:
-                    self.profiles[str(component)]['density']['m-3'][i,1] = self.profiles[str(component)]['density']['m-3'][i,1] + max_density*pow(np.cos(np.pi*dx*max_density),2)
+                    self.profiles[str(component)]['density']['m-3'][i] = self.profiles[component]['density']['m-3'][i] + density_amp*pow(np.cos(np.pi*dx*max_density),2)
+                    self.profiles[str(component)]['temperature']['eV'][i] = self.profiles[component]['temperature']['eV'][i] + temp_amp*pow(np.cos(np.pi*dx*max_density),2)
         else:
-            raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
+            raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')t ' + type_of_fluct + ' type fluctuations.')
