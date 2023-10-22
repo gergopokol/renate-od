@@ -1,3 +1,19 @@
+import os
+import sys
+import matplotlib.pyplot as plt
+import h5py
+import copy
+import utility
+from utility.constants import Constants
+import pandas
+import numpy as np
+from copy import deepcopy
+from lxml import etree
+from crm_solver.coefficientmatrix import CoefficientMatrix
+from crm_solver.ode import Ode
+from atomic.atomic_db import AtomicDB
+from utility.input import BeamletInput
+
 class Beamlet:
     def __init__(self, param=None, profiles=None, components=None, atomic_db=None,
                  solver='numerical', data_path="beamlet/testimp0001.xml"):
@@ -155,34 +171,35 @@ class Beamlet:
                                                      names=['type', 'property', 'unit'])
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
 
-    def fluctuation_response(self, type_of_fluct='Gauss', num_of_fluct=1, positions=[], absolute_fluct=False,
-                             fluct_size=[0.1], fwhm=[0.01], component='electron'):
-        if (len(fluct_size) != num_of_fluct):
+    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,fluct_size = [0.1], fwhm = [0.01], component = 'electron'):
+        if(len(fluct_size) != num_of_fluct):
             raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
-        if (len(fwhm) != num_of_fluct):
+        if(len(fwhm) != num_of_fluct):
             raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
         if (positions == []):
             prof_length = max(self.profiles['beamlet grid']['distance']['m'])
             for i in range(num_of_fluct):
-                positions.append(prof_length / num_of_fluct * (0.5 + i))
+                positions.append(prof_length/num_of_fluct * (0.5+i))
             print(positions)
         else:
-            if (len(positions) != num_of_fluct):
+            if(len(positions) != num_of_fluct):
+                print(len(positions))
+                print(num_of_fluct)
                 raise ValueError('The number of given positions does not equal the number of fluctuations provided')
         levles = list(self.atomic_db.atomic_dict.keys())
         response = []
-        original = self.profiles['level ' + levles[2]]
+        original = self.profiles['level '+ levles[2]]
         pos = []
         for i in range(num_of_fluct):
             for j in range(len(self.profiles[str(component)]['density']['m-3'])):
-                if (self.profiles['beamlet grid']['distance']['m'][j] > positions[i]):
-                    pos = j
-                    break
+                    if (self.profiles['beamlet grid']['distance']['m'][j] > positions[i]):
+                        pos = j
+                        break
             if absolute_fluct:
-                relative_amp = fluct_size[i] / self.profiles[str(component)]['density']['m-3'][pos]
+                relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
             else:
                 relative_amp = fluct_size[i]
-            response.append(self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component) - original)
+            response.append(self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i],pos,component)-original)
         return response
 
     def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component):
@@ -206,7 +223,7 @@ class Beamlet:
 
         if (type_of_fluct == 'Gauss'):
             theta = fwhm / (2 * np.sqrt(2 * np.log(2)))
-            for i in range(len(profiles[:, 0])):
+            for i in range(len(self.profiles['beamlet grid']['distance']['m'])):
                 dx = abs(position - self.profiles['beamlet grid']['distance']['m'][i])
                 self.profiles[str(component)]['density']['m-3'][i] = self.profiles[str(component)]['density']['m-3'][
                                                                          i] + sign*density_amp * np.exp(
@@ -216,7 +233,7 @@ class Beamlet:
                     -1 * 0.5 * pow(dx, 2) / pow(theta, 2))
         elif (type_of_fluct == 'Hann'):
             L = 1 / max_density
-            for i in range(len(profiles[:, 0])):
+            for i in range(len(self.profiles['beamlet grid']['distance']['m'])):
                 dx = abs(position - self.profiles['beamlet grid']['distance']['m'][i])
                 if dx < L:
                     self.profiles[str(component)]['density']['m-3'][i] = self.profiles[component]['density']['m-3'][
