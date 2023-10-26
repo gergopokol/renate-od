@@ -171,7 +171,7 @@ class Beamlet:
                                                      names=['type', 'property', 'unit'])
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
 
-    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,fluct_size = [0.1], fwhm = [0.01], component = 'electron'):
+    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,fluct_size = [0.1], fwhm = [0.01], component = 'electron',diagnostics = False):
         if(len(fluct_size) != num_of_fluct):
             raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
         if(len(fwhm) != num_of_fluct):
@@ -187,7 +187,7 @@ class Beamlet:
                 raise ValueError('The number of given positions does not equal the number of fluctuations provided')
         levles = list(self.atomic_db.atomic_dict.keys())
         response = []
-        original = self.profiles['level '+ levles[2]]
+        original = self.profiles['level '+ levles[1]]
         pos = []
         for i in range(num_of_fluct):
             for j in range(len(self.profiles[str(component)]['density']['m-3'])):
@@ -198,7 +198,12 @@ class Beamlet:
                 relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
             else:
                 relative_amp = fluct_size[i]
-            response.append(self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i],pos,component)-original)
+            f = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, diagnostics)
+            if diagnostics:
+                levels = list(f.atomic_db.atomic_dict.keys())
+                response.append(f.profiles['level ' + levels[1]]-original)
+            else:
+                response.append(f - original)
         return response
 
     def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component, diagnostics=False):
@@ -212,12 +217,13 @@ class Beamlet:
             plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles[str(component)]['density']['m-3'])
             plt.show()
             print('light response')
-            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles['level ' + levels[2]])
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles['level ' + levels[1]])
             plt.show()
             return beamlet
         else:
             levels = list(beamlet.atomic_db.atomic_dict.keys())
-            response = beamlet.profiles['level ' + levels[2]]  # a szint még kérdéses, temp solution
+            #if(beamlet.param.beamlet_species)
+            response = beamlet.profiles['level ' + levels[1]]  # a szint még kérdéses, temp solution
             return response
 
     def add_density_fluctuation(self, type_of_fluct, relative_amplitude, fwhm, pos,
