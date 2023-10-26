@@ -180,7 +180,6 @@ class Beamlet:
             prof_length = max(self.profiles['beamlet grid']['distance']['m'])
             for i in range(num_of_fluct):
                 positions.append(prof_length/num_of_fluct * (0.5+i))
-            print(positions)
         else:
             if(len(positions) != num_of_fluct):
                 print(len(positions))
@@ -202,14 +201,24 @@ class Beamlet:
             response.append(self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i],pos,component)-original)
         return response
 
-    def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component):
+    def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component, diagnostics=False):
         beamlet = self.copy(object_copy='without-results')
         beamlet.add_density_fluctuation(type_of_fluct, relative_amp, fwhm, pos, component)
         beamlet.__initialize_ode()
         beamlet.calculate_beamevolution(solver='numerical')
-        levles = list(beamlet.atomic_db.atomic_dict.keys())
-        response = beamlet.profiles['level ' + levles[2]]  # a szint még kérdéses, temp solution
-        return response
+        levels = list(beamlet.atomic_db.atomic_dict.keys())
+        if diagnostics:
+            print('density')
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles[str(component)]['density']['m-3'])
+            plt.show()
+            print('light response')
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles['level ' + levels[2]])
+            plt.show()
+            return beamlet
+        else:
+            levels = list(beamlet.atomic_db.atomic_dict.keys())
+            response = beamlet.profiles['level ' + levels[2]]  # a szint még kérdéses, temp solution
+            return response
 
     def add_density_fluctuation(self, type_of_fluct, relative_amplitude, fwhm, pos,
                                 component, hole = False):  # lyuk számolás implementálása
@@ -232,15 +241,15 @@ class Beamlet:
                 self.profiles[str(component)]['temperature']['eV'][i] + sign*temp_amp * np.exp(
                     -1 * 0.5 * pow(dx, 2) / pow(theta, 2))
         elif (type_of_fluct == 'Hann'):
-            L = 1 / max_density
+            L = 1 / density_amp
             for i in range(len(self.profiles['beamlet grid']['distance']['m'])):
                 dx = abs(position - self.profiles['beamlet grid']['distance']['m'][i])
                 if dx < L:
                     self.profiles[str(component)]['density']['m-3'][i] = self.profiles[component]['density']['m-3'][
                                                                              i] + sign*density_amp * pow(
-                        np.cos(np.pi * dx * max_density), 2)
+                        np.cos(np.pi * dx * density_amp), 2)
                     self.profiles[str(component)]['temperature']['eV'][i] = \
-                    self.profiles[component]['temperature']['eV'][i] + sign*temp_amp * pow(np.cos(np.pi * dx * max_density),
+                    self.profiles[component]['temperature']['eV'][i] + sign*temp_amp * pow(np.cos(np.pi * dx * density_amp),
                                                                                       2)
         else:
             raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
