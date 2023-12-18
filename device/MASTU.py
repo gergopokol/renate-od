@@ -5,17 +5,24 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import h5py
-
+import pickle as pkl
 
 # 2Dprofile[r,z]
 
 
 class PSFforMASTU:
 
-    def __init__(self, efit_path, los_list, psf_plane):
-        self.efit_data = self.read_MASTU_EFIT(efit_path)
-        self.psf_plane = psf_plane
-        self.los_list = los_list
+    def __init__(self, efit_path, los_list, psf_plane, time, type='EFIT'):
+        if type == 'EFIT':
+            self.efit_data = self.read_MASTU_EFIT(efit_path)
+            self.psf_plane = psf_plane
+            self.los_list = los_list
+            self.make_interpolators_at_time(time)
+        elif type == 'pickle':
+            self.efit_data = self.read_MASTU_EFIT_pickle(efit_path, time)
+            self.psf_plane = psf_plane
+            self.los_list = los_list
+            self.make_interpolators_at_time(time)
 
     def read_MASTU_EFIT(self, path):
         f = h5py.File(path)
@@ -26,6 +33,26 @@ class PSFforMASTU:
             data_dict[key] = f['epm']['output']['profiles2D'][key][...]
             print(key+': '+str(data_dict[key].shape))
         f.close()
+        return data_dict
+
+    def read_MASTU_EFIT_pickle(self, path, time):
+        with open(path, 'rb') as f:
+            data_dict_temp = pkl.load(f)
+
+            data_dict = {}
+            data_dict['r'] = data_dict_temp['R']
+            data_dict['z'] = data_dict_temp['Z']
+            data_dict['time'] = np.ones(shape=1)*time
+
+            data_dict['Br'] = np.zeros(shape=(len(data_dict['time']),len(data_dict['r']),len(data_dict['z'])))
+            data_dict['Bphi'] = np.zeros(shape=(len(data_dict['time']),len(data_dict['r']),len(data_dict['z'])))
+            data_dict['Bz'] = np.zeros(shape=(len(data_dict['time']),len(data_dict['r']),len(data_dict['z'])))
+
+            for i in range(len(data_dict['time'])):
+                data_dict['Br'][i] = data_dict_temp['BR'].T
+                data_dict['Bphi'][i] = data_dict_temp['Bphi'].T
+                data_dict['Bz'][i] = data_dict_temp['BZ'].T
+            
         return data_dict
 
     def make_interpolators_at_time(self, time):
