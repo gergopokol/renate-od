@@ -64,10 +64,9 @@ class PSFforMASTU:
         self.Bphi_interpolator = RegularGridInterpolator((self.efit_data['r'], self.efit_data['z']),
                                                          self.efit_data['Bphi'][time_ind])
 
-    def prepare_psf(self, time, beam, beam_interpolator, propagation='ccw', stepsize=1e-3):
+    def prepare_psf(self, beam_interpolator, stepsize=1e-3):
         self.beam_interpolator = beam_interpolator
         self.stepsize = stepsize
-        self.make_interpolators_at_time(time)
         self.ps_curves = []
         self.ps_weights = []
         for los in self.los_list:
