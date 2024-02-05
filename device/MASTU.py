@@ -12,17 +12,19 @@ import pickle as pkl
 
 class PSFforMASTU:
 
-    def __init__(self, efit_path, los_list, psf_plane, time, type='EFIT'):
+    def __init__(self, efit_path, los_list, psf_plane, time, type='EFIT', reverse_Bphi=False):
         if type == 'EFIT':
-            self.efit_data = self.read_MASTU_EFIT(efit_path)
+            self.efit_data = self.read_MASTU_EFIT(efit_path, reverse_Bphi)
             self.psf_plane = psf_plane
             self.los_list = los_list
-            self.make_interpolators_at_time(time)
         elif type == 'pickle':
-            self.efit_data = self.read_MASTU_EFIT_pickle(efit_path, time)
+            self.efit_data = self.read_MASTU_EFIT_pickle(efit_path, time, reverse_Bphi)
             self.psf_plane = psf_plane
             self.los_list = los_list
-            self.make_interpolators_at_time(time)
+        if reverse_Bphi:
+            self.reverse_Bphi_data()
+        self.make_interpolators_at_time(time)    
+
 
     def read_MASTU_EFIT(self, path):
         f = h5py.File(path)
@@ -33,6 +35,7 @@ class PSFforMASTU:
             data_dict[key] = f['epm']['output']['profiles2D'][key][...]
             print(key+': '+str(data_dict[key].shape))
         f.close()
+
         return data_dict
 
     def read_MASTU_EFIT_pickle(self, path, time):
@@ -52,7 +55,7 @@ class PSFforMASTU:
                 data_dict['Br'][i] = data_dict_temp['BR'].T
                 data_dict['Bphi'][i] = data_dict_temp['Bphi'].T
                 data_dict['Bz'][i] = data_dict_temp['BZ'].T
-            
+              
         return data_dict
 
     def make_interpolators_at_time(self, time):
@@ -136,3 +139,8 @@ class PSFforMASTU:
                     x, y = self.psf_plane.transform_to_plane(
                         (point.cartesians))[:2]
                     plt.scatter(x, y, color=cmap(self.ps_weights[i][j]/maxw))
+
+    def reverse_Bphi_data(self):
+        temp=self.efit_data['Bphi']
+        for i in range(len(temp)):
+            self.efit_data['Bphi'][i]=-1*temp['Bphi'][i]
