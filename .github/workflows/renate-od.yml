@@ -1,0 +1,48 @@
+name: RENATE-OD CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - development
+
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.6.7
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.6.7'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run tests
+      run: |
+        python -m unittest -v crm_solver.odetest.OdeTest
+        python -m unittest -v crm_solver.crmsystemtest.CrmRegressionTest
+        python -m unittest -v crm_solver.crmsystemtest.CrmAcceptanceTest
+        python -m unittest -v crm_solver.atomic_dbtest.AtomicDBTest
+        python -m unittest -v crm_solver.beamlettest.BeamletTest
+        python -m unittest -v crm_solver.atomic_dbtest.RenateDBTest
+        python -m unittest -v crm_solver.neutral_dbtest.NeutralDBTest
+        python -m unittest -v crm_solver.coefficientmatrixtest.CoefficientMatrixTest
+        python -m unittest -v utility.accessdatatest.AccessDataTest
+        python -m unittest -v utility.getdatatest.GetDataTest
+        python -m unittest -v utility.putdatatest.PutDataTest
+        python -m unittest -v utility.managetest.VersionTest
+        python -m unittest -v utility.managetest.CodeInfoTest
+        python -m unittest -v utility.inputtest.AtomicInputTest
+        python -m unittest -v utility.inputtest.BeamletInputTest
+        python -m unittest -v observation.noisetest.NoiseGeneratorTest
+        python -m unittest -v observation.noisetest.APDGeneratorTest
+        python -m unittest -v observation.noisetest.PMTGeneratorTest
+        python -m unittest -v observation.noisetest.PPDGeneratorTest
+        python -m unittest -v observation.noisetest.MPPCGeneratorTest
+        python -m unittest -v observation.noisetest.DetectorGeneratorTest
+        python -m unittest -v observation.noisetest.NoiseRegressionTest
+
