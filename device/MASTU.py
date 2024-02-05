@@ -14,11 +14,11 @@ class PSFforMASTU:
 
     def __init__(self, efit_path, los_list, psf_plane, time, type='EFIT', reverse_Bphi=False):
         if type == 'EFIT':
-            self.efit_data = self.read_MASTU_EFIT(efit_path, reverse_Bphi)
+            self.efit_data = self.read_MASTU_EFIT(efit_path)
             self.psf_plane = psf_plane
             self.los_list = los_list
         elif type == 'pickle':
-            self.efit_data = self.read_MASTU_EFIT_pickle(efit_path, time, reverse_Bphi)
+            self.efit_data = self.read_MASTU_EFIT_pickle(efit_path, time)
             self.psf_plane = psf_plane
             self.los_list = los_list
         if reverse_Bphi:
