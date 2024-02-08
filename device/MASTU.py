@@ -143,4 +143,4 @@ class PSFforMASTU:
     def reverse_Bphi_data(self):
         temp=self.efit_data['Bphi']
         for i in range(len(temp)):
-            self.efit_data['Bphi'][i]=-1*temp['Bphi'][i]
+            self.efit_data['Bphi'][i]=-1*temp
