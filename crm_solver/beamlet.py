@@ -171,7 +171,14 @@ class Beamlet:
                                                      names=['type', 'property', 'unit'])
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
 
-    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,fluct_size = [0.1], fwhm = [0.01], component = 'electron',diagnostics = False):
+    def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,
+                             fluct_size = [0.1], fwhm = [0.01], component = 'electron', Temp_fluct = False, diagnostics = False):
+        root = self.param.getroot()
+        beamlet_species_child = root.find(".//beamlet_species")
+        if beamlet_species_child.attrib == 'He': #Vizsgált elektronpálya eltolások
+            H = 1
+        else:
+            H = 0
         if(len(fluct_size) != num_of_fluct):
             raise ValueError('The number of given amplitudes does not equal the number of fluctuations provided')
         if(len(fwhm) != num_of_fluct):
@@ -185,9 +192,11 @@ class Beamlet:
                 print(len(positions))
                 print(num_of_fluct)
                 raise ValueError('The number of given positions does not equal the number of fluctuations provided')
-        levles = list(self.atomic_db.atomic_dict.keys())
+        levels = list(self.atomic_db.atomic_dict.keys())
+        self.compute_linear_emission_density(levels[1+H], levels[2+H])
         response = []
-        original = self.profiles['level '+ levles[1]]
+        self.compute_linear_emission_density(levels[1+H], levels[2+H])
+        original = self.profiles[levels[2+H] + '-->' + levels[1+H]]
         pos = []
         for i in range(num_of_fluct):
             for j in range(len(self.profiles[str(component)]['density']['m-3'])):
@@ -198,36 +207,65 @@ class Beamlet:
                 relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
             else:
                 relative_amp = fluct_size[i]
-            f = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, diagnostics)
+            f = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, Temp_fluct, H, diagnostics)
             if diagnostics:
                 levels = list(f.atomic_db.atomic_dict.keys())
-                response.append(f.profiles['level ' + levels[1]]-original)
+                diff = f.profiles[levels[2+H] + '-->' + levels[1+H]] - original
+                maximum = max(diff)
+                for i in range(len(diff)):
+                    if diff[i] >= maximum:
+                        orig_max = original[i]
+                response.append(diff)
             else:
-                response.append(f - original)
-        return response
+                diff = f-original
+                maximum = max(diff)
+                for i in range(len(diff)):
+                    if diff[i] >= maximum:
+                        orig_max = original[i]
+                response.append(diff)
+        return response, orig_max
 
-    def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component, diagnostics=False):
+    def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component, Temp_fluct, H, diagnostics=False):
         beamlet = self.copy(object_copy='without-results')
-        beamlet.add_density_fluctuation(type_of_fluct, relative_amp, fwhm, pos, component)
+        beamlet.add_density_fluctuation(type_of_fluct, relative_amp, fwhm, pos, component, Temp_fluct)
         beamlet.__initialize_ode()
         beamlet.calculate_beamevolution(solver='numerical')
         levels = list(beamlet.atomic_db.atomic_dict.keys())
         if diagnostics:
-            print('density')
-            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles[str(component)]['density']['m-3'])
+            label_font = 14
+            title_font = 16
+            tick_font = 12
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],
+                     beamlet.profiles[str(component)]['density']['m-3'],
+                     label='Fluktuáló Plazma sűrűség')
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],self.profiles[str(component)]['density']['m-3'],
+                     label='Stacioner Plazma sűrűség')
+            plt.title("Nyalábmenti sűrűségprofil", fontsize=title_font, fontweight='bold')
+            plt.xlabel("Nyalábmenti távolság (m)", fontsize=label_font, fontweight= 'bold')
+            plt.ylabel("Plazma sűrűség (1/m^3)", fontsize=label_font, fontweight='bold')
+            plt.tick_params(axis='both', labelsize=tick_font)
+            plt.legend()
             plt.show()
-            print('light response')
-            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles['level ' + levels[1]])
+            beamlet.compute_linear_emission_density(levels[1+H], levels[2+H])
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'],beamlet.profiles[levels[2+H] + '-->' + levels[1+H]],
+                     label='Fluktuáló Emisszió profil')
+            plt.plot(beamlet.profiles['beamlet grid']['distance']['m'], self.profiles[levels[2+H] + '-->' + levels[1+H]],
+                     label='Stacioner Emisszió profil')
+            plt.title("Fényválasz profil", fontsize=title_font, fontweight='bold')
+            plt.xlabel("Nyalábmenti távolság (m)", fontsize=label_font, fontweight='bold')
+            plt.ylabel("Fényválasz intenzitás (photon/(s*m))", fontsize=label_font, fontweight='bold')
+            plt.tick_params(axis='both', labelsize=tick_font)
+            plt.legend()
             plt.show()
             return beamlet
         else:
             levels = list(beamlet.atomic_db.atomic_dict.keys())
-            #if(beamlet.param.beamlet_species)
-            response = beamlet.profiles['level ' + levels[1]]  # a szint még kérdéses, temp solution
+            beamlet.compute_linear_emission_density(levels[1+H],levels[2+H])
+            response = beamlet.profiles[levels[2+H] + '-->' + levels[1+H]]  # a szint még kérdéses, temp solution
             return response
 
     def add_density_fluctuation(self, type_of_fluct, relative_amplitude, fwhm, pos,
-                                component, hole = False):  # lyuk számolás implementálása
+                                component, Temp_fluct, hole = False):  # lyuk számolás implementálása
         density_amp = relative_amplitude * self.profiles[str(component)]['density']['m-3'][pos]
         temp_amp = relative_amplitude * self.profiles[str(component)]['temperature']['eV'][pos]
         position = self.profiles['beamlet grid']['distance']['m'][pos]
@@ -243,9 +281,9 @@ class Beamlet:
                 self.profiles[str(component)]['density']['m-3'][i] = self.profiles[str(component)]['density']['m-3'][
                                                                          i] + sign*density_amp * np.exp(
                     -1 * 0.5 * pow(dx, 2) / pow(theta, 2))
-                self.profiles[str(component)]['temperature']['eV'][i] = \
-                self.profiles[str(component)]['temperature']['eV'][i] + sign*temp_amp * np.exp(
-                    -1 * 0.5 * pow(dx, 2) / pow(theta, 2))
+                if Temp_fluct:
+                    self.profiles[str(component)]['temperature']['eV'][i] = \
+                    self.profiles[str(component)]['temperature']['eV'][i] + sign*temp_amp * np.exp(-1 * 0.5 * pow(dx, 2) / pow(theta, 2))
         elif (type_of_fluct == 'Hann'):
             L = 1 / density_amp
             for i in range(len(self.profiles['beamlet grid']['distance']['m'])):
@@ -254,8 +292,8 @@ class Beamlet:
                     self.profiles[str(component)]['density']['m-3'][i] = self.profiles[component]['density']['m-3'][
                                                                              i] + sign*density_amp * pow(
                         np.cos(np.pi * dx * density_amp), 2)
-                    self.profiles[str(component)]['temperature']['eV'][i] = \
-                    self.profiles[component]['temperature']['eV'][i] + sign*temp_amp * pow(np.cos(np.pi * dx * density_amp),
-                                                                                      2)
+                    if Temp_fluct:
+                        self.profiles[str(component)]['temperature']['eV'][i] = \
+                        self.profiles[component]['temperature']['eV'][i] + sign*temp_amp * pow(np.cos(np.pi * dx * density_amp),2)
         else:
             raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
