@@ -172,7 +172,7 @@ class Beamlet:
         return pandas.DataFrame(data=profiles, columns=column_index, index=row_index)
 
     def fluctuation_response(self, type_of_fluct = 'Gauss', num_of_fluct = 1, positions = [], absolute_fluct = False ,
-                             fluct_size = [0.1], fwhm = [0.01], component = 'electron', Temp_fluct = False, diagnostics = False):
+                             fluct_size = [0.1], fwhm = [0.01], component = 'electron', Temp_fluct = False, rel_pop = False, diagnostics = False):
         root = self.param.getroot()
         beamlet_species_child = root.find(".//beamlet_species")
         if beamlet_species_child.attrib == 'He': #Vizsgált elektronpálya eltolások
@@ -207,14 +207,14 @@ class Beamlet:
                 relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
             else:
                 relative_amp = fluct_size[i]
-            f = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, Temp_fluct, H, diagnostics)
+            f,beam = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, Temp_fluct, H, diagnostics)
             if diagnostics:
-                levels = list(f.atomic_db.atomic_dict.keys())
-                diff = f.profiles[levels[2+H] + '-->' + levels[1+H]] - original
+                levels = list(beam.atomic_db.atomic_dict.keys())
+                diff = beam.profiles[levels[2+H] + '-->' + levels[1+H]] - original
                 maximum = max(diff)
-                for i in range(len(diff)):
-                    if diff[i] >= maximum:
-                        orig_max = original[i]
+                for k in range(len(diff)):
+                    if diff[k] >= maximum:
+                        orig_max = original[k]
                 response.append(diff)
             else:
                 diff = f-original
@@ -223,6 +223,15 @@ class Beamlet:
                     if diff[i] >= maximum:
                         orig_max = original[i]
                 response.append(diff)
+        if rel_pop:
+            if num_of_fluct == 1:
+                rel_pops = {} # NOT THE SAME AS rel_pop!
+                beam.compute_relative_populations()
+                for level in range(beam.atomic_db.atomic_ceiling):
+                    rel_pops[level] = beam.profiles['rel.pop ' + beam.atomic_db.inv_atomic_dict[level]]
+                return response, orig_max, rel_pops
+            else:
+                raise ValueError('The relative population output only works for singular fluctuations at the moment. Please handle individual fluctuations separately.')
         return response, orig_max
 
     def fluctuation_addition(self, type_of_fluct, relative_amp, fwhm, pos, component, Temp_fluct, H, diagnostics=False):
@@ -257,12 +266,12 @@ class Beamlet:
             plt.tick_params(axis='both', labelsize=tick_font)
             plt.legend()
             plt.show()
-            return beamlet
+            response = beamlet.profiles[levels[2 + H] + '-->' + levels[1 + H]]
+            return response,beamlet
         else:
-            levels = list(beamlet.atomic_db.atomic_dict.keys())
             beamlet.compute_linear_emission_density(levels[1+H],levels[2+H])
             response = beamlet.profiles[levels[2+H] + '-->' + levels[1+H]]  # a szint még kérdéses, temp solution
-            return response
+            return response,beamlet
 
     def add_density_fluctuation(self, type_of_fluct, relative_amplitude, fwhm, pos,
                                 component, Temp_fluct, hole = False):  # lyuk számolás implementálása
@@ -297,3 +306,9 @@ class Beamlet:
                         self.profiles[component]['temperature']['eV'][i] + sign*temp_amp * pow(np.cos(np.pi * dx * density_amp),2)
         else:
             raise ValueError('This function does not support ' + type_of_fluct + ' type fluctuations.')
+
+    def save_output(self):
+        rel_pops = []
+        for level in range(self.atomic_db.atomic_ceiling):
+            rel_pops.append(self.profiles['rel.pop ' + self.atomic_db.inv_atomic_dict[level]])
+        return rel_pops
