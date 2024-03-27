@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import h5py
 import pickle as pkl
+import concurrent.futures
 
 # 2Dprofile[r,z]
 
@@ -67,15 +68,24 @@ class PSFforMASTU:
         self.Bphi_interpolator = RegularGridInterpolator((self.efit_data['r'], self.efit_data['z']),
                                                          self.efit_data['Bphi'][time_ind])
 
-    def prepare_psf(self, beam_interpolator, stepsize=1e-3):
+    def prepare_psf(self, beam_interpolator,  multithread=False , max_workers=None, stepsize=1e-3):
         self.beam_interpolator = beam_interpolator
         self.stepsize = stepsize
         self.ps_curves = []
         self.ps_weights = []
-        for los in self.los_list:
-            curve, weights = self.process_los(los)
-            self.ps_curves.append(curve)
-            self.ps_weights.append(weights)
+        if multithread:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                results = executor.map(self.process_los, self.los_list)
+
+            for curve, weights in results:
+                self.ps_curves.append(curve)
+                self.ps_weights.append(weights)
+
+        else:
+            for los in self.los_list:
+                curve, weights = self.process_los(los)
+                self.ps_curves.append(curve)
+                self.ps_weights.append(weights)
 
     def process_los(self, los):
         int_p, int_w = los.interpolate_points(self.beam_interpolator)
