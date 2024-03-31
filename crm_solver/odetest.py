@@ -20,7 +20,7 @@ class OdeTest(unittest.TestCase):
     COEFF_MATRIX_1D = [numpy.array([[2.]]), numpy.array([[2.]])]
     COEFF_MATRIX_DIM_ERROR = numpy.array([15, 12])
 
-    EXPECTED_SIZE_2 = 0
+    EXPECTED_SIZE_2 = 2
     EXPECTED_SIZE_3 = 3
     EXPECTED_SIZE_100 = 100
     EXPECTED_SIZE_200 = 200
