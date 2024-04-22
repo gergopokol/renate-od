@@ -207,7 +207,7 @@ class Beamlet:
                 relative_amp = fluct_size[i]/self.profiles[str(component)]['density']['m-3'][pos]
             else:
                 relative_amp = fluct_size[i]
-            f,beam = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, Temp_fluct, H, diagnostics)
+                f,beam = self.fluctuation_addition(type_of_fluct, relative_amp, fwhm[i], pos, component, Temp_fluct, H, diagnostics)
             if diagnostics:
                 levels = list(beam.atomic_db.atomic_dict.keys())
                 diff = beam.profiles[levels[2+H] + '-->' + levels[1+H]] - original
@@ -225,11 +225,8 @@ class Beamlet:
                 response.append(diff)
         if rel_pop:
             if num_of_fluct == 1:
-                rel_pops = {} # NOT THE SAME AS rel_pop!
                 beam.compute_relative_populations()
-                for level in range(beam.atomic_db.atomic_ceiling):
-                    rel_pops[level] = beam.profiles['rel.pop ' + beam.atomic_db.inv_atomic_dict[level]]
-                return response, orig_max, rel_pops
+                return beam, response
             else:
                 raise ValueError('The relative population output only works for singular fluctuations at the moment. Please handle individual fluctuations separately.')
         return response, orig_max
