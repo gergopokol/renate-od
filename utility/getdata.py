@@ -87,12 +87,8 @@ class GetData(AccessData):
             print('Data could NOT be read to array from HD5 file: ' + self.access_path + '. Key is missing!')
             raise ValueError
         try:
-            with h5py.File(self.access_path, 'r') as hdf5_id:
-                hdf5_group = hdf5_id
-                for key in self.data_key:
-                    hdf5_group = hdf5_group[key]
-                self.data = hdf5_group.value
-                hdf5_id.close()
+            with h5py.File(self.access_path, 'r') as file:
+                self.data = numpy.array(file[self.data_key[0]])
             print("Data read to array from HD5 file: " + self.access_path + " with key: " + str(self.data_key))
         except ValueError:
             print("Data could NOT be read to array from HD5 file: " + self.access_path +
