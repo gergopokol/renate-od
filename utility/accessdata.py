@@ -93,14 +93,27 @@ class AccessData(object):
         self.server_private_path = self._set_private_server_path(server_path)
         self.server_public_write_access_path = self._set_public_server_write_access_path(server_path)
 
+    def _normalize_url_path(self, path):
+        """
+        Normalizes only the url path after the server part read from .xml
+        """
+        if path is None:
+            return None
+        if not isinstance(path, str):
+            raise TypeError('URL path input is expected to be of str type.')
+        return path.replace('\\', '/').strip('/')
+
     def _set_private_server_path(self, path):
-        return self.server_private_access + '/' + path
+        path = self._normalize_url_path(path)
+        return self.server_private_access.rstrip('/') + '/' + path
 
     def _set_public_server_path(self, path):
-        return self.server_public_address + '/' + path
+        path = self._normalize_url_path(path)
+        return self.server_public_address.rstrip('/') + '/' + path
 
     def _set_public_server_write_access_path(self, path):
-        return self.server_public_write_access + '/' + path
+        path = self._normalize_url_path(path)
+        return self.server_public_write_access.rstrip('/') + '/' + path
 
     def add_path(self, path):
         if self.data_path_name is None:
