@@ -41,6 +41,7 @@ target/
 
 # dotenv
 .env
+.venv
 
 # UnitTest Fails
 .cache
