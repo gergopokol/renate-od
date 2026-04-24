@@ -40,6 +40,8 @@ class AccessData(object):
         self.user_local_data_directory = os.path.join(os.path.dirname(__file__), '..',
                                                       body.find('user_local_data_directory').text)
         self.server_address = body.find('server_address').text
+        port_node = body.find('server_port')
+        self.server_port = int(port_node.text) if port_node is not None and port_node.text else 22
         self.server_user = body.find('user_name').text
         self.server_private_access = body.find('server_private_data').text
         self.server_public_write_access = body.find('server_public_data').text
@@ -124,7 +126,8 @@ class AccessData(object):
     def connect(self, protocol=None):
         if self.client is not None:
             try:
-                self.client.connect(self.server_address, username=self.server_user, pkey=self.private_key)
+                self.client.connect(self.server_address, port=self.server_port,
+                                    username=self.server_user, pkey=self.private_key)
                 self.connection = True
                 self.protocol = protocol
                 if self.protocol is None:
