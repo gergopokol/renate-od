@@ -46,7 +46,7 @@ class BeamletProfiles:
                 axis.plot(self.profiles['beamlet grid'], self.profiles['level '+level]/max_val,
                           '--', label='ROD '+level)
                 axis.set_ylabel('Relative electron population [-]')
-                axis.set_yscale('log', nonposy='clip')
+                axis.set_yscale('log', nonpositive='clip')
             elif plot_type == 'error':
                 axis.set_ylabel('Relative error [-]')
                 axis.plot(self.profiles['beamlet grid'], abs(self.profiles['level '+level]/max_val -
@@ -171,7 +171,7 @@ class BeamletProfiles:
             axis.plot(self.profiles['beamlet grid'], self.profiles[label], label=label)
         if hasattr(self, 'x_limits'):
             axis.set_xlim(self.x_limits)
-        axis.set_yscale('log', nonposy='clip')
+        axis.set_yscale('log', nonpositive='clip')
         axis.set_xlabel('Distance [m]')
         axis.set_ylabel(axis_name)
         axis.legend(loc='best', ncol=1)
