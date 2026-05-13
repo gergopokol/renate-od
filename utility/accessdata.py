@@ -1,10 +1,12 @@
 import os
+import shutil
 from lxml import etree
 import urllib
 import paramiko
 from scp import SCPClient
 
-DEFAULT_SETUP = 'getdata_setup.xml'
+DEFAULT_SETUP = 'local_datapaths.xml'
+FALLBACK_SETUP = 'default_datapaths.xml'
 
 
 class AccessData(object):
@@ -31,6 +33,15 @@ class AccessData(object):
 
         if not setup_path_name:
             setup_path_name = os.path.join(os.path.dirname(__file__), DEFAULT_SETUP)
+
+        if not os.path.isfile(setup_path_name):
+            fallback_path = os.path.join(os.path.dirname(__file__), FALLBACK_SETUP)
+            if not os.path.isfile(fallback_path):
+                raise FileNotFoundError(
+                    'Setup file not found at {} and fallback {} is missing.'.format(
+                        setup_path_name, fallback_path))
+            shutil.copyfile(fallback_path, setup_path_name)
+            print('Setup file not found. Created {} from {}.'.format(setup_path_name, fallback_path))
 
         tree = etree.parse(setup_path_name)
         body = tree.getroot().find('body')
