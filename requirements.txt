@@ -5,8 +5,7 @@ h5py==3.6.0
 matplotlib==3.6.0
 lxml==4.8.0
 tables==3.7.0
-paramiko==2.8.1
+paramiko==5.0.0
 scp==0.14.4
 pycollisiondb==0.1.3
 matplotlib-inline==0.1.7
-paramiko==5.0.0
