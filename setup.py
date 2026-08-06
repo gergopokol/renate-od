@@ -75,7 +75,7 @@ setup(
     description=Info.code_name,
     classifiers=Info.classifiers,
     install_requires=list(Info.code_requirements.keys()),
-    packages=[Info.code_package],
+    packages=find_packages(exclude=['cherab_demos', 'documentation']),
     zip_safe=False,
     ext_modules=extensions
 )
