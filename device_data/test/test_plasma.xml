@@ -1,0 +1,8 @@
+<xml lang="en">
+    <head>
+        <id>test_plasma</id>
+    </head>
+    <body>
+        <plasma_source unit="">beamlet/test_impurity.h5</plasma_source>
+    </body>
+</xml>
