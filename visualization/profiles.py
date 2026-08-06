@@ -12,7 +12,7 @@ class BeamletProfiles:
             self.param = utility.getdata.GetData(data_path_name=self.param_path).data
             self.access_path = self.param.getroot().find('body').find('beamlet_source').text
             self.key = key
-            self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
+            self.components = utility.getdata.GetData(data_path_name=self.access_path, data_key=['components']).data
             self.profiles = utility.getdata.GetData(data_path_name=self.access_path, data_key=self.key).data
             self.atomic_db = AtomicDB(param=self.param, components=self.components)
             self.title = None
