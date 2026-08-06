@@ -46,17 +46,15 @@ class CoefficientMatrix:
         self.assemble_matrix(atomic_db, plasma_components)
 
     def interpolate_rates(self, atomic_db, plasma_components):
+        electron_temperature = self.beamlet_profiles['electron']['temperature']['eV'].to_numpy()
         for from_level in range(atomic_db.atomic_ceiling):
-            self.interpolate_electron_impact_loss(from_level, atomic_db)
+            self.interpolate_electron_impact_loss(from_level, atomic_db, electron_temperature)
             for to_level in range(atomic_db.atomic_ceiling):
                 if to_level != from_level:
-                    self.interpolate_electron_impact_trans(from_level, to_level, atomic_db)
+                    self.interpolate_electron_impact_trans(from_level, to_level, atomic_db, electron_temperature)
         for ion in range(len([comp for comp in plasma_components['q'] if int(comp) > 0])):
-            for from_level in range(atomic_db.atomic_ceiling):
-                self.interpolate_ion_impact_loss(ion, from_level, atomic_db)
-                for to_level in range(atomic_db.atomic_ceiling):
-                    if to_level != from_level:
-                        self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db)
+            ion_temperature = self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'].to_numpy()
+            self.interpolate_ion_rates(ion, ion_temperature, atomic_db)
         if atomic_db.are_neutrals:
             for neutral in range(atomic_db.neutral_db.neutral_target_count):
                 for from_level in range(atomic_db.atomic_ceiling):
@@ -72,8 +70,7 @@ class CoefficientMatrix:
                     self.assemble_electron_impact_population_loss_terms(from_level, to_level, atomic_db)
                 else:
                     self.assemble_electron_impact_population_gain_terms(from_level, to_level)
-        for step in range(self.beamlet_profiles['beamlet grid'].size):
-            self.apply_electron_density(step)
+        self.apply_electron_density()
         for ion in range(len([comp for comp in plasma_components['q'] if int(comp) > 0])):
             for from_level in range(atomic_db.atomic_ceiling):
                 for to_level in range(atomic_db.atomic_ceiling):
@@ -81,16 +78,14 @@ class CoefficientMatrix:
                         self.assemble_ion_impact_population_loss_terms(ion, from_level, to_level, atomic_db)
                     else:
                         self.assemble_ion_impact_population_gain_terms(ion, from_level, to_level)
-            for step in range(self.beamlet_profiles['beamlet grid'].size):
-                self.apply_ion_density(ion, step)
+            self.apply_ion_density(ion)
         for from_level in range(atomic_db.atomic_ceiling):
             for to_level in range(atomic_db.atomic_ceiling):
                 if to_level == from_level:
                     self.assemble_spontaneous_population_loss_terms(from_level, to_level, atomic_db)
                 else:
                     self.assemble_spontaneous_population_gain_terms(from_level, to_level, atomic_db)
-        for step in range(self.beamlet_profiles['beamlet grid'].size):
-            self.apply_photons(step)
+        self.apply_photons()
         if atomic_db.are_neutrals:
             for neutral in range(atomic_db.neutral_db.neutral_target_count):
                 for from_level in range(atomic_db.atomic_ceiling):
@@ -99,27 +94,30 @@ class CoefficientMatrix:
                             self.assemble_neutral_impact_population_loss_terms(neutral, from_level, to_level, atomic_db)
                         else:
                             self.assemble_neutral_impact_population_gain_terms(neutral, from_level, to_level)
-                for step in range(self.beamlet_profiles['beamlet grid'].size):
-                    self.apply_neutral_density(neutral, step)
+                self.apply_neutral_density(neutral)
 
-    def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db):
+    def interpolate_ion_rates(self, ion, ion_temperature, atomic_db):
+        for from_level in range(atomic_db.atomic_ceiling):
+            self.interpolate_ion_impact_loss(ion, from_level, atomic_db, ion_temperature)
+            for to_level in range(atomic_db.atomic_ceiling):
+                if to_level != from_level:
+                    self.interpolate_ion_impact_trans(ion, from_level, to_level, atomic_db, ion_temperature)
+
+    def interpolate_electron_impact_trans(self, from_level, to_level, atomic_db, electron_temperature):
         self.electron_impact_trans_np[from_level, to_level, :] \
-            = atomic_db.electron_impact_trans[from_level][to_level](
-                self.beamlet_profiles['electron']['temperature']['eV'][:])
+            = atomic_db.electron_impact_trans[from_level][to_level](electron_temperature)
 
-    def interpolate_ion_impact_trans(self, ion, from_level, to_level, atomic_db):
+    def interpolate_ion_impact_trans(self, ion, from_level, to_level, atomic_db, ion_temperature):
         self.ion_impact_trans_np[ion, from_level, to_level, :] = \
-            atomic_db.ion_impact_trans[from_level][to_level][ion](
-                self.beamlet_profiles['ion'+str(ion+1)]['temperature']['eV'][:])
+            atomic_db.ion_impact_trans[from_level][to_level][ion](ion_temperature)
 
-    def interpolate_electron_impact_loss(self, from_level, atomic_db):
+    def interpolate_electron_impact_loss(self, from_level, atomic_db, electron_temperature):
         self.electron_impact_loss_np[from_level, :] = \
-            atomic_db.electron_impact_loss[from_level](self.beamlet_profiles['electron']['temperature']['eV'][:])
+            atomic_db.electron_impact_loss[from_level](electron_temperature)
 
-    def interpolate_ion_impact_loss(self, ion, from_level, atomic_db):
+    def interpolate_ion_impact_loss(self, ion, from_level, atomic_db, ion_temperature):
         self.ion_impact_loss_np[ion, from_level, :] = \
-            atomic_db.ion_impact_loss[from_level][ion](
-                self.beamlet_profiles['ion' + str(ion + 1)]['temperature']['eV'][:])
+            atomic_db.ion_impact_loss[from_level][ion](ion_temperature)
 
     def fetch_neutral_impact_loss(self, neutral, from_level, atomic_db):
         self.neutral_impact_loss_np[neutral, from_level, :] = atomic_db.neutral_db.\
@@ -168,19 +166,19 @@ class CoefficientMatrix:
         self.photon_terms[from_level, to_level, :] = \
             atomic_db.spontaneous_trans[to_level, from_level] / atomic_db.velocity
         
-    def apply_electron_density(self, step):
-        self.matrix[:, :, step] = self.beamlet_profiles['electron']['density']['m-3'][step] \
-                                  * self.electron_terms[:, :, step]
-        
-    def apply_ion_density(self, ion, step):
-        self.matrix[:, :, step] = self.matrix[:, :, step] + \
-                                  self.beamlet_profiles['ion' + str(ion + 1)]['density']['m-3'][step] \
-                                  * self.ion_terms[ion, :, :, step]
-        
-    def apply_photons(self, step):
-        self.matrix[:, :, step] = self.matrix[:, :, step] + self.photon_terms[:, :, step]
+    def apply_electron_density(self):
+        electron_density = self.beamlet_profiles['electron']['density']['m-3'].to_numpy()
+        self.matrix[:, :, :] = electron_density[numpy.newaxis, numpy.newaxis, :] * self.electron_terms[:, :, :]
 
-    def apply_neutral_density(self, neutral, step):
-        self.matrix[:, :, step] = self.matrix[:, :, step] + \
-                                  self.beamlet_profiles['neutral'+str(neutral+1)]['density']['m-3'][step] \
-                                  * self.neutral_terms[neutral, :, :, step]
+    def apply_ion_density(self, ion):
+        ion_density = self.beamlet_profiles['ion' + str(ion + 1)]['density']['m-3'].to_numpy()
+        self.matrix[:, :, :] = self.matrix[:, :, :] + \
+                               ion_density[numpy.newaxis, numpy.newaxis, :] * self.ion_terms[ion, :, :, :]
+
+    def apply_photons(self):
+        self.matrix[:, :, :] = self.matrix[:, :, :] + self.photon_terms[:, :, :]
+
+    def apply_neutral_density(self, neutral):
+        neutral_density = self.beamlet_profiles['neutral'+str(neutral+1)]['density']['m-3'].to_numpy()
+        self.matrix[:, :, :] = self.matrix[:, :, :] + \
+                               neutral_density[numpy.newaxis, numpy.newaxis, :] * self.neutral_terms[neutral, :, :, :]

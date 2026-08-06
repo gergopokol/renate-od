@@ -349,8 +349,7 @@ class CoefficientMatrixTest(unittest.TestCase):
 
     def test_spontaneous_term_application(self):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
-        for step in range(self.PROFILES['beamlet grid'].size):
-            self.RATE_COEFFICIENT.apply_photons(step)
+        self.RATE_COEFFICIENT.apply_photons()
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, self.EXPECTED_PHOTON_TERM,
                                           self.EXPECTED_DECIMAL_PRECISION_4, err_msg='Photon term application failed.')
 
@@ -367,8 +366,8 @@ class CoefficientMatrixTest(unittest.TestCase):
         self.RATE_COEFFICIENT.matrix -= self.RATE_COEFFICIENT.matrix
         actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
+        self.RATE_COEFFICIENT.apply_electron_density()
         for step in range(self.PROFILES['beamlet grid'].size):
-            self.RATE_COEFFICIENT.apply_electron_density(step)
             actual[:, :, step] = self.PROFILES['electron']['density']['m-3'][step] \
                 * self.EXPECTED_ELECTRON_TERM[:, :, step]
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
@@ -388,8 +387,8 @@ class CoefficientMatrixTest(unittest.TestCase):
         actual = numpy.zeros((self.ATOMIC_DB.atomic_ceiling, self.ATOMIC_DB.atomic_ceiling,
                               self.PROFILES['beamlet grid'].size))
         for ion in range(len(self.COMPONENTS.T.keys())-1):
+            self.RATE_COEFFICIENT.apply_ion_density(ion)
             for step in range(self.PROFILES['beamlet grid'].size):
-                self.RATE_COEFFICIENT.apply_ion_density(ion, step)
                 actual[:, :, step] += self.PROFILES['ion'+str(ion+1)]['density']['m-3'][step] * \
                     self.EXPECTED_ION_TERM[ion, :, :, step]
         numpy.testing.assert_almost_equal(self.RATE_COEFFICIENT.matrix, actual, self.EXPECTED_DECIMAL_PRECISION_6,
