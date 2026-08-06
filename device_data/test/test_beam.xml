@@ -1,0 +1,23 @@
+<xml lang="en">
+    <head>
+        <id>test_beam</id>
+    </head>
+    <body>
+        <beam_energy unit="keV">60</beam_energy>
+        <beam_species unit="">Li</beam_species>
+        <beam_current unit="A">0.001</beam_current>
+        <beam_fwhm unit="m">0.05</beam_fwhm>
+        <beam_resolution unit="m">0.01</beam_resolution>
+        <beam_divergence unit="rad">0.005</beam_divergence>
+        <beam_start unit="m">
+            <x>0.0</x>
+            <y>0.0</y>
+            <z>0.0</z>
+        </beam_start>
+        <beam_end unit="m">
+            <x>1.0</x>
+            <y>0.0</y>
+            <z>0.0</z>
+        </beam_end>
+    </body>
+</xml>
