@@ -1,9 +1,8 @@
-# renate-od
-RENATE Open Diagnostics (RENATE-OD)
+# RENATE Open Diagnostics (RENATE-OD)
 
 Responsible developers:
 * [Dr. Gergo Pokol](www.reak.bme.hu/pokol)
-* [Ors Asztalos](https://github.com/asztalosors)
+* [Dr. Ors Asztalos](https://github.com/asztalosors)
 * [Peter Balazs](https://github.com/Balazs-Peter)
 
 Contributors:
@@ -27,3 +26,5 @@ programming_giudelines.pdf.
 RENATE-OD is being developed under GPL. However, in order to avoid misuse, we ask you to contact the 
 responsible developer prior to any applications in science. We are just as open for collaboration, 
 as our code is open for development!
+
+## Bibliography
