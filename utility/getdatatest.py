@@ -5,6 +5,7 @@ from pandas.core.frame import DataFrame
 from lxml.etree import _ElementTree
 from utility.getdata import GetData
 from utility.accessdata import AccessData
+import scipy.io
 
 
 class GetDataTest(unittest.TestCase):
@@ -13,6 +14,7 @@ class GetDataTest(unittest.TestCase):
     PUBLIC_DOWNLOAD_TEST = 'test_dataset/access_tests/public_test.xml'
     LOAD_TXT_TEST = 'test_dataset/access_tests/public_test.txt'
     HDF5_TEST = 'test_dataset/access_tests/public_test.h5'
+    SAV_TEST = 'device_data/test/test_idl_data.sav'
 
     def setUp(self):
         self.access = AccessData(None)
@@ -59,3 +61,7 @@ class GetDataTest(unittest.TestCase):
         self.data = GetData(self.HDF5_TEST).data
         self.assertIsInstance(self.data, DataFrame, msg='The data type for loading .h5 data is expected '
                                                         'to be of pandas DataFrame')
+
+    def test_idl_data_loader(self):
+        self.data = GetData(self.SAV_TEST).data
+        self.assertIsInstance(self.data, scipy.io.idl.AttrDict)
