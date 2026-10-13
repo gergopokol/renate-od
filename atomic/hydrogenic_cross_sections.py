@@ -64,7 +64,10 @@ class HydrogenicData:
         self.__CROSS_EQ = {
 
             '10': lambda e, par: 5.984e-16/e*(par[0]+par[1]/(e/10.2)+par[2]/(e/10.2)**2 +
-                                              par[3]/(e/10.2)**3+par[4]/(e/10.2)**4+par[5]*np.log(e/10.2)),
+                                              par[3]/(e/10.2)**3+par[4]/(e/10.2)**4+par[5]*np.log(e/10.2)) *
+                                              (0.5*np.tanh(1e4*(e-12.23))+0.5) +                                        #swithching bettween two functions with the help of
+                                              (0.5*np.tanh(-1e4*(e-12.23))+0.5) *                                       #tanh weighing functions
+                                              1e-16*(0.141 + 0.129*(e-10.2)),
 
             '11': lambda e, par: 5.984e-16/e*((e-par[6])/e)**par[5]*(par[0]+par[1]/(e/par[6])+par[2]/(e/par[6])**2 +
                                                                      par[3]/(e/par[6])**3+par[4]*np.log(e/par[6])),
@@ -77,8 +80,8 @@ class HydrogenicData:
                                                    par[2]*(1-par[6]/e)**2+par[3]*(1-par[6]/e)**3 +
                                                    par[4]*(1-par[6]/e)**4+par[5]*(1-par[6]/e)**5),
 
-            '14': lambda e, par: 1.76e-16*par[0]**2/(e/par[5])*(1-np.exp(-par[2]*e/par[5])) *
-            (par[3]*np.log(e/par[5])+(par[4]-par[3]*np.log(2*par[0]**2)) * (1-1/(e/par[5]))**2),
+            '14': lambda e, par: 1.76e-16*par[0]**2/(e/par[4])*(1-np.exp(-par[1]*e/par[4])) *
+                                (par[2]*np.log(e/par[4])+(par[3]-par[2]*np.log(2*par[0]**2)) * (1-1/(e/par[4]))**2),
 
             '15': lambda e, par: 1e-16*par[0]*(np.exp(-par[1]/e)*np.log(1+par[2]*e)/e+par[3] *
                                                np.exp(-par[4]*e)/e**par[5]+par[6]*np.exp(-par[7]/e) /
@@ -564,11 +567,10 @@ class HydrogenicData:
             return self.__CROSS_EQ[eq](energy_grid, par)
 
         if n > 3:  # Corrected according to [3]
-            y = 1-(1/n)**2
             b = 1/n*(4.0-18.63/n+36.24/n**2-28.09/n**3)
             A = self.__get_A(n)
             eq = '14'
-            par = [n, y, 1.94*n**(-1.57), A, 2/3*n**2*(5+b), 13.6/n**2]
+            par = [n, 1.94*n**(-1.57), A, 2/3*n**2*(5+b), 13.6/n**2]
             return self.__CROSS_EQ[eq](energy_grid, par)
 
     def __ion_p(self, trans, energy_grid):
