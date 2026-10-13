@@ -5,7 +5,6 @@ from libc.math cimport exp, sqrt, M_PI
 cimport cython
 
 from raysect.core cimport Point3D, Vector3D
-from raysect.core.math.function cimport autowrap_function1d, autowrap_function2d
 
 from cherab.core cimport Plasma, Beam, Element, Spectrum, AtomicData
 from cherab.core.atomic import hydrogen
@@ -58,10 +57,10 @@ cdef class RenateBeamEmissionLine(BeamModel):
 
         self._line = line
 
-        self._sigma_to_pi = autowrap_function2d(sigma_to_pi)
-        self._sigma1_to_sigma0 = autowrap_function1d(sigma1_to_sigma0)
-        self._pi2_to_pi3 = autowrap_function1d(pi2_to_pi3)
-        self._pi4_to_pi3 = autowrap_function1d(pi4_to_pi3)
+        self._sigma_to_pi = sigma_to_pi
+        self._sigma1_to_sigma0 = sigma1_to_sigma0
+        self._pi2_to_pi3 = pi2_to_pi3
+        self._pi4_to_pi3 = pi4_to_pi3
 
         # initialise cache to empty
         self._wavelength = 0.0
@@ -126,7 +125,7 @@ cdef class RenateBeamEmissionLine(BeamModel):
         gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
 
         # spectral line emission in W/m^3/str
-        emissivity = self._emissivity.evaluate(z) * gaussian_sample
+        emissivity = self._emissivity(z) * gaussian_sample
 
         if self._using_stark_splitting:
 

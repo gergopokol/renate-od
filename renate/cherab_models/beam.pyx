@@ -21,6 +21,9 @@ cdef double DEGREES_TO_RADIANS = (M_PI / 180)
 
 cdef class RenetaModelManager(ModelManager):
 
+    def __init__(self):
+        super().__init__()
+
     cpdef object set(self, object models):
 
         # copy models and test it is an iterable
@@ -190,7 +193,7 @@ cdef class RenateBeam(Beam):
         # bi-variate Gaussian distribution (normalised)
         gaussian_sample = exp(-0.5 * norm_radius_sqr) / (2 * M_PI * sigma_x * sigma_y)
 
-        return self._density.evaluate(z) * gaussian_sample
+        return self._density(z) * gaussian_sample
 
     @property
     def renate_wrapper(self):
