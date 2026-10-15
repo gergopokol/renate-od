@@ -47,6 +47,7 @@ jobs:
             utility.inputtest.BeamletInputTest \
             utility.transitiontest.TransitionTest \
             utility.writedatatest.WriteDataTest \
+            utility.writedatatest.WriteObservationTest \
             observation.noisetest.NoiseGeneratorTest \
             observation.noisetest.APDGeneratorTest \
             observation.noisetest.PMTGeneratorTest \
