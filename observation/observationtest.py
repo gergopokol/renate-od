@@ -1,4 +1,5 @@
 import unittest
+import warnings
 import numpy
 import pandas
 from observation.observation import Obs1D
@@ -233,7 +234,38 @@ class Obs1DIntegratorTest(unittest.TestCase):
 
 
 class Obs1DOutsideGridTest(unittest.TestCase):
-    pass
+    INPUT_GRID = numpy.array([0., 0.5, 1.])
+    INPUT_POSITIONS = [0., 0.0625, 0.5, 0.9375, 1., 1.5]
+    INPUT_SIZE = 0.125
+    INPUT_FLUX = [1., 2., 3., 4., 5., 6.]
+    INPUT_INSIDE_POSITIONS = [0.0625, 0.5, 0.9375]
+    EXPECTED_FLUX = [numpy.nan, 2., 3., 4., numpy.nan, numpy.nan]
+    EXPECTED_INDICES = '[0, 4, 5]'
+
+    def _flag(self, positions, flux):
+        obs = Obs1D(positions, self.INPUT_SIZE)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            actual = obs._flag_detectors_outside_grid(self.INPUT_GRID, numpy.array(flux))
+        return actual, caught
+
+    def test_outside_detectors_flagged(self):
+        actual, _ = self._flag(self.INPUT_POSITIONS, self.INPUT_FLUX)
+        numpy.testing.assert_array_equal(actual, self.EXPECTED_FLUX,
+                                         err_msg='Only detectors extending beyond the grid are expected to be NaN.')
+
+    def test_warning(self):
+        _, caught = self._flag(self.INPUT_POSITIONS, self.INPUT_FLUX)
+        self.assertEqual(len(caught), 1, msg='Exactly one warning is expected.')
+        self.assertTrue(issubclass(caught[0].category, UserWarning), msg='A UserWarning is expected.')
+        self.assertIn(self.EXPECTED_INDICES, str(caught[0].message),
+                      msg='The warning is expected to list the detectors outside the grid.')
+
+    def test_all_inside(self):
+        flux = self.INPUT_FLUX[:len(self.INPUT_INSIDE_POSITIONS)]
+        actual, caught = self._flag(self.INPUT_INSIDE_POSITIONS, flux)
+        numpy.testing.assert_array_equal(actual, flux, err_msg='Detectors inside the grid are expected unchanged.')
+        self.assertEqual(len(caught), 0, msg='No warning is expected when all detectors are inside the grid.')
 
 
 class Obs1DPhotonFluxTest(unittest.TestCase):
