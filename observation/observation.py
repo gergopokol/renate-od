@@ -168,3 +168,32 @@ class Obs1D:
             self.observed_transitions = transitions
             self.observed_beamlets = [self._get_beamlet_source(beamlet) for beamlet in beamlets]
         return self.detector_positions, photon_flux
+
+    def show(self, beamlet_index=0, display=True):
+        """
+        Plots a stored photon flux profile against the distance along the beam. Each detector is shown at its
+        position with a horizontal bar spanning its range. Detectors with NaN flux are not shown.
+        :param beamlet_index: Index of the stored photon flux profile to plot, if more than one is stored.
+        :param display: If True, the figure is displayed with matplotlib.pyplot.show().
+        :return: The matplotlib figure and axis.
+        """
+        if not hasattr(self, 'photon_flux'):
+            raise ValueError('No photon flux is stored in the observation. '
+                             'Call compute_photon_flux() with <store=True> first.')
+        photon_flux = numpy.atleast_2d(self.photon_flux)
+        if not -photon_flux.shape[0] <= beamlet_index < photon_flux.shape[0]:
+            raise IndexError('<beamlet_index> ' + str(beamlet_index) + ' is out of range, '
+                             + str(photon_flux.shape[0]) + ' photon flux profile(s) are stored.')
+        import matplotlib.pyplot
+        figure, axis = matplotlib.pyplot.subplots()
+        axis.errorbar(self.detector_positions, photon_flux[beamlet_index],
+                      xerr=(self.detector_positions - self.detector_ranges[:, 0],
+                            self.detector_ranges[:, 1] - self.detector_positions), fmt='o', capsize=3)
+        axis.set_xlabel('Distance along the beam [m]')
+        axis.set_ylabel('Photon flux [ph/s]')
+        axis.set_title(self.observed_transitions[beamlet_index] + ', beamlet ' + str(beamlet_index) + ': '
+                       + str(self.observed_beamlets[beamlet_index]))
+        axis.grid()
+        if display:
+            matplotlib.pyplot.show()
+        return figure, axis
