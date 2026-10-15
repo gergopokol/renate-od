@@ -1,5 +1,6 @@
 import pandas
 import numpy
+import warnings
 
 
 class Obs1d:
@@ -84,6 +85,14 @@ class Obs1d:
         offset = detector_ranges - grid[index]
         integral = cumulative[index] + offset * (emission[index] + slopes[index] * offset / 2.)
         return integral[:, 1] - integral[:, 0]
+
+    def _flag_detectors_outside_grid(self, grid, photon_flux):
+        outside = (self.detector_ranges[:, 0] < grid[0]) | (self.detector_ranges[:, 1] > grid[-1])
+        if outside.any():
+            photon_flux[outside] = numpy.nan
+            warnings.warn('Detectors ' + str(numpy.flatnonzero(outside).tolist()) + ' extend beyond the beamlet grid '
+                          '(' + str(grid[0]) + ' m - ' + str(grid[-1]) + ' m); their emission is set to NaN.')
+        return photon_flux
 
     def calculate_photon_emission_profile(self, interpolate=False):
         if interpolate:
