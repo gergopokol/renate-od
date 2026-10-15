@@ -64,6 +64,17 @@ class Obs1d:
                 return from_level, to_level, label
         return from_level, to_level, from_level + '-->' + to_level
 
+    @staticmethod
+    def _get_linear_emission_density(beamlet, from_level, to_level, label):
+        beamlet.compute_linear_emission_density(from_level=from_level, to_level=to_level)
+        try:
+            emission = beamlet.profiles[label].to_numpy()
+        except KeyError:
+            raise RuntimeError('Linear emission density for transition ' + label + ' could not be computed. '
+                               'Run the beam evolution solver first.') from None
+        grid = beamlet.profiles[('beamlet grid', 'distance', 'm')].to_numpy()
+        return grid, emission
+
     def calculate_photon_emission_profile(self, interpolate=False):
         if interpolate:
             new_resolution = int((max(self.beamlet.profiles['beamlet grid']['distance']['m']) -
