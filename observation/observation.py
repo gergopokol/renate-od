@@ -52,6 +52,18 @@ class Obs1d:
             upper_edges = positions + sizes / 2.
         return sizes, numpy.column_stack((lower_edges, upper_edges))
 
+    def _resolve_transition(self, beamlet, from_level=None, to_level=None):
+        if (from_level is None) != (to_level is None):
+            raise ValueError('Both <from_level> and <to_level> must be given to override the default transition, '
+                             'or neither.')
+        if from_level is None:
+            if self.from_level is not None:
+                from_level, to_level = self.from_level, self.to_level
+            else:
+                from_level, to_level, _, label = beamlet.atomic_db.set_default_atomic_levels()
+                return from_level, to_level, label
+        return from_level, to_level, from_level + '-->' + to_level
+
     def calculate_photon_emission_profile(self, interpolate=False):
         if interpolate:
             new_resolution = int((max(self.beamlet.profiles['beamlet grid']['distance']['m']) -
