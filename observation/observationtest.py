@@ -3,6 +3,18 @@ import numpy
 from observation.observation import Obs1D
 
 
+class _StubAtomicDB:
+    DEFAULT_TRANSITION = ('9x', '8x', '1x', '9x-->8x')
+
+    def set_default_atomic_levels(self):
+        return self.DEFAULT_TRANSITION
+
+
+class _StubBeamlet:
+    def __init__(self):
+        self.atomic_db = _StubAtomicDB()
+
+
 class Obs1DInitTest(unittest.TestCase):
     INPUT_POSITIONS = [0.25, 0.5, 1.0]
     INPUT_SIZE_SCALAR = 0.125
@@ -85,7 +97,42 @@ class Obs1DInitTest(unittest.TestCase):
 
 
 class Obs1DTransitionTest(unittest.TestCase):
-    pass
+    INPUT_POSITIONS = [0.25, 0.5, 1.0]
+    INPUT_INSTANCE_DEFAULT = ('3n', '2n')
+    INPUT_CALL_OVERRIDE = ('4n', '2n')
+    INPUT_PRIORITY_CASES = [((None, None), (None, None), ('9x', '8x')),
+                            ((None, None), ('4n', '2n'), ('4n', '2n')),
+                            (('3n', '2n'), (None, None), ('3n', '2n')),
+                            (('3n', '2n'), ('4n', '2n'), ('4n', '2n'))]
+    INPUT_SINGLE_LEVEL_OVERRIDES = [('4n', None), (None, '2n')]
+
+    def setUp(self):
+        self.beamlet = _StubBeamlet()
+
+    def tearDown(self):
+        del self.beamlet
+
+    def test_priority(self):
+        for instance_default, call_levels, expected in self.INPUT_PRIORITY_CASES:
+            with self.subTest(instance_default=instance_default, call_levels=call_levels):
+                obs = Obs1D(self.INPUT_POSITIONS, from_level=instance_default[0], to_level=instance_default[1])
+                actual = obs._resolve_transition(self.beamlet, *call_levels)
+                self.assertEqual(actual[:2], expected, msg='Transition levels resolved from the wrong source.')
+                self.assertEqual(actual[2], expected[0] + '-->' + expected[1],
+                                 msg='Transition label is expected in the <from>--><to> format.')
+
+    def test_override_keeps_instance_default(self):
+        obs = Obs1D(self.INPUT_POSITIONS, *self.INPUT_INSTANCE_DEFAULT)
+        obs._resolve_transition(self.beamlet, *self.INPUT_CALL_OVERRIDE)
+        self.assertEqual((obs.from_level, obs.to_level), self.INPUT_INSTANCE_DEFAULT,
+                         msg='A call override is not expected to change the instance default transition.')
+
+    def test_single_level_override(self):
+        obs = Obs1D(self.INPUT_POSITIONS)
+        for from_level, to_level in self.INPUT_SINGLE_LEVEL_OVERRIDES:
+            with self.subTest(from_level=from_level, to_level=to_level):
+                with self.assertRaises(ValueError, msg='Overriding a single level is expected to be rejected.'):
+                    obs._resolve_transition(self.beamlet, from_level, to_level)
 
 
 class Obs1DEmissionDensityTest(unittest.TestCase):
