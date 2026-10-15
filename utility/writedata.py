@@ -64,21 +64,3 @@ class WriteData:
         except Exception as exc:
             raise OSError('Observation data could NOT be written to file: '
                           + os.path.join(subdir, output_id + '.h5')) from exc
-
-    def write_photon_emission_profile(self, obs_param, emission_profiles, subdir=''):
-        output_path = obs_param.getroot().find('head').find('id').text
-        h5_output_path = os.path.join(self.root_path, subdir, output_path + ".h5")
-        xml_output_path = os.path.join(self.root_path, subdir, output_path + ".xml")
-        GetData.ensure_dir(h5_output_path)
-        try:
-            emission_profiles.to_hdf(path_or_buf=h5_output_path, key='emission_profiles')
-            if not isinstance(obs_param.getroot().find('body').find('emission_profiles'), etree._Element):
-                new_element = etree.Element('emission_profiles')
-                new_element.text = h5_output_path
-                new_element.set('unit', '-')
-                obs_param.getroot().find('body').append(new_element)
-            obs_param.write(xml_output_path)
-            print('Photon emission profile data written to file: ' + output_path)
-        except Exception as exc:
-            raise OSError('Photon emission profile data could NOT be written to file: '
-                          + output_path) from exc
