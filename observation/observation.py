@@ -3,7 +3,26 @@ import warnings
 
 
 class Obs1d:
+    """
+    One dimensional synthetic observation of beamlet emission. Detectors are placed along the beam axis and each
+    collects the photon emission of a single atomic transition emitted within its range.
+    Positions are distances along the beam in [m], measured from the beam starting point, which is the first point of
+    the beamlet grid (assumed to be 0). Photon fluxes are given in [ph/s].
+    """
+
     def __init__(self, detector_positions, detector_size=None, from_level=None, to_level=None):
+        """
+        Sets up the detector geometry and the default atomic transition.
+        :param detector_positions: Detector centres along the beam in [m], non-negative and strictly increasing.
+        :param detector_size: Detector extent along the beam in [m]. None: detector boundaries are halfway between
+            neighbouring positions, edge detectors are padded symmetrically. Single number: all detectors have the
+            same size, ranges are position -/+ size/2. Array: one size per detector, ranges are position -/+ size/2.
+        :param from_level: Upper level of the default transition, e.g. '3n'. Must be given together with to_level.
+            None: the default transition of the beam species is used.
+        :param to_level: Lower level of the default transition, e.g. '2n'.
+        Sets the read-only attributes detector_positions (N), detector_size (N) and detector_ranges (N, 2) in [m],
+        where detector_ranges[:, 0] are the lower and detector_ranges[:, 1] the upper detector boundaries.
+        """
         self.detector_positions = self.__validate_detector_positions(detector_positions)
         self.detector_size, self.detector_ranges = self.__compute_detector_ranges(self.detector_positions,
                                                                                   detector_size)
@@ -19,6 +38,7 @@ class Obs1d:
 
     @staticmethod
     def __validate_detector_positions(detector_positions):
+        """Returns a validated copy of the detector positions."""
         positions = numpy.array(detector_positions, dtype=float)
         if positions.ndim != 1 or positions.size == 0:
             raise ValueError('<detector_positions> must be a non-empty 1D array.')
@@ -33,6 +53,7 @@ class Obs1d:
 
     @staticmethod
     def __compute_detector_ranges(positions, detector_size):
+        """Returns the detector sizes and ranges for the given size mode."""
         if detector_size is None:
             if positions.size < 2:
                 raise ValueError('At least two <detector_positions> are needed to derive detector ranges '
@@ -55,6 +76,7 @@ class Obs1d:
         return sizes, numpy.column_stack((lower_edges, upper_edges))
 
     def _resolve_transition(self, beamlet, from_level=None, to_level=None):
+        """Returns the levels and label of the transition: call input, then class default, then beam species default."""
         if (from_level is None) != (to_level is None):
             raise ValueError('Both <from_level> and <to_level> must be given to override the default transition, '
                              'or neither.')
@@ -68,6 +90,7 @@ class Obs1d:
 
     @staticmethod
     def _get_linear_emission_density(beamlet, from_level, to_level, label):
+        """Returns the beamlet grid and the linear emission density in [ph/(s m)], computed only if not present."""
         try:
             emission = beamlet.profiles[label].to_numpy()
         except KeyError:
@@ -82,6 +105,11 @@ class Obs1d:
 
     @staticmethod
     def _integrate_over_detectors(grid, emission, detector_ranges):
+        """
+        Exact integral of the piecewise linear emission density between the detector boundaries, evaluated from the
+        cumulative trapezoidal integral and its quadratic form within each grid cell. Assumes a strictly increasing
+        grid.
+        """
         steps = numpy.diff(grid)
         slopes = numpy.diff(emission) / steps
         cumulative = numpy.concatenate(([0.], numpy.cumsum((emission[1:] + emission[:-1]) / 2. * steps)))
@@ -91,6 +119,7 @@ class Obs1d:
         return integral[:, 1] - integral[:, 0]
 
     def _flag_detectors_outside_grid(self, grid, photon_flux):
+        """Sets the flux of detectors extending beyond the beamlet grid to NaN and warns."""
         outside = (self.detector_ranges[:, 0] < grid[0]) | (self.detector_ranges[:, 1] > grid[-1])
         if outside.any():
             photon_flux[outside] = numpy.nan
@@ -99,6 +128,20 @@ class Obs1d:
         return photon_flux
 
     def compute_photon_flux(self, beamlets, from_level=None, to_level=None, store=False):
+        """
+        Computes the photon flux collected by each detector by integrating the linear emission density of the
+        observed transition over the detector ranges.
+        :param beamlets: A solved Beamlet object or a list of them.
+        :param from_level: Upper level of the transition, overrides the default for this call only. Must be given
+            together with to_level.
+        :param to_level: Lower level of the transition, overrides the default for this call only.
+        :param store: If True, the result is stored in photon_flux and the transition labels in observed_transitions,
+            overwriting any previously stored result.
+        :return: detector_positions in [m] and photon flux in [ph/s], shaped (N) for a single beamlet or
+            (len(beamlets), N) for a list. Detectors extending beyond the beamlet grid are set to NaN with a warning.
+        The linear emission density is taken from beamlet.profiles if already present, otherwise it is computed and
+        added to beamlet.profiles. An existing emission profile is not recomputed if the beamlet is solved again.
+        """
         single = not isinstance(beamlets, (list, tuple))
         if single:
             beamlets = [beamlets]
