@@ -127,6 +127,14 @@ class Obs1D:
                           '(' + str(grid[0]) + ' m - ' + str(grid[-1]) + ' m); their emission is set to NaN.')
         return photon_flux
 
+    @staticmethod
+    def _get_beamlet_source(beamlet):
+        """Returns the beamlet_source of the beamlet from its parameters, or None if it is not given."""
+        try:
+            return beamlet.param.getroot().find('body').find('beamlet_source').text
+        except AttributeError:
+            return None
+
     def compute_photon_flux(self, beamlets, from_level=None, to_level=None, store=False):
         """
         Computes the photon flux collected by each detector by integrating the linear emission density of the
@@ -135,8 +143,8 @@ class Obs1D:
         :param from_level: Upper level of the transition, overrides the default for this call only. Must be given
             together with to_level.
         :param to_level: Lower level of the transition, overrides the default for this call only.
-        :param store: If True, the result is stored in photon_flux and the transition labels in observed_transitions,
-            overwriting any previously stored result.
+        :param store: If True, the result is stored in photon_flux, the transition labels in observed_transitions and
+            the beamlet sources in observed_beamlets, overwriting any previously stored result.
         :return: detector_positions in [m] and photon flux in [ph/s], shaped (N) for a single beamlet or
             (len(beamlets), N) for a list. Detectors extending beyond the beamlet grid are set to NaN with a warning.
         The linear emission density is taken from beamlet.profiles if already present, otherwise it is computed and
@@ -158,4 +166,5 @@ class Obs1D:
         if store:
             self.photon_flux = photon_flux
             self.observed_transitions = transitions
+            self.observed_beamlets = [self._get_beamlet_source(beamlet) for beamlet in beamlets]
         return self.detector_positions, photon_flux
