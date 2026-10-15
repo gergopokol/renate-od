@@ -2,7 +2,7 @@ import numpy
 import warnings
 
 
-class Obs1d:
+class Obs1D:
     """
     One dimensional synthetic observation of beamlet emission. Detectors are placed along the beam axis and each
     collects the photon emission of a single atomic transition emitted within its range.
