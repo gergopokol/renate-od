@@ -184,7 +184,52 @@ class Obs1DEmissionDensityTest(unittest.TestCase):
 
 
 class Obs1DIntegratorTest(unittest.TestCase):
-    pass
+    INPUT_LINEAR_GRID = numpy.array([0., 0.1, 0.35, 0.4, 1.])
+    INPUT_LINEAR_COEFFICIENTS = (2., 3.)
+    INPUT_LINEAR_RANGES = numpy.array([[0.05, 0.07], [0.05, 0.9], [0.1, 0.4], [0., 0.2], [0.6, 1.], [0., 1.],
+                                       [0.35, 0.35]])
+    INPUT_ADJACENT_RANGES = numpy.array([[0., 0.2], [0.2, 0.37], [0.37, 1.]])
+    INPUT_KINK_GRID = numpy.array([0., 1., 2., 4.])
+    INPUT_KINK_EMISSION = numpy.array([0., 2., 1., 5.])
+    INPUT_KINK_RANGES = numpy.array([[0.5, 1.5], [1.5, 3.], [0., 1.], [1., 2.], [2., 4.], [0., 4.]])
+    EXPECTED_KINK_INTEGRALS = [1.625, 2.625, 1., 1.5, 6., 8.5]
+    PRECISION = {'rtol': 1e-12, 'atol': 1e-14}
+
+    def _linear_emission(self):
+        offset, slope = self.INPUT_LINEAR_COEFFICIENTS
+        return offset + slope * self.INPUT_LINEAR_GRID
+
+    def _linear_integral(self, ranges):
+        offset, slope = self.INPUT_LINEAR_COEFFICIENTS
+        lower, upper = ranges[:, 0], ranges[:, 1]
+        return offset * (upper - lower) + slope / 2. * (upper ** 2 - lower ** 2)
+
+    def test_linear_emission(self):
+        actual = Obs1D._integrate_over_detectors(self.INPUT_LINEAR_GRID, self._linear_emission(),
+                                                 self.INPUT_LINEAR_RANGES)
+        numpy.testing.assert_allclose(actual, self._linear_integral(self.INPUT_LINEAR_RANGES), **self.PRECISION,
+                                      err_msg='Linear emission is expected to be integrated exactly.')
+
+    def test_piecewise_linear_emission(self):
+        actual = Obs1D._integrate_over_detectors(self.INPUT_KINK_GRID, self.INPUT_KINK_EMISSION,
+                                                 self.INPUT_KINK_RANGES)
+        numpy.testing.assert_allclose(actual, self.EXPECTED_KINK_INTEGRALS, **self.PRECISION,
+                                      err_msg='Piecewise linear emission is expected to be integrated exactly.')
+
+    def test_additivity(self):
+        emission = self._linear_emission()
+        parts = Obs1D._integrate_over_detectors(self.INPUT_LINEAR_GRID, emission, self.INPUT_ADJACENT_RANGES)
+        whole = Obs1D._integrate_over_detectors(self.INPUT_LINEAR_GRID, emission,
+                                                self.INPUT_ADJACENT_RANGES[[0, -1], [0, 1]].reshape(1, 2))
+        numpy.testing.assert_allclose(parts.sum(), whole[0], **self.PRECISION,
+                                      err_msg='Integrals over adjacent ranges are expected to add up.')
+
+    def test_output(self):
+        actual = Obs1D._integrate_over_detectors(self.INPUT_LINEAR_GRID, self._linear_emission(),
+                                                 self.INPUT_LINEAR_RANGES)
+        self.assertIsInstance(actual, numpy.ndarray, msg='Integrals are expected as numpy array.')
+        self.assertEqual(actual.dtype, numpy.float64, msg='Integrals are expected as floats.')
+        self.assertEqual(actual.shape, (len(self.INPUT_LINEAR_RANGES),), msg='One integral per range is expected.')
 
 
 class Obs1DOutsideGridTest(unittest.TestCase):
