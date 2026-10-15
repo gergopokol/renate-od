@@ -2,7 +2,9 @@ import unittest
 import warnings
 import numpy
 import pandas
+from crm_solver.beamlet import Beamlet
 from observation.observation import Obs1D
+from utility.exceptions import RenateNotValidTransitionError
 
 
 class _StubAtomicDB:
@@ -269,7 +271,111 @@ class Obs1DOutsideGridTest(unittest.TestCase):
 
 
 class Obs1DPhotonFluxTest(unittest.TestCase):
-    pass
+    INPUT_OVERRIDE = ('3p', '2s')
+    INPUT_REVERSED = ('2s', '2p')
+    INPUT_DETECTOR_NUMBER = 5
+
+    @classmethod
+    def setUpClass(cls):
+        cls.REFERENCE = Beamlet()
+        grid = cls.REFERENCE.profiles[('beamlet grid', 'distance', 'm')].to_numpy()
+        span = grid[-1] - grid[0]
+        cls.GRID = grid
+        cls.POSITIONS = numpy.linspace(grid[0] + 0.2 * span, grid[-1] - 0.2 * span, cls.INPUT_DETECTOR_NUMBER)
+        cls.DEFAULT = cls.REFERENCE.atomic_db.set_default_atomic_levels()
+
+    def setUp(self):
+        self.beamlet = self.REFERENCE.copy()
+        self.obs = Obs1D(self.POSITIONS)
+
+    def tearDown(self):
+        del self.beamlet, self.obs
+
+    def test_single_beamlet(self):
+        positions, flux = self.obs.compute_photon_flux(self.beamlet)
+        self.assertIs(positions, self.obs.detector_positions, msg='Detector positions are expected to be returned.')
+        self.assertIsInstance(flux, numpy.ndarray, msg='Photon flux is expected as numpy array.')
+        self.assertEqual(flux.shape, (self.INPUT_DETECTOR_NUMBER,), msg='One flux value per detector is expected.')
+        self.assertTrue(numpy.all(numpy.isfinite(flux)) and numpy.all(flux > 0),
+                        msg='Photon flux inside the grid is expected to be finite and positive.')
+
+    def test_beamlet_sequence(self):
+        for beamlets in ([self.beamlet, self.beamlet], (self.beamlet, self.beamlet)):
+            with self.subTest(sequence=type(beamlets).__name__):
+                _, flux = self.obs.compute_photon_flux(beamlets)
+                self.assertEqual(flux.shape, (2, self.INPUT_DETECTOR_NUMBER), msg='One row per beamlet is expected.')
+                numpy.testing.assert_array_equal(flux[0], flux[1], err_msg='Identical beamlets are expected to give '
+                                                                           'identical flux.')
+
+    def test_sequence_of_one(self):
+        _, flux = self.obs.compute_photon_flux([self.beamlet])
+        self.assertEqual(flux.shape, (1, self.INPUT_DETECTOR_NUMBER),
+                         msg='A sequence of one beamlet is expected to keep the beamlet dimension.')
+
+    def test_matches_integrated_emission(self):
+        _, flux = self.obs.compute_photon_flux(self.beamlet)
+        emission = self.beamlet.profiles[self.DEFAULT[3]].to_numpy()
+        expected = Obs1D._integrate_over_detectors(self.GRID, emission, self.obs.detector_ranges)
+        numpy.testing.assert_array_equal(flux, expected, err_msg='Photon flux is expected to be the integrated '
+                                                                 'emission of the beamlet over the detector ranges.')
+
+    def test_species_default(self):
+        _, flux = self.obs.compute_photon_flux(self.beamlet)
+        explicit = Obs1D(self.POSITIONS, from_level=self.DEFAULT[0], to_level=self.DEFAULT[1])
+        _, flux_explicit = explicit.compute_photon_flux(self.beamlet)
+        numpy.testing.assert_array_equal(flux, flux_explicit,
+                                         err_msg='Species default transition is expected without class defaults.')
+
+    def test_call_override(self):
+        _, flux_default = self.obs.compute_photon_flux(self.beamlet)
+        _, flux_override = self.obs.compute_photon_flux(self.beamlet, *self.INPUT_OVERRIDE)
+        instance = Obs1D(self.POSITIONS, from_level=self.INPUT_OVERRIDE[0], to_level=self.INPUT_OVERRIDE[1])
+        _, flux_instance = instance.compute_photon_flux(self.beamlet)
+        numpy.testing.assert_array_equal(flux_override, flux_instance,
+                                         err_msg='Call override and class default are expected to give equal flux.')
+        self.assertFalse(numpy.array_equal(flux_override, flux_default),
+                         msg='A different transition is expected to give a different flux.')
+        self.assertIsNone(self.obs.from_level, msg='A call override is not expected to change class defaults.')
+
+    def test_emission_added_to_beamlet(self):
+        label = self.INPUT_OVERRIDE[0] + '-->' + self.INPUT_OVERRIDE[1]
+        self.obs.compute_photon_flux(self.beamlet, *self.INPUT_OVERRIDE)
+        self.assertIn(label, self.beamlet.profiles, msg='Computed emission is expected in the beamlet profiles.')
+
+    def test_store_off(self):
+        self.obs.compute_photon_flux(self.beamlet)
+        for attribute in ('photon_flux', 'observed_transitions'):
+            with self.subTest(attribute=attribute):
+                self.assertFalse(hasattr(self.obs, attribute), msg='Nothing is expected to be stored by default.')
+
+    def test_store_on(self):
+        _, flux = self.obs.compute_photon_flux(self.beamlet, store=True)
+        numpy.testing.assert_array_equal(self.obs.photon_flux, flux, err_msg='Returned flux is expected stored.')
+        self.assertEqual(self.obs.observed_transitions, [self.DEFAULT[3]], msg='Transition label is expected stored.')
+        _, flux = self.obs.compute_photon_flux(self.beamlet, *self.INPUT_OVERRIDE, store=True)
+        numpy.testing.assert_array_equal(self.obs.photon_flux, flux, err_msg='Stored flux is expected overwritten.')
+        self.assertEqual(self.obs.observed_transitions, [self.INPUT_OVERRIDE[0] + '-->' + self.INPUT_OVERRIDE[1]],
+                         msg='Stored transition label is expected overwritten.')
+
+    def test_outside_grid(self):
+        obs = Obs1D([self.POSITIONS[0], self.GRID[-1]], (self.POSITIONS[1] - self.POSITIONS[0]) / 2.)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            _, flux = obs.compute_photon_flux(self.beamlet)
+        self.assertTrue(numpy.isfinite(flux[0]) and numpy.isnan(flux[1]),
+                        msg='Only the detector beyond the grid is expected to be NaN.')
+        self.assertEqual(len(caught), 1, msg='Exactly one warning is expected.')
+
+    def test_errors(self):
+        cases = [('single level override', ValueError, lambda: self.obs.compute_photon_flux(self.beamlet, '3p')),
+                 ('reversed transition', RenateNotValidTransitionError,
+                  lambda: self.obs.compute_photon_flux(self.beamlet, *self.INPUT_REVERSED)),
+                 ('unsolved beamlet', RuntimeError,
+                  lambda: self.obs.compute_photon_flux(Beamlet(solver='disregard')))]
+        for name, error, call in cases:
+            with self.subTest(case=name):
+                with self.assertRaises(error, msg='<' + name + '> is expected to raise ' + error.__name__ + '.'):
+                    call()
 
 
 if __name__ == '__main__':
