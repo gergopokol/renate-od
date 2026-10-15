@@ -344,18 +344,38 @@ class Obs1DPhotonFluxTest(unittest.TestCase):
 
     def test_store_off(self):
         self.obs.compute_photon_flux(self.beamlet)
-        for attribute in ('photon_flux', 'observed_transitions'):
+        for attribute in ('photon_flux', 'observed_transitions', 'observed_beamlets'):
             with self.subTest(attribute=attribute):
                 self.assertFalse(hasattr(self.obs, attribute), msg='Nothing is expected to be stored by default.')
 
     def test_store_on(self):
+        source = self._beamlet_source(self.beamlet)
         _, flux = self.obs.compute_photon_flux(self.beamlet, store=True)
         numpy.testing.assert_array_equal(self.obs.photon_flux, flux, err_msg='Returned flux is expected stored.')
         self.assertEqual(self.obs.observed_transitions, [self.DEFAULT[3]], msg='Transition label is expected stored.')
+        self.assertEqual(self.obs.observed_beamlets, [source], msg='Beamlet source is expected stored.')
         _, flux = self.obs.compute_photon_flux(self.beamlet, *self.INPUT_OVERRIDE, store=True)
         numpy.testing.assert_array_equal(self.obs.photon_flux, flux, err_msg='Stored flux is expected overwritten.')
         self.assertEqual(self.obs.observed_transitions, [self.INPUT_OVERRIDE[0] + '-->' + self.INPUT_OVERRIDE[1]],
                          msg='Stored transition label is expected overwritten.')
+        self.assertEqual(self.obs.observed_beamlets, [source], msg='Stored beamlet source is expected overwritten.')
+
+    def test_store_beamlet_sequence(self):
+        source = self._beamlet_source(self.beamlet)
+        self.obs.compute_photon_flux([self.beamlet, self.beamlet], store=True)
+        self.assertEqual(self.obs.observed_beamlets, [source, source],
+                         msg='One beamlet source per beamlet is expected stored in order.')
+
+    def test_store_missing_beamlet_source(self):
+        body = self.beamlet.param.getroot().find('body')
+        body.remove(body.find('beamlet_source'))
+        _, flux = self.obs.compute_photon_flux(self.beamlet, store=True)
+        self.assertEqual(self.obs.observed_beamlets, [None], msg='A missing beamlet source is expected as None.')
+        self.assertTrue(numpy.all(numpy.isfinite(flux)), msg='Photon flux is expected without beamlet source.')
+
+    @staticmethod
+    def _beamlet_source(beamlet):
+        return beamlet.param.getroot().find('body').find('beamlet_source').text
 
     def test_outside_grid(self):
         obs = Obs1D([self.POSITIONS[0], self.GRID[-1]], (self.POSITIONS[1] - self.POSITIONS[0]) / 2.)
