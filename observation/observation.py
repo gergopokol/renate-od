@@ -75,6 +75,16 @@ class Obs1d:
         grid = beamlet.profiles[('beamlet grid', 'distance', 'm')].to_numpy()
         return grid, emission
 
+    @staticmethod
+    def _integrate_over_detectors(grid, emission, detector_ranges):
+        steps = numpy.diff(grid)
+        slopes = numpy.diff(emission) / steps
+        cumulative = numpy.concatenate(([0.], numpy.cumsum((emission[1:] + emission[:-1]) / 2. * steps)))
+        index = numpy.clip(numpy.searchsorted(grid, detector_ranges, side='right') - 1, 0, grid.size - 2)
+        offset = detector_ranges - grid[index]
+        integral = cumulative[index] + offset * (emission[index] + slopes[index] * offset / 2.)
+        return integral[:, 1] - integral[:, 0]
+
     def calculate_photon_emission_profile(self, interpolate=False):
         if interpolate:
             new_resolution = int((max(self.beamlet.profiles['beamlet grid']['distance']['m']) -
