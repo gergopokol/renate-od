@@ -136,7 +136,8 @@ class Obs1DTransitionTest(unittest.TestCase):
                                  msg='Transition label is expected in the <from>--><to> format.')
 
     def test_override_keeps_instance_default(self):
-        obs = Obs1D(self.INPUT_POSITIONS, *self.INPUT_INSTANCE_DEFAULT)
+        obs = Obs1D(self.INPUT_POSITIONS, from_level=self.INPUT_INSTANCE_DEFAULT[0],
+                    to_level=self.INPUT_INSTANCE_DEFAULT[1])
         obs._resolve_transition(self.beamlet, *self.INPUT_CALL_OVERRIDE)
         self.assertEqual((obs.from_level, obs.to_level), self.INPUT_INSTANCE_DEFAULT,
                          msg='A call override is not expected to change the instance default transition.')
