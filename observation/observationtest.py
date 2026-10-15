@@ -1,5 +1,6 @@
 import unittest
 import numpy
+import pandas
 from observation.observation import Obs1D
 
 
@@ -11,8 +12,21 @@ class _StubAtomicDB:
 
 
 class _StubBeamlet:
-    def __init__(self):
+    GRID = [0., 0.5, 1.]
+    EMISSION = [1., 3., 2.]
+
+    def __init__(self, emission_stored=False, solved=True):
         self.atomic_db = _StubAtomicDB()
+        self.solved = solved
+        self.compute_calls = []
+        self.profiles = pandas.DataFrame({('beamlet grid', 'distance', 'm'): self.GRID})
+        if emission_stored:
+            self.profiles[('9x-->8x', '', '')] = self.EMISSION
+
+    def compute_linear_emission_density(self, to_level=None, from_level=None):
+        self.compute_calls.append({'from_level': from_level, 'to_level': to_level})
+        if self.solved:
+            self.profiles[(from_level + '-->' + to_level, '', '')] = self.EMISSION
 
 
 class Obs1DInitTest(unittest.TestCase):
@@ -136,7 +150,36 @@ class Obs1DTransitionTest(unittest.TestCase):
 
 
 class Obs1DEmissionDensityTest(unittest.TestCase):
-    pass
+    INPUT_TRANSITION = ('9x', '8x', '9x-->8x')
+    EXPECTED_COMPUTE_CALL = {'from_level': '9x', 'to_level': '8x'}
+
+    def test_stored_emission_reused(self):
+        beamlet = _StubBeamlet(emission_stored=True)
+        _, emission = Obs1D._get_linear_emission_density(beamlet, *self.INPUT_TRANSITION)
+        self.assertEqual(beamlet.compute_calls, [], msg='Stored emission is not expected to be recomputed.')
+        numpy.testing.assert_array_equal(emission, _StubBeamlet.EMISSION,
+                                         err_msg='Stored emission is expected to be returned.')
+
+    def test_missing_emission_computed(self):
+        beamlet = _StubBeamlet()
+        _, emission = Obs1D._get_linear_emission_density(beamlet, *self.INPUT_TRANSITION)
+        self.assertEqual(beamlet.compute_calls, [self.EXPECTED_COMPUTE_CALL],
+                         msg='Missing emission is expected to be computed once with matching levels.')
+        numpy.testing.assert_array_equal(emission, _StubBeamlet.EMISSION,
+                                         err_msg='Computed emission is expected to be returned.')
+
+    def test_unsolved_beamlet(self):
+        with self.assertRaises(RuntimeError, msg='Unsolved beamlet is expected to raise RuntimeError.'):
+            Obs1D._get_linear_emission_density(_StubBeamlet(solved=False), *self.INPUT_TRANSITION)
+
+    def test_return_types(self):
+        grid, emission = Obs1D._get_linear_emission_density(_StubBeamlet(emission_stored=True),
+                                                            *self.INPUT_TRANSITION)
+        for name, value, reference in (('grid', grid, _StubBeamlet.GRID),
+                                       ('emission', emission, _StubBeamlet.EMISSION)):
+            with self.subTest(output=name):
+                self.assertIsInstance(value, numpy.ndarray, msg='<' + name + '> is expected as numpy array.')
+                numpy.testing.assert_array_equal(value, reference, err_msg='<' + name + '> is returned incorrectly.')
 
 
 class Obs1DIntegratorTest(unittest.TestCase):
